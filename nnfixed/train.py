@@ -97,5 +97,5 @@ for n in range(num_epochs):
         print("Saving epoch {0} to {1}".format(n, savename))
         model.save_weights(savename, overwrite=True)
 
-savename='%s_%s_complete.h5'%(args.weight_filename, timestring)
+savename='%s_%s_complete.h5'%(args.weight_filename, time_string)
 model.save_weights(savename, overwrite=True)
