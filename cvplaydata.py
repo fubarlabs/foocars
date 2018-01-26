@@ -39,7 +39,8 @@ for imagefile, ctlfile in zip(sorted(imagefiles), sorted(ctlfiles)):
   print(ctlfile)
   images=np.load(imagefile)['arr_0']
   ctldata=np.load(ctlfile)['arr_0']
-  steer=np.trim_zeros(ctldata[:, 0], trim='b')
+  #steer=np.trim_zeros(ctldata[:, 0], trim='b')
+  steer=ctldata[:, 0]
   for im, steerval in zip(images, steer):
   #for im in images:
     im=im[0:78, :]

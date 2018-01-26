@@ -98,21 +98,21 @@ class DataCollector(object):
 		path = '/home/pi/autonomous/data/collected_data'
 		
 		while( not_done_searching_for_a_free_folder ):
-			path_with_index = path + str( folder_index )
+			self.path_with_index = path + str( folder_index )
 			
-			if( os.path.exists( path_with_index )):
-				logging.debug( path_with_index + ' already exists on USB drive' )
+			if( os.path.exists( self.path_with_index )):
+				logging.debug( self.path_with_index + ' already exists on USB drive' )
 				folder_index = folder_index + 1
 				if( folder_index > folder_index_limit ):
 					raise Exception( 'data folder index on USB drive exceeds limit' )
 			else:
 				not_done_searching_for_a_free_folder = False
 				
-		os.makedirs( path_with_index )				
-		logging.debug( 'collected data path = ' + path_with_index )
-		self.img_file = path_with_index + '/imgs_{0}'.format(nowtime.strftime(time_format))
-		self.IMUdata_file = path_with_index + '/IMU_{0}'.format(nowtime.strftime(time_format))
-		self.RCcommands_file = path_with_index + '/commands_{0}'.format(nowtime.strftime(time_format))
+		os.makedirs( self.path_with_index )				
+		logging.debug( 'collected data path = ' + self.path_with_index )
+		self.img_file = self.path_with_index + '/imgs_{0}'.format(nowtime.strftime(time_format))
+		self.IMUdata_file = self.path_with_index + '/IMU_{0}'.format(nowtime.strftime(time_format))
+		self.RCcommands_file = self.path_with_index + '/commands_{0}'.format(nowtime.strftime(time_format))
 
 	def write(self, s):
 		'''this is the function that is called every time the PiCamera has a new frame'''
@@ -157,9 +157,9 @@ class DataCollector(object):
 		np.savez(self.RCcommands_file, self.RCcommands)
 		#this new image file name is for the next chunk of data, which starts recording now
 		nowtime=datetime.datetime.now()
-		self.img_file='/home/pi/autonomous/data/imgs_{0}'.format(nowtime.strftime(time_format))
-		self.IMUdata_file='/home/pi/autonomous/data/IMU_{0}'.format(nowtime.strftime(time_format))
-		self.RCcommands_file='/home/pi/autonomous/data/commands_{0}'.format(nowtime.strftime(time_format))
+		self.img_file = self.path_with_index + '/imgs_{0}'.format(nowtime.strftime(time_format))
+		self.IMUdata_file = self.path_with_index + '/IMU_{0}'.format(nowtime.strftime(time_format))
+		self.RCcommands_file = self.path_with_index + '/commands_{0}'.format(nowtime.strftime(time_format))
 		self.imgs[:]=0
 		self.IMUdata[:]=0
 		self.RCcommands[:]=0
