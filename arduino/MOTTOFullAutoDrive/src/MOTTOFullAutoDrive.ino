@@ -1,4 +1,6 @@
 #include <Arduino.h>
+#include <Wire.h>
+
 //#include <SoftPWMServo.h>
 #include <Servo.h>
 
@@ -198,9 +200,13 @@ void doAutoCommands() {
         Serial.printf("str: %d, thr: %d, time: %lu\n", str, thr, time);
       }
       // do commands
-
-      ServoSTR.writeMicroseconds(str);
-      ServoTHR.writeMicroseconds(thr);
+      if (auton == 1) {
+        ServoSTR.writeMicroseconds(str);
+        ServoTHR.writeMicroseconds(thr);
+      }
+      else {
+       // set servo from the rc here
+      }
       if (DEBUG_SERIAL) {
 	      //Serial.printf("DONE COMMANDS: %lu, %lu\n", str, thr);
       }
