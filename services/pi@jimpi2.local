@@ -13,22 +13,14 @@ import RPi.GPIO as GPIO
 import subprocess  
 from subprocess import call
 import shutil
-# import cv2
+import cv2
 import threading
 import tensorflow as tf
 import keras
 
-from testmodel import model
-
 import logging
-#logging.basicConfig(filename='/tmp/ottoMicroLogger.log',level=logging.DEBUG)
-#logging.debug( '\n\n new session \n' )
-
-
-print( 'setting up model ')
-
-while( 1 ):
-	pass
+logging.basicConfig(filename='/tmp/ottoMicroLogger.log',level=logging.DEBUG)
+logging.debug( '\n\n new session \n' )
 
 # -------- New Power On/Off functionality --------- 
 
