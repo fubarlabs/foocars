@@ -105,13 +105,6 @@ void setup() {
 	pinMode(PIN_IN_STR, INPUT);
 	pinMode(PIN_IN_THR, INPUT);
 	
-//   No PIN_AUTO_BTN to fubarino on micro car		
-//	pinMode(PIN_AUTO_BTN, INPUT);
-
-//   No LED1 to fubarino on micro car	
-//	pinMode(PIN_LED1, OUTPUT);
-//	digitalWrite(PIN_LED1, LOW);
-
 	ServoSTR.attach(PIN_STR);
 	ServoTHR.attach(PIN_THR);
 
@@ -155,13 +148,13 @@ void doAutoCommands() {
 	cmdBuf[size] = 0;
 	
 	// strtok splits a C string into substrings, based on a separator character
-	char *command = strtok(cmdBuf, ",");
+	char *command = strtok(cmdBuf, ",");	//  get the first substring
 	for(int i=0; i<size; i++){
-		Serial.print(cmdBuf[i]);
+		Serial.print(cmdBuf[i]);	// echo the input string back to the pi
 	}
 
-	// loop through the array of tokens, exiting when the null byte is reached
-	//	at the end of each pass strtok gets the next token
+	// loop through the substrings, exiting when the null byte is reached
+	//	at the end of each pass strtok gets the next substring
 		
 	while (command != 0) {		
 		switch (cmd_cnt) {
@@ -206,8 +199,8 @@ void doAutoCommands() {
 			return; // return if there are too many commands or non matching
 		}
     
-    		// Get the next token in the input string
-    		// changing the first argument from cmdBuf to 0 is the procedure for subsequent strkok calls
+    		// Get the next substring from the input string
+    		// changing the first argument from cmdBuf to 0 is the strtok method for subsequent calls
 		command = strtok(0, ",");
 		cmd_cnt++;
 
@@ -235,23 +228,13 @@ void doAutoCommands() {
 
 void doAction() {
 
+	const unsigned long STR_MIN = 1200;
+	const unsigned long STR_MAX = 1800;
+	const unsigned long THR_MIN = 1250;
+	const unsigned long THR_MAX = 1650;
+	
 	unsigned long STR_VAL = pulseIn(PIN_IN_STR, HIGH, 25000); // Read pulse width of
 	unsigned long THR_VAL = pulseIn(PIN_IN_THR, HIGH, 25000); // each channel
-
-//	// check if auto on
-//	if (digitalRead(PIN_AUTO_BTN) == true) {
-//		// Turn on when auto
-//		digitalWrite(PIN_LED1, HIGH);
-//		if (DEBUG_SERIAL) {
-//			Serial.println("FULL AUTO");
-//		}
-//		// auto mode is on
-//		// Check if command waiting
-//		if (Serial.available() > 0) {
-//			doAutoCommands();
-//		}
-//		return;
-//	} else if (STR_VAL == 0) // if no str data stop
 
 	if (STR_VAL == 0) // if no str data stop
 	{												// Turn off when not in auto
@@ -267,6 +250,19 @@ void doAction() {
 		ServoTHR.writeMicroseconds(1500);
 		
 	} else {
+
+		if( STR_VAL > STR_MAX )
+			STR_VAL = STR_MAX;
+
+		else if( STR_VAL < STR_MIN )
+			STR_VAL = STR_MIN;
+
+		if( THR_VAL > THR_MAX )
+			THR_VAL = THR_MAX;
+
+		else if( THR_VAL < THR_MIN )
+			THR_VAL = THR_MIN;
+
 		Serial.flush();
 		ServoSTR.writeMicroseconds(STR_VAL);
 		ServoTHR.writeMicroseconds(THR_VAL);
