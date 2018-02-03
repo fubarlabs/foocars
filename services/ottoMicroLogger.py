@@ -18,17 +18,13 @@ import threading
 import tensorflow as tf
 import keras
 
-from testmodel import model
+from dropout_model import model
 
 import logging
-#logging.basicConfig(filename='/tmp/ottoMicroLogger.log',level=logging.DEBUG)
-#logging.debug( '\n\n new session \n' )
+logging.basicConfig(filename='/tmp/ottoMicroLogger.log',level=logging.DEBUG)
+logging.debug( '\n\n new session \n' )
+logging.debug( 'setting up model ')
 
-
-print( 'setting up model ')
-
-while( 1 ):
-	pass
 
 # -------- New Power On/Off functionality --------- 
 
