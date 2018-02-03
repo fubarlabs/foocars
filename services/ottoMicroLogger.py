@@ -13,13 +13,18 @@ import RPi.GPIO as GPIO
 import subprocess  
 from subprocess import call
 import shutil
+# import cv2
+import threading
+import tensorflow as tf
+import keras
+
+from dropout_model import model
 
 import logging
 logging.basicConfig(filename='/tmp/ottoMicroLogger.log',level=logging.DEBUG)
 logging.debug( '\n\n new session \n' )
+logging.debug( 'setting up model ')
 
-# for call USB stick functions
-# import ottoUSBdriveFunctions as USBfunct
 
 # -------- New Power On/Off functionality --------- 
 
@@ -76,7 +81,7 @@ try:
 except Exception as the_bad_news:				
 	handle_exception( the_bad_news ) 
 	
-
+	
 # -------------- Data Collector Object -------------------------------  
 
 NUM_FRAMES = 100
@@ -89,8 +94,10 @@ class DataCollector(object):
 		self.IMUdata=np.zeros((NUM_FRAMES, 7), dtype=np.float32) #we put the imu data in here
 		self.RCcommands=np.zeros((NUM_FRAMES, 2), dtype=np.float16) #we put the RC data in here
 		self.idx=0 # this is the variable to keep track of number of frames per datafile
+		
+		self.debugSerialInput = ""	# save last serial input so we can print it out 
+		
 		nowtime=datetime.datetime.now()
-
 		
 		not_done_searching_for_a_free_folder = True
 		folder_index = 0
@@ -98,57 +105,94 @@ class DataCollector(object):
 		path = '/home/pi/autonomous/data/collected_data'
 		
 		while( not_done_searching_for_a_free_folder ):
-			path_with_index = path + str( folder_index )
+			self.path_with_index = path + str( folder_index )
 			
-			if( os.path.exists( path_with_index )):
-				logging.debug( path_with_index + ' already exists on USB drive' )
+			if( os.path.exists( self.path_with_index )):
+				logging.debug( self.path_with_index + ' already exists on USB drive' )
 				folder_index = folder_index + 1
 				if( folder_index > folder_index_limit ):
 					raise Exception( 'data folder index on USB drive exceeds limit' )
 			else:
 				not_done_searching_for_a_free_folder = False
 				
-		os.makedirs( path_with_index )				
-		logging.debug( 'collected data path = ' + path_with_index )
-		self.img_file = path_with_index + '/imgs_{0}'.format(nowtime.strftime(time_format))
-		self.IMUdata_file = path_with_index + '/IMU_{0}'.format(nowtime.strftime(time_format))
-		self.RCcommands_file = path_with_index + '/commands_{0}'.format(nowtime.strftime(time_format))
+		os.makedirs( self.path_with_index )				
+		logging.debug( 'collected data path = ' + self.path_with_index )
+		self.img_file = self.path_with_index + '/imgs_{0}'.format(nowtime.strftime(time_format))
+		self.IMUdata_file = self.path_with_index + '/IMU_{0}'.format(nowtime.strftime(time_format))
+		self.RCcommands_file = self.path_with_index + '/commands_{0}'.format(nowtime.strftime(time_format))
 
 	def write(self, s):
 		'''this is the function that is called every time the PiCamera has a new frame'''
 		imdata=np.reshape(np.fromstring(s, dtype=np.uint8), (96, 128, 3), 'C')
-		#now we read from the serial port and format and save the data:
+		
+		#	now we read from the serial port and format and save the data:
+		#	  There are a few problems that can arise if the serial buffer happens to be flushed in the midst of receiving a line:
+		#	   1- the serial line received can be only partially received
+		#	   2- the number of data items in that partial line is less than the required number
+		#	   3- the number of items is correct, but one of data items is not whole and cannot be converted into a float
+		#	  So, if any of those errors are detected, the line is discarded and the next line received is tested
+				
 		try:
-			ser.flushInput()
-			datainput=ser.readline()
-			data=list(map(float,str(datainput,'ascii').split(','))) #formats line of data into array
+			number_of_serial_items = 0
+			required_number_of_data_items = 9
+			serial_input_is_OK = False
+			data = []
+						
+			while( serial_input_is_OK == False ):
+				ser.flushInput()
+				serial_line_received = ser.readline()
+				raw_serial_list = list( str(serial_line_received,'ascii').split(',')) 
+				number_of_serial_items = len( raw_serial_list )
+				line_not_checked = True
+				
+				while( line_not_checked ):
+					if( number_of_serial_items == required_number_of_data_items ):
+					
+						no_conversion_errors = True
+						for i in range( 0, required_number_of_data_items ):
+							try:
+								data.append( float( raw_serial_list[ i ]))
+							except ValueError:
+								no_conversion_errors = False
+								logging.debug( 'error converting to float = ' + str( raw_serial_list[ i ]))
+							
+							if( no_conversion_errors ):
+								serial_input_is_OK = True							
+							line_not_checked = False
+											
+					else:		# first test of received line fails 
+						line_not_checked = False
+						logging.debug( 'serial input error: # data items = ' + str( number_of_serial_items  ))
+								
+			self.debugSerialInput = serial_line_received
+			
 #			logging.debug( data )
 #			logging.debug( 'got cereal\n' )
+			
+			#Note: the data from the IMU requires some processing which does not happen here:
+			self.imgs[self.idx]=imdata
+			accelData=np.array([data[0], data[1], data[2]], dtype=np.float32)
+			gyroData=np.array([data[3], data[4], data[5]], )
+			datatime=np.array([int(data[6])], dtype=np.float32)
+			steer_command=int(data[7])
+			gas_command=int(data[8])
+			self.IMUdata[self.idx]=np.concatenate((accelData, gyroData, datatime))
+			self.RCcommands[self.idx]=np.array([steer_command, gas_command])
+			self.idx+=1
+			
+			if ((self.idx % 20 ) == 0 ): 	# blink the LED everytime 20 frames are recorded
+				turn_OFF_LED( LED_collect_data )
+				time.sleep( .2)
+				turn_ON_LED( LED_collect_data )
 
-		except:
-			raise Exception( 11, 'exception in data collection write' )
-			return 
+			if self.idx == NUM_FRAMES: #default value is 100, unless user specifies otherwise
+				self.flush()  
 			
-		#Note: the data from the IMU requires some processing which does not happen here:
-		self.imgs[self.idx]=imdata
-		accelData=np.array([data[0], data[1], data[2]], dtype=np.float32)
-		gyroData=np.array([data[3], data[4], data[5]], )
-		datatime=np.array([int(data[6])], dtype=np.float32)
-		steer_command=int(data[7])
-		gas_command=int(data[8])
-		self.IMUdata[self.idx]=np.concatenate((accelData, gyroData, datatime))
-		self.RCcommands[self.idx]=np.array([steer_command, gas_command])
-		self.idx+=1
-			
-		if ((self.idx % 20 ) == 0 ): 	# blink the LED everytime 20 frames are recorded
-			turn_OFF_LED( LED_collect_data )
-			time.sleep( .2)
-			turn_ON_LED( LED_collect_data )
-
-		if self.idx == NUM_FRAMES: #default value is 100, unless user specifies otherwise
-			self.idx=0
-			self.flush()  
-			
+		except Exception as the_bad_news:				
+			handle_exception( the_bad_news )
+			logging.debug( 'self.idx = ' + str( self.idx ))
+			logging.debug( datainput )
+			logging.debug( 'Error: exception in data collection write' )
 
 	def flush(self):
 		'''this function is called every time the PiCamera stops recording'''
@@ -157,13 +201,14 @@ class DataCollector(object):
 		np.savez(self.RCcommands_file, self.RCcommands)
 		#this new image file name is for the next chunk of data, which starts recording now
 		nowtime=datetime.datetime.now()
-		self.img_file='/home/pi/autonomous/data/imgs_{0}'.format(nowtime.strftime(time_format))
-		self.IMUdata_file='/home/pi/autonomous/data/IMU_{0}'.format(nowtime.strftime(time_format))
-		self.RCcommands_file='/home/pi/autonomous/data/commands_{0}'.format(nowtime.strftime(time_format))
+		self.img_file = self.path_with_index + '/imgs_{0}'.format(nowtime.strftime(time_format))
+		self.IMUdata_file = self.path_with_index + '/IMU_{0}'.format(nowtime.strftime(time_format))
+		self.RCcommands_file = self.path_with_index + '/commands_{0}'.format(nowtime.strftime(time_format))
 		self.imgs[:]=0
 		self.IMUdata[:]=0
 		self.RCcommands[:]=0
-		logging.debug( 'OK: camera flush')
+		logging.debug( 'OK: camera flush, frame index = ' + str( self.idx ))
+		self.idx=0
 		
 		
 		
@@ -229,16 +274,17 @@ def turn_OFF_LED( which_LED ):
 	
 
 
-def at_least_one_switch_is_up():
-	if(( GPIO.input( SWITCH_save_to_USBdrive ) == SWITCH_UP ) or ( GPIO.input( SWITCH_autonomous ) == SWITCH_UP )
-			or ( GPIO.input( SWITCH_read_from_USBdrive ) == SWITCH_UP ) or ( GPIO.input( SWITCH_shutdown_RPi ) == SWITCH_UP )
-			or ( GPIO.input( SWITCH_collect_data ) == SWITCH_UP )):	
+def at_least_one_momentary_switch_is_up():
+	if(( GPIO.input( SWITCH_save_to_USBdrive ) == SWITCH_UP ) or ( GPIO.input( SWITCH_read_from_USBdrive ) == SWITCH_UP ) 
+			or ( GPIO.input( SWITCH_shutdown_RPi ) == SWITCH_UP )):	
 		return True
 	else:
 		return False
 		
 def all_switches_are_down():
-	if( at_least_one_switch_is_up()):
+	if(( GPIO.input( SWITCH_save_to_USBdrive ) == SWITCH_UP ) or ( GPIO.input( SWITCH_autonomous ) == SWITCH_UP )
+			or ( GPIO.input( SWITCH_read_from_USBdrive ) == SWITCH_UP ) or ( GPIO.input( SWITCH_shutdown_RPi ) == SWITCH_UP )
+			or ( GPIO.input( SWITCH_collect_data ) == SWITCH_UP )):
 		return False
 	else:
 		return True
@@ -275,7 +321,7 @@ def handle_exception( the_bad_news ):
 			error_number = 31
 			
 		while( error_not_cleared ):	
-			if( at_least_one_switch_is_up()):	# holding any switch up for long enough will clear error
+			if( at_least_one_momentary_switch_is_up()):	# holding any momentary switch up for long enough will clear error
 				switch_on_count = switch_on_count - 1
 				if( switch_on_count <= 0 ):
 					error_not_cleared = False			
@@ -318,7 +364,8 @@ def callback_switch_collect_data( channel ):
 	if( GPIO.input( SWITCH_collect_data ) == SWITCH_UP ):
 		if( g_Camera_Is_Recording == False ):
 			try:
-				turn_ON_LED( LED_collect_data )					
+				turn_ON_LED( LED_collect_data )
+				g_collector.idx = 0		# just in case it wasn't zeroed by flush routine				
 				g_camera.start_recording( g_collector, format='rgb' )
 				g_Camera_Is_Recording = True
 				logging.debug( '* camera is recording' )
@@ -333,7 +380,7 @@ def callback_switch_collect_data( channel ):
 		
 	else:	# a collect data switch down position has occurred		
 		if( g_Camera_Is_Recording == True ):
-			logging.debug( '* recording and now switch is down' )
+			logging.debug( '* recording switch is now down' )
 			try:
 				if ( g_Wants_To_See_Video ):
 					g_camera.stop_preview()
@@ -348,7 +395,7 @@ def callback_switch_collect_data( channel ):
 				g_Camera_Is_Recording = False
 				g_Recorded_Data_Not_Saved = True
 				turn_OFF_LED( LED_collect_data )
-				logging.debug( 'exiting collect data' )
+				logging.debug( 'exiting collect data\n' )
 
 		else:
 			#	this should not happen
@@ -391,8 +438,8 @@ def callback_switch_save_to_USBdrive( channel ):
 			call ( 'umount /mnt/usbdrive', shell=True )
 			logging.debug( 'OK: USB drive unmounted' )
 			logging.debug( 'OK: data saved to USB' )
-				
-													
+			g_Recorded_Data_Not_Saved = False
+																	
 		except Exception as the_bad_news:				
 			handle_exception( the_bad_news )
 			logging.debug( 'NG: data NOT saved to USB' )
@@ -625,10 +672,10 @@ GPIO.setup( OUTPUT_to_relay, GPIO.OUT )
 # setup callback routines for switch falling edge detection  
 #	NOTE: because of a RPi bug, sometimes a rising edge will also trigger these routines!
 GPIO.add_event_detect( SWITCH_save_to_USBdrive, GPIO.FALLING, callback=callback_switch_save_to_USBdrive, bouncetime=50 )  
-GPIO.add_event_detect( SWITCH_autonomous, GPIO.BOTH, callback=callback_switch_autonomous, bouncetime=50 )  
+GPIO.add_event_detect( SWITCH_autonomous, GPIO.BOTH, callback=callback_switch_autonomous, bouncetime=100 )  
 GPIO.add_event_detect( SWITCH_read_from_USBdrive, GPIO.FALLING, callback=callback_switch_read_from_USBdrive, bouncetime=50 )  
 GPIO.add_event_detect( SWITCH_shutdown_RPi, GPIO.FALLING, callback=callback_switch_shutdown_RPi, bouncetime=50 )  
-GPIO.add_event_detect( SWITCH_collect_data, GPIO.BOTH, callback=callback_switch_collect_data, bouncetime=50 ) 
+GPIO.add_event_detect( SWITCH_collect_data, GPIO.BOTH, callback=callback_switch_collect_data, bouncetime=200 ) 
 
 initialize_RPi_Stuff()
 	

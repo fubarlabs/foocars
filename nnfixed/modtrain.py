@@ -28,7 +28,8 @@ print(len(ctlfiles))
 steer=np.array([])
 for ctlfile in sorted(ctlfiles):
   ctldata=np.load(ctlfile)['arr_0']
-  steer=np.concatenate((steer, np.trim_zeros(ctldata[:, 0], trim='b')), axis=0)
+  #steer=np.concatenate((steer, np.trim_zeros(ctldata[:, 0], trim='b')), axis=0)
+  steer=np.concatenate((steer, ctldata[:, 0]))
 '''
 smSteer=np.zeros(steer.shape)
 for i in np.arange(4, len(steer)-5):
