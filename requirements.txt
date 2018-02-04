@@ -7,5 +7,6 @@ pillow
 keras
 tflearn
 sklearn
+mock
 
 
