@@ -21,7 +21,12 @@ RUN wget https://github.com/samjabrahams/tensorflow-on-raspberry-pi/releases/dow
 RUN pip3 install  tensorflow-1.1.0-cp34-cp34m-linux_armv7l.whl 
 
 RUN pip3 install mock
+
 RUN pip install platformio
+# Enable pic32 compiler execution
+RUN ln -s /lib/arm-linux-gnueabihf/ld-linux.so.3 /lib/ld-linux.so.3
+
+# TODO: install the platform io pic32 platform and the imu #944 library
 
 RUN pip3 install -r requirements.txt
 
