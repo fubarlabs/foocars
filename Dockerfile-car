@@ -35,6 +35,7 @@ RUN pio lib install 944
 RUN pio run
 RUN pio device list 
 
+WORKDIR autonomous
 RUN pip3 install -r requirements.txt
 
 # Set up the raspberry pi services
