@@ -11,6 +11,14 @@
 #define CMD_THR 2
 #define CMD_TIME 3
 
+enum error_codes{
+	ALL_IS_OK,
+	RC_SIGNAL_WAS_LOST,
+	RC_SIGNALED_STOP_AUTO,
+	SERIAL_FROM_PI_ERROR,
+	PI_STOPPED_AUTO
+};
+
 const int PIN_STR = 9;
 const int PIN_THR = 7;
 const int PIN_IN_STR = 13;
@@ -19,6 +27,7 @@ const int PIN_IN_THR = 12;
 unsigned long last_serial_time;
 unsigned long last_time;
 boolean BLINK = true;
+boolean gIsInAutonomousMode;
 
 // shoot through delay
 int PREV_DIR = LOW;
@@ -106,6 +115,7 @@ void setup() {
 	ServoTHR.attach(PIN_THR);
 
 	initIMU();
+	gIsInAutonomousMode = false;
 }
 
 /*
@@ -127,7 +137,7 @@ void setup() {
 		 OUTPUT the results:
 		 auto, str, thr, millis, ???
 */
-bool checkForSerialDataFromPi() {
+bool handlePiFunction() {
 	// http://arduino.stackexchange.com/questions/1013/how-do-i-split-an-incoming-string
 	int cmd_cnt = 0;
 	
@@ -138,7 +148,7 @@ bool checkForSerialDataFromPi() {
 	int str;
 	int thr;
 	unsigned int time;
-	bool piWantsCarKilled = false
+	bool piWantsCarKilled = false;
 	
 	if (Serial.available() > 0) {		
 		byte size = Serial.readBytes(cmdBuf, MAX_CMD_BUF);
@@ -163,7 +173,7 @@ bool checkForSerialDataFromPi() {
 			case CMD_STR:
 				str = atoi(command);
 				if (str > 2000 || str < 1000) {
-					return;
+					return( SERIAL_FROM_PI_ERROR );
 				}
 				if (DEBUG_SERIAL) {
 					Serial.printf("%d, %d\n", cmd_cnt, str);
@@ -172,7 +182,7 @@ bool checkForSerialDataFromPi() {
 			case CMD_THR:
 				thr = atoi(command);
 				if (thr > 2000 || thr < 1000) {
-					return;
+					return( SERIAL_FROM_PI_ERROR );
 				}
 				if (DEBUG_SERIAL) {
 					Serial.printf("%d, %d\n", cmd_cnt, thr);
@@ -195,7 +205,7 @@ bool checkForSerialDataFromPi() {
 				if (DEBUG_SERIAL) {
 					Serial.println("NOOP");
 				}
-				return; // return if there are too many commands or non matching
+				return( SERIAL_FROM_PI_ERROR ); // return if there are too many commands or non matching
 			}
     
 			// Get the next substring from the input string
@@ -219,91 +229,16 @@ bool checkForSerialDataFromPi() {
 					Serial.printf("DONE COMMANDS: %lu, %lu\n", str, thr);
 				}
 			}
-		}
-		
-		return( piWantsCarKilled )
+		}		
+		return( piWantsCarKilled );
 	}
 }
 
-void doAction() {
-
-	const unsigned long STR_MIN = 1200;
-	const unsigned long STR_MAX = 1800;
-	const unsigned long THR_MIN = 1250;
-	const unsigned long THR_MAX = 1650;
-	
-	unsigned long STR_VAL = pulseIn(PIN_IN_STR, HIGH, 25000); // Read pulse width of
-	unsigned long THR_VAL = pulseIn(PIN_IN_THR, HIGH, 25000); // each channel
-
-	if (STR_VAL == 0) // if no str data stop
-	{												// Turn off when not in auto
-		if (DEBUG_SERIAL) {
-			Serial.printf("Out of Range or Powered Off\n");
-		} // Turn off when not in auto
-
-		// set brake
-		// kill the machine
-		// pick a value that stops the car
-		Serial.flush();
-		ServoSTR.writeMicroseconds(1500);
-		ServoTHR.writeMicroseconds(1500);
-		
-	} else {
-
-		if( STR_VAL > STR_MAX )
-			STR_VAL = STR_MAX;
-
-		else if( STR_VAL < STR_MIN )
-			STR_VAL = STR_MIN;
-
-		if( THR_VAL > THR_MAX )
-			THR_VAL = THR_MAX;
-
-		else if( THR_VAL < THR_MIN )
-			THR_VAL = THR_MIN;
-
-		Serial.flush();
-		ServoSTR.writeMicroseconds(STR_VAL);
-		ServoTHR.writeMicroseconds(THR_VAL);
-		uint8_t Buf[14];
-		I2Cread(MPU9250_ADDRESS,0x3B,14,Buf);
-	
-		// Create 16 bits values from 8 bits data
-		// Accelerometer
-		int16_t ax=-(Buf[0]<<8 | Buf[1]);
-		int16_t ay=-(Buf[2]<<8 | Buf[3]);
-		int16_t az=Buf[4]<<8 | Buf[5];
-
-		// Gyroscope
-		int16_t gx=-(Buf[8]<<8 | Buf[9]);
-		int16_t gy=-(Buf[10]<<8 | Buf[11]);
-		int16_t gz=Buf[12]<<8 | Buf[13];
-		
-		// _____________________
-		// :::	Magnetometer ::: 
-		// Read register Status 1 and wait for the DRDY: Data Ready
-		// I2Cread(MAG_ADDRESS,0x02,1,&ST1);
-		// Read magnetometer data	
-		//uint8_t Mag[7];	
-		//I2Cread(MAG_ADDRESS,0x03,7,Mag);		
-		// Create 16 bits values from 8 bits data 
-		// Magnetometer
-		//int16_t mx=-(Mag[3]<<8 | Mag[2]);
-		//int16_t my=-(Mag[1]<<8 | Mag[0]);
-		//int16_t mz=-(Mag[5]<<8 | Mag[4]);	
-			
-		printData(ax, ay, az, gx, gy, gz, millis(), STR_VAL, THR_VAL);
-	}
-}
-/*
-	 printIMU to serial port
-*/
 void printData(float ax, float ay, float az, float gx, float gy, float gz,
 							 unsigned long time, int str, int thr) {
 	// Serial.printf("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%lu,%d,%d\n",
 	//							ax, ay, az, gx, gy, gz, millis(), str, thr);
 
-	
 	Serial.print(ax);
 	Serial.print(",");
 	Serial.print(ay);
@@ -324,13 +259,106 @@ void printData(float ax, float ay, float az, float gx, float gy, float gz,
 	Serial.println();
 }
 
-void loop() {
+int handleRCfunction( boolean isInAutonomousMode, int *ptr_str_val, int *ptr_thr_val ) {
 
-	doAction();
+	const unsigned long STR_MIN = 1200;
+	const unsigned long STR_MAX = 1800;
+	const unsigned long THR_MIN = 1250;
+	const unsigned long THR_MAX = 1650;
+	int result;
+	
+	unsigned long STR_VAL = pulseIn(PIN_IN_STR, HIGH, 25000); // Read pulse width of
+	unsigned long THR_VAL = pulseIn(PIN_IN_THR, HIGH, 25000); // each channel
 
-	if (Serial.available() > 0) {
-		doAutoCommands();
+	if (STR_VAL == 0) {	// no steering RC signal 											// Turn off when not in auto
+		if (DEBUG_SERIAL) {
+			Serial.printf("Out of Range or Powered Off\n");
+		} 
+		result = RC_SIGNAL_WAS_LOST;
 	}
+		
+	else if ( isInAutonomousMode ) {
+		if( THR_VAL < 1400 ){	// user put it in reverse to turn off autonomous 										// Turn off when not in auto
+			if (DEBUG_SERIAL) {
+				Serial.printf("User wants to halt autonomous\n");
+			} 
+			result = RC_SIGNALED_STOP_AUTO;
+		}
+	} 
+	
+	else {	// clip the RC signals to more car appropriate ones
+		if( STR_VAL > STR_MAX )
+			STR_VAL = STR_MAX;
+
+		else if( STR_VAL < STR_MIN )
+			STR_VAL = STR_MIN;
+
+		if( THR_VAL > THR_MAX )
+			THR_VAL = THR_MAX;
+
+		else if( THR_VAL < THR_MIN )
+			THR_VAL = THR_MIN;
+			
+		result = ALL_IS_OK;
+	}
+
+	Serial.flush();
+	uint8_t Buf[14];
+	I2Cread(MPU9250_ADDRESS,0x3B,14,Buf);
+
+	// Create 16 bits values from 8 bits data
+	// Accelerometer
+	int16_t ax=-(Buf[0]<<8 | Buf[1]);
+	int16_t ay=-(Buf[2]<<8 | Buf[3]);
+	int16_t az=Buf[4]<<8 | Buf[5];
+
+	// Gyroscope
+	int16_t gx=-(Buf[8]<<8 | Buf[9]);
+	int16_t gy=-(Buf[10]<<8 | Buf[11]);
+	int16_t gz=Buf[12]<<8 | Buf[13];
+	
+	// _____________________
+	// :::	Magnetometer ::: 
+	// Read register Status 1 and wait for the DRDY: Data Ready
+	// I2Cread(MAG_ADDRESS,0x02,1,&ST1);
+	// Read magnetometer data	
+	//uint8_t Mag[7];	
+	//I2Cread(MAG_ADDRESS,0x03,7,Mag);		
+	// Create 16 bits values from 8 bits data 
+	// Magnetometer
+	//int16_t mx=-(Mag[3]<<8 | Mag[2]);
+	//int16_t my=-(Mag[1]<<8 | Mag[0]);
+	//int16_t mz=-(Mag[5]<<8 | Mag[4]);	
+		
+	
+	*ptr_thr_val = (int) THR_VAL;
+	*ptr_str_val = (int) STR_VAL;
+	
+	printData(ax, ay, az, gx, gy, gz, millis(), *ptr_str_val, *ptr_thr_val);
+	return( result );
+}
+
+void loop() {
+	
+	int result;
+	int str_val, thr_val;
+	
+	result = handleRCfunction( gIsInAutonomousMode, &str_val, &thr_val );
+	ServoSTR.writeMicroseconds( str_val );
+	ServoTHR.writeMicroseconds( thr_val );
+	
+	if( result == RC_SIGNALED_STOP_AUTO ){
+		gIsInAutonomousMode = false;
+		// tell pi the news, wait for acknowledgement
+	}
+	
+	result = handlePiFunction();
+	
+	if( result == RC_SIGNALED_STOP_AUTO ){
+		gIsInAutonomousMode = false;
+		// acknowledge message received to pi?
+	}
+
 
 	//delay(10);
 }
