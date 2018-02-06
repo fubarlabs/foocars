@@ -16,9 +16,6 @@ const int PIN_THR = 7;
 const int PIN_IN_STR = 13;
 const int PIN_IN_THR = 12;
 
-// No auto button to fubarino on micro car
-// const int PIN_AUTO_BTN = 15;
-
 unsigned long last_serial_time;
 unsigned long last_time;
 boolean BLINK = true;
@@ -130,7 +127,7 @@ void setup() {
 		 OUTPUT the results:
 		 auto, str, thr, millis, ???
 */
-void doAutoCommands() {
+bool checkForSerialDataFromPi() {
 	// http://arduino.stackexchange.com/questions/1013/how-do-i-split-an-incoming-string
 	int cmd_cnt = 0;
 	
@@ -141,89 +138,91 @@ void doAutoCommands() {
 	int str;
 	int thr;
 	unsigned int time;
-			
-	byte size = Serial.readBytes(cmdBuf, MAX_CMD_BUF);
+	bool piWantsCarKilled = false
 	
-	// tack on a null byte to the end of the line
-	cmdBuf[size] = 0;
+	if (Serial.available() > 0) {		
+		byte size = Serial.readBytes(cmdBuf, MAX_CMD_BUF);
 	
-	// strtok splits a C string into substrings, based on a separator character
-	char *command = strtok(cmdBuf, ",");	//  get the first substring
-	for(int i=0; i<size; i++){
-		Serial.print(cmdBuf[i]);	// echo the input string back to the pi
-	}
+		// tack on a null byte to the end of the line
+		cmdBuf[size] = 0;
+	
+		// strtok splits a C string into substrings, based on a separator character
+		char *command = strtok(cmdBuf, ",");	//  get the first substring
+		for(int i=0; i<size; i++){
+			Serial.print(cmdBuf[i]);	// echo the input string back to the pi
+		}
 
-	// loop through the substrings, exiting when the null byte is reached
-	//	at the end of each pass strtok gets the next substring
+		// loop through the substrings, exiting when the null byte is reached
+		//	at the end of each pass strtok gets the next substring
 		
-	while (command != 0) {		
-		switch (cmd_cnt) {
-		case CMD_AUTO:
-			auton = atoi(command);	
-			break;
-		case CMD_STR:
-			str = atoi(command);
-			if (str > 2000 || str < 1000) {
-				return;
-			}
-			if (DEBUG_SERIAL) {
-				Serial.printf("%d, %d\n", cmd_cnt, str);
-			}
-			break;
-		case CMD_THR:
-			thr = atoi(command);
-			if (thr > 2000 || thr < 1000) {
-				return;
-			}
-			if (DEBUG_SERIAL) {
-				Serial.printf("%d, %d\n", cmd_cnt, thr);
-			}
-			break;
-		case CMD_TIME:
-			time = atoi(command);
-				/*
-				Remove time check
-				if (time < last_time) {
-				return;
+		while (command != 0) {		
+			switch (cmd_cnt) {
+			case CMD_AUTO:
+				auton = atoi(command);	
+				break;
+			case CMD_STR:
+				str = atoi(command);
+				if (str > 2000 || str < 1000) {
+					return;
 				}
-				*/
-			last_time = time;
-			if (DEBUG_SERIAL) {
-				Serial.printf("%d, %lu\n", cmd_cnt, time);
-			 }
-			 break;
-		default:
-			if (DEBUG_SERIAL) {
-				Serial.println("NOOP");
+				if (DEBUG_SERIAL) {
+					Serial.printf("%d, %d\n", cmd_cnt, str);
+				}
+				break;
+			case CMD_THR:
+				thr = atoi(command);
+				if (thr > 2000 || thr < 1000) {
+					return;
+				}
+				if (DEBUG_SERIAL) {
+					Serial.printf("%d, %d\n", cmd_cnt, thr);
+				}
+				break;
+			case CMD_TIME:
+				time = atoi(command);
+					/*
+					Remove time check
+					if (time < last_time) {
+					return;
+					}
+					*/
+				last_time = time;
+				if (DEBUG_SERIAL) {
+					Serial.printf("%d, %lu\n", cmd_cnt, time);
+				 }
+				 break;
+			default:
+				if (DEBUG_SERIAL) {
+					Serial.println("NOOP");
+				}
+				return; // return if there are too many commands or non matching
 			}
-			return; // return if there are too many commands or non matching
-		}
     
-    		// Get the next substring from the input string
-    		// changing the first argument from cmdBuf to 0 is the strtok method for subsequent calls
-		command = strtok(0, ",");
-		cmd_cnt++;
+			// Get the next substring from the input string
+			// changing the first argument from cmdBuf to 0 is the strtok method for subsequent calls
+			command = strtok(0, ",");
+			cmd_cnt++;
 
-		if (cmd_cnt == 4) {
-			if (DEBUG_SERIAL) {
-				Serial.printf("str: %d, thr: %d, time: %lu\n", str, thr, time);
-			}
-			// do commands
-			if (auton == 1) {
-				ServoSTR.writeMicroseconds(str);
-				ServoTHR.writeMicroseconds(thr);
-			}
-			else {
-			 // set servo from the rc here
-			}
-			if (DEBUG_SERIAL) {
-				Serial.printf("DONE COMMANDS: %lu, %lu\n", str, thr);
+			if (cmd_cnt == 4) {
+				if (DEBUG_SERIAL) {
+					Serial.printf("str: %d, thr: %d, time: %lu\n", str, thr, time);
+				}
+				// do commands
+				if (auton == 1) {
+					ServoSTR.writeMicroseconds(str);
+					ServoTHR.writeMicroseconds(thr);
+				}
+				else {
+				 // set servo from the rc here
+				}
+				if (DEBUG_SERIAL) {
+					Serial.printf("DONE COMMANDS: %lu, %lu\n", str, thr);
+				}
 			}
 		}
+		
+		return( piWantsCarKilled )
 	}
-
-	//delay(100);
-	
 }
 
 void doAction() {
