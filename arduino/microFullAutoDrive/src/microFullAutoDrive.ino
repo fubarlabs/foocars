@@ -15,9 +15,29 @@ enum error_codes{
 	ALL_IS_OK,
 	RC_SIGNAL_WAS_LOST,
 	RC_SIGNALED_STOP_AUTO,
-	SERIAL_FROM_PI_ERROR,
-	PI_STOPPED_AUTO
+	STEERING_VALUE_OUT_OF_RANGE,
+	THROTTLE_VALUE_OUT_OF_RANGE,
+	STOP_AUTONOMOUS,
+	STOPPED_AUTO_COMMAND_RECEIVED,
+	MODE_IS_AUTONOMOUS
+	NO_COMMAND_AVAILABLE	
 };
+
+
+struct commandDataStruct {
+  int command;
+  float ax;		// acceleration
+  float ay;
+  float az;
+  float gx;		// yaw
+  float gy;		// pitch
+  float gz;		// roll
+  unsigned long time;	// millis
+  int str;		// steering 1000-2000
+  int thr;		// throttle 1000-2000
+  // int checksum;	someday???
+};
+
 
 const int PIN_STR = 9;
 const int PIN_THR = 7;
@@ -118,38 +138,21 @@ void setup() {
 	gIsInAutonomousMode = false;
 }
 
-/*
-	 Find and do the autonmous commands
-	 /*
-		 read entire input max length
-		 while more serial
-		 fill the comdBuf until a ','
-		 cmds
-		 Output:
-		 `accel_x, accel_y, accel_z, yaw, pitch, roll,time`.
-		 Input Commands:
-		 Only need steering and throttle
 
-		 `auto 0/1, steering 1000-2000, thr amount 1000-2000, timestamp`
-		 1. steer 1000 - 2000
-		 2. throttle	1000 - 2000	 When new line end
-		 execute the commands
-		 OUTPUT the results:
-		 auto, str, thr, millis, ???
-*/
-bool handlePiFunction() {
+
+void sendSerialCommand( commandDataStruct *theDataPtr ){
+}
+
+void sendSerialConstantCommand( int theCommand ){
+}
+
+int getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
 	// http://arduino.stackexchange.com/questions/1013/how-do-i-split-an-incoming-string
 	int cmd_cnt = 0;
 	
 	// the buffer is 1 bigger than the max. size because strtok requires a null byte '0' on the end of the string
 	char cmdBuf[MAX_CMD_BUF + 1];
 
-	int auton;
-	int str;
-	int thr;
-	unsigned int time;
-	bool piWantsCarKilled = false;
-	
 	if (Serial.available() > 0) {		
 		byte size = Serial.readBytes(cmdBuf, MAX_CMD_BUF);
 	
@@ -173,7 +176,7 @@ bool handlePiFunction() {
 			case CMD_STR:
 				str = atoi(command);
 				if (str > 2000 || str < 1000) {
-					return( SERIAL_FROM_PI_ERROR );
+					return( STEERING_VALUE_OUT_OF_RANGE );
 				}
 				if (DEBUG_SERIAL) {
 					Serial.printf("%d, %d\n", cmd_cnt, str);
@@ -182,7 +185,7 @@ bool handlePiFunction() {
 			case CMD_THR:
 				thr = atoi(command);
 				if (thr > 2000 || thr < 1000) {
-					return( SERIAL_FROM_PI_ERROR );
+					return( THROTTLE_VALUE_OUT_OF_RANGE );
 				}
 				if (DEBUG_SERIAL) {
 					Serial.printf("%d, %d\n", cmd_cnt, thr);
@@ -229,8 +232,10 @@ bool handlePiFunction() {
 					Serial.printf("DONE COMMANDS: %lu, %lu\n", str, thr);
 				}
 			}
-		}		
-		return( piWantsCarKilled );
+	}
+	
+	else{
+		return( NO_COMMAND_AVAILABLE );
 	}
 }
 
@@ -259,7 +264,7 @@ void printData(float ax, float ay, float az, float gx, float gy, float gz,
 	Serial.println();
 }
 
-int handleRCfunction( boolean isInAutonomousMode, int *ptr_str_val, int *ptr_thr_val ) {
+int handleRCSignals( int *ptr_str_val, int *ptr_thr_val ) {
 
 	const unsigned long STR_MIN = 1200;
 	const unsigned long STR_MAX = 1800;
@@ -273,16 +278,16 @@ int handleRCfunction( boolean isInAutonomousMode, int *ptr_str_val, int *ptr_thr
 	if (STR_VAL == 0) {	// no steering RC signal 											// Turn off when not in auto
 		if (DEBUG_SERIAL) {
 			Serial.printf("Out of Range or Powered Off\n");
-		} 
+		}
 		result = RC_SIGNAL_WAS_LOST;
 	}
 		
-	else if ( isInAutonomousMode ) {
+	else if ( gIsInAutonomousMode ) {
 		if( THR_VAL < 1400 ){	// user put it in reverse to turn off autonomous 										// Turn off when not in auto
 			if (DEBUG_SERIAL) {
 				Serial.printf("User wants to halt autonomous\n");
 			} 
-			result = RC_SIGNALED_STOP_AUTO;
+		result = RC_SIGNALED_STOP_AUTO;
 		}
 	} 
 	
@@ -338,27 +343,44 @@ int handleRCfunction( boolean isInAutonomousMode, int *ptr_str_val, int *ptr_thr
 	return( result );
 }
 
-void loop() {
-	
+void loop() {	
 	int result;
 	int str_val, thr_val;
+	commandDataStruct theCommandData;
 	
-	result = handleRCfunction( gIsInAutonomousMode, &str_val, &thr_val );
-	ServoSTR.writeMicroseconds( str_val );
-	ServoTHR.writeMicroseconds( thr_val );
+	result = handleRCSignals( &str_val, &thr_val );
 	
-	if( result == RC_SIGNALED_STOP_AUTO ){
-		gIsInAutonomousMode = false;
-		// tell pi the news, wait for acknowledgement
+	if(( result == RC_SIGNAL_WAS_LOST ) || ( result == RC_SIGNALED_STOP_AUTO )) {
+		if( gIsInAutonomousMode ){
+			serialCommandReceived = NO_COMMAND_RECEIVED;
+			while( serialCommandReceived != STOPPED_AUTO_COMMAND_RECEIVED ){	// loop until pi acknowledges STOP auto
+				sendSerialConstantCommand( STOP_AUTONOMOUS );
+				serialCommandReceived = getSerialCommandIfAvailable()
+			}
+			
+			str_val = 1500;
+			thr_val = 1500;
+			gIsInAutonomousMode = false;
+		}
 	}
 	
-	result = handlePiFunction();
+	result = getSerialCommandIfAvailable( &theCommandData );
 	
-	if( result == RC_SIGNALED_STOP_AUTO ){
-		gIsInAutonomousMode = false;
-		// acknowledge message received to pi?
+	if( result != NO_COMMAND_AVAILABLE ){		// if there is a command, process it
+		if( result == STOP_AUTO_COMMAND ){
+			gIsInAutonomousMode = false;
+			sendSerialConstantCommand( STOPPED_AUTO_COMMAND_RECEIVED );
+		}
+		
+		else{
+			str_val = theCommandData.str;
+			thr_val = theCommandData.thr;
+		}
 	}
 
+	//	write either RC or autonomous values ( whichever was set last )
+	ServoSTR.writeMicroseconds( str_val );
+	ServoTHR.writeMicroseconds( thr_val );
 
 	//delay(10);
 }
