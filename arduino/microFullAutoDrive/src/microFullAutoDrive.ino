@@ -12,17 +12,17 @@
 #define CMD_TIME 3
 
 enum errorEnumeration{
-	RC_SIGNALS_RECEIVED,
-	RC_SIGNAL_WAS_LOST,
-	RC_SIGNALED_STOP_AUTONOMOUS,
-	STEERING_VALUE_OUT_OF_RANGE,
-	THROTTLE_VALUE_OUT_OF_RANGE,
-	RUN_AUTONOMOUSLY,
-	STOP_AUTONOMOUS,
-	STOPPED_AUTO_COMMAND_RECEIVED,
-	NO_COMMAND_AVAILABLE,
-	GOOD_COMMAND_RECEIVED,
-	TOO_MANY_VALUES_IN_COMMAND
+	RC_SIGNALS_RECEIVED = 0,
+	RC_SIGNAL_WAS_LOST = 1,
+	RC_SIGNALED_STOP_AUTONOMOUS = 2,
+	STEERING_VALUE_OUT_OF_RANGE = 3,
+	THROTTLE_VALUE_OUT_OF_RANGE= 4,
+	RUN_AUTONOMOUSLY = 5,
+	STOP_AUTONOMOUS = 6,
+	STOPPED_AUTO_COMMAND_RECEIVED = 7,
+	NO_COMMAND_AVAILABLE = 8,
+	GOOD_COMMAND_RECEIVED = 9,
+	TOO_MANY_VALUES_IN_COMMAND = 10
 };
 
 struct commandDataStruct {
@@ -194,9 +194,6 @@ int getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
 	
 		// strtok splits a C string into substrings, based on a separator character
 		char *command = strtok(cmdBuf, ",");	//  get the first substring
-		for(int i=0; i<size; i++){
-			Serial.print(cmdBuf[i]);	// echo the input string back to the pi
-		}
 
 		// loop through the substrings, exiting when the null byte is reached
 		//	at the end of each pass strtok gets the next substring
@@ -339,7 +336,7 @@ void loop() {
 	commandDataStruct theCommandData;
 	bool autoShouldBeStopped = false;
 	
-	result = handleRCSignals( &str_val, &thr_val );		// this will set str_val and thr_val via the pointers
+	result = handleRCSignals( &str_val, &thr_val );		// this function will set str_val and thr_val via the pointers
 	
 	if( result == RC_SIGNALS_RECEIVED ){
 		theCommandData.time = millis();
