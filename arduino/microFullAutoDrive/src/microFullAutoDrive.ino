@@ -11,18 +11,19 @@
 #define CMD_THR 2
 #define CMD_TIME 3
 
-enum error_codes{
-	ALL_IS_OK,
+enum errorEnumeration{
+	RC_SIGNALS_RECEIVED,
 	RC_SIGNAL_WAS_LOST,
-	RC_SIGNALED_STOP_AUTO,
+	RC_SIGNALED_STOP_AUTONOMOUS,
 	STEERING_VALUE_OUT_OF_RANGE,
 	THROTTLE_VALUE_OUT_OF_RANGE,
+	RUN_AUTONOMOUSLY,
 	STOP_AUTONOMOUS,
 	STOPPED_AUTO_COMMAND_RECEIVED,
-	MODE_IS_AUTONOMOUS
-	NO_COMMAND_AVAILABLE	
+	NO_COMMAND_AVAILABLE,
+	GOOD_COMMAND_RECEIVED,
+	TOO_MANY_VALUES_IN_COMMAND
 };
-
 
 struct commandDataStruct {
   int command;
@@ -37,7 +38,6 @@ struct commandDataStruct {
   int thr;		// throttle 1000-2000
   // int checksum;	someday???
 };
-
 
 const int PIN_STR = 9;
 const int PIN_THR = 7;
@@ -138,12 +138,45 @@ void setup() {
 	gIsInAutonomousMode = false;
 }
 
-
-
 void sendSerialCommand( commandDataStruct *theDataPtr ){
+	Serial.flush();
+	Serial.print(theDataPtr->command);
+	Serial.print(",");
+	Serial.print(theDataPtr->ax);
+	Serial.print(",");
+	Serial.print(theDataPtr->ay);
+	Serial.print(",");
+	Serial.print(theDataPtr->az);
+	Serial.print(",");
+	Serial.print(theDataPtr->gx);
+	Serial.print(",");
+	Serial.print(theDataPtr->gy);
+	Serial.print(",");
+	Serial.print(theDataPtr->gz);
+	Serial.print(",");
+	Serial.print(theDataPtr->time);
+	Serial.print(",");
+	Serial.print(theDataPtr->str);
+	Serial.print(",");
+	Serial.print(theDataPtr->thr);
+	Serial.println();
 }
 
 void sendSerialConstantCommand( int theCommand ){
+	commandDataStruct theCommandData;
+	const int someNonZeroValue = 55;
+	
+	theCommandData.command = theCommand;
+	theCommandData.ax = someNonZeroValue;
+	theCommandData.ay = someNonZeroValue;
+	theCommandData.az = someNonZeroValue;
+	theCommandData.gx = someNonZeroValue;
+	theCommandData.gy = someNonZeroValue;
+	theCommandData.gz = someNonZeroValue;
+	theCommandData.time = someNonZeroValue;
+	theCommandData.str = someNonZeroValue;
+	theCommandData.thr = someNonZeroValue;
+	sendSerialCommand( &theCommandData );	
 }
 
 int getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
@@ -171,46 +204,33 @@ int getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
 		while (command != 0) {		
 			switch (cmd_cnt) {
 			case CMD_AUTO:
-				auton = atoi(command);	
+				theDataPtr->command = atoi(command);	
 				break;
 			case CMD_STR:
-				str = atoi(command);
-				if (str > 2000 || str < 1000) {
+				theDataPtr->str = atoi(command);	
+				if( theDataPtr->str > 2000 || theDataPtr->str < 1000 ){
 					return( STEERING_VALUE_OUT_OF_RANGE );
 				}
-				if (DEBUG_SERIAL) {
-					Serial.printf("%d, %d\n", cmd_cnt, str);
-				}
 				break;
+				
 			case CMD_THR:
-				thr = atoi(command);
-				if (thr > 2000 || thr < 1000) {
+				theDataPtr->thr = atoi(command);	
+				if( theDataPtr->thr > 2000 || theDataPtr->thr < 1000 ){
 					return( THROTTLE_VALUE_OUT_OF_RANGE );
 				}
-				if (DEBUG_SERIAL) {
-					Serial.printf("%d, %d\n", cmd_cnt, thr);
-				}
 				break;
+				
 			case CMD_TIME:
-				time = atoi(command);
-					/*
-					Remove time check
-					if (time < last_time) {
-					return;
-					}
-					*/
-				last_time = time;
-				if (DEBUG_SERIAL) {
-					Serial.printf("%d, %lu\n", cmd_cnt, time);
-				 }
-				 break;
+				theDataPtr->time = atoi(command);	
+				break;
+				
 			default:
 				if (DEBUG_SERIAL) {
 					Serial.println("NOOP");
 				}
-				return( SERIAL_FROM_PI_ERROR ); // return if there are too many commands or non matching
+				return( TOO_MANY_VALUES_IN_COMMAND ); 
 			}
-    
+			
 			// Get the next substring from the input string
 			// changing the first argument from cmdBuf to 0 is the strtok method for subsequent calls
 			command = strtok(0, ",");
@@ -218,20 +238,18 @@ int getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
 
 			if (cmd_cnt == 4) {
 				if (DEBUG_SERIAL) {
-					Serial.printf("str: %d, thr: %d, time: %lu\n", str, thr, time);
+					Serial.print(theDataPtr->command);
+					Serial.print(", ");
+					Serial.print(theDataPtr->str);
+					Serial.print(", ");
+					Serial.print(theDataPtr->thr);
+					Serial.print(",");
+					Serial.print(theDataPtr->time);
+					Serial.println();
 				}
-				// do commands
-				if (auton == 1) {
-					ServoSTR.writeMicroseconds(str);
-					ServoTHR.writeMicroseconds(thr);
-				}
-				else {
-				 // set servo from the rc here
-				}
-				if (DEBUG_SERIAL) {
-					Serial.printf("DONE COMMANDS: %lu, %lu\n", str, thr);
-				}
+				return( GOOD_COMMAND_RECEIVED );
 			}
+		}
 	}
 	
 	else{
@@ -239,32 +257,7 @@ int getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
 	}
 }
 
-void printData(float ax, float ay, float az, float gx, float gy, float gz,
-							 unsigned long time, int str, int thr) {
-	// Serial.printf("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%lu,%d,%d\n",
-	//							ax, ay, az, gx, gy, gz, millis(), str, thr);
-
-	Serial.print(ax);
-	Serial.print(",");
-	Serial.print(ay);
-	Serial.print(",");
-	Serial.print(az);
-	Serial.print(",");
-	Serial.print(gx);
-	Serial.print(",");
-	Serial.print(gy);
-	Serial.print(",");
-	Serial.print(gz);
-	Serial.print(",");
-	Serial.print(millis());
-	Serial.print(",");
-	Serial.print(str);
-	Serial.print(",");
-	Serial.print(thr);
-	Serial.println();
-}
-
-int handleRCSignals( int *ptr_str_val, int *ptr_thr_val ) {
+int handleRCSignals( int *str_val_ptr, int *thr_val_ptr ) {
 
 	const unsigned long STR_MIN = 1200;
 	const unsigned long STR_MAX = 1800;
@@ -277,7 +270,7 @@ int handleRCSignals( int *ptr_str_val, int *ptr_thr_val ) {
 
 	if (STR_VAL == 0) {	// no steering RC signal 											// Turn off when not in auto
 		if (DEBUG_SERIAL) {
-			Serial.printf("Out of Range or Powered Off\n");
+			Serial.println("Out of Range or Powered Off\n");
 		}
 		result = RC_SIGNAL_WAS_LOST;
 	}
@@ -285,9 +278,9 @@ int handleRCSignals( int *ptr_str_val, int *ptr_thr_val ) {
 	else if ( gIsInAutonomousMode ) {
 		if( THR_VAL < 1400 ){	// user put it in reverse to turn off autonomous 										// Turn off when not in auto
 			if (DEBUG_SERIAL) {
-				Serial.printf("User wants to halt autonomous\n");
+				Serial.println("User wants to halt autonomous\n");
 			} 
-		result = RC_SIGNALED_STOP_AUTO;
+		result = RC_SIGNALED_STOP_AUTONOMOUS;
 		}
 	} 
 	
@@ -304,10 +297,9 @@ int handleRCSignals( int *ptr_str_val, int *ptr_thr_val ) {
 		else if( THR_VAL < THR_MIN )
 			THR_VAL = THR_MIN;
 			
-		result = ALL_IS_OK;
+		result = RC_SIGNALS_RECEIVED;
 	}
 
-	Serial.flush();
 	uint8_t Buf[14];
 	I2Cread(MPU9250_ADDRESS,0x3B,14,Buf);
 
@@ -335,11 +327,9 @@ int handleRCSignals( int *ptr_str_val, int *ptr_thr_val ) {
 	//int16_t my=-(Mag[1]<<8 | Mag[0]);
 	//int16_t mz=-(Mag[5]<<8 | Mag[4]);	
 		
+	*thr_val_ptr = (int) THR_VAL;
+	*str_val_ptr = (int) STR_VAL;
 	
-	*ptr_thr_val = (int) THR_VAL;
-	*ptr_str_val = (int) STR_VAL;
-	
-	printData(ax, ay, az, gx, gy, gz, millis(), *ptr_str_val, *ptr_thr_val);
 	return( result );
 }
 
@@ -347,40 +337,73 @@ void loop() {
 	int result;
 	int str_val, thr_val;
 	commandDataStruct theCommandData;
+	bool autoShouldBeStopped = false;
 	
-	result = handleRCSignals( &str_val, &thr_val );
+	result = handleRCSignals( &str_val, &thr_val );		// this will set str_val and thr_val via the pointers
 	
-	if(( result == RC_SIGNAL_WAS_LOST ) || ( result == RC_SIGNALED_STOP_AUTO )) {
-		if( gIsInAutonomousMode ){
-			serialCommandReceived = NO_COMMAND_RECEIVED;
-			while( serialCommandReceived != STOPPED_AUTO_COMMAND_RECEIVED ){	// loop until pi acknowledges STOP auto
-				sendSerialConstantCommand( STOP_AUTONOMOUS );
-				serialCommandReceived = getSerialCommandIfAvailable()
-			}
-			
-			str_val = 1500;
-			thr_val = 1500;
-			gIsInAutonomousMode = false;
+	if( result == RC_SIGNALS_RECEIVED ){
+		theCommandData.time = millis();
+		sendSerialCommand( &theCommandData );
+	}
+	
+	//	The signal for stopping autonomous driving is user putting car in reverse
+	//	   this can be a normal operation in manual driving, so a test for auto mode is made
+
+	else if( result == RC_SIGNALED_STOP_AUTONOMOUS ) {
+		if( gIsInAutonomousMode )
+			autoShouldBeStopped = true;
+	}
+		
+	else if( result == RC_SIGNAL_WAS_LOST ) 
+		autoShouldBeStopped = true;
+		
+	else{
+		// future use
+	}
+	
+	if( autoShouldBeStopped ){
+		int serialCommandReceived = NO_COMMAND_AVAILABLE;	// setup to get at least one pass thru while loop
+	
+		while( serialCommandReceived != STOPPED_AUTO_COMMAND_RECEIVED ){	// loop until pi acknowledges STOP auto
+			sendSerialConstantCommand( STOP_AUTONOMOUS );
+			serialCommandReceived = getSerialCommandIfAvailable( &theCommandData );
 		}
+		
+		str_val = 1500;
+		thr_val = 1500;	
+		gIsInAutonomousMode = false;
 	}
 	
 	result = getSerialCommandIfAvailable( &theCommandData );
 	
 	if( result != NO_COMMAND_AVAILABLE ){		// if there is a command, process it
-		if( result == STOP_AUTO_COMMAND ){
-			gIsInAutonomousMode = false;
-			sendSerialConstantCommand( STOPPED_AUTO_COMMAND_RECEIVED );
+		if ( result != GOOD_COMMAND_RECEIVED ){
+			// ignore bad command
 		}
-		
-		else{
-			str_val = theCommandData.str;
-			thr_val = theCommandData.thr;
+
+		else{	// some sort of good command received
+			if( theCommandData.command == RUN_AUTONOMOUSLY ){
+				str_val = theCommandData.str;
+				thr_val = theCommandData.thr;
+				gIsInAutonomousMode = true;
+			}
+			
+			else if( theCommandData.command == STOP_AUTONOMOUS ){
+				sendSerialConstantCommand( STOPPED_AUTO_COMMAND_RECEIVED );
+				str_val = 1500;
+				thr_val = 1500;
+				gIsInAutonomousMode = false;
+			}			
+			
+			else{
+				// for new commands
+			}
 		}
 	}
 
-	//	write either RC or autonomous values ( whichever was set last )
+	//	write either RC or autonomous str_val and thr_val ( whichever ones were set last )
 	ServoSTR.writeMicroseconds( str_val );
 	ServoTHR.writeMicroseconds( thr_val );
 
-	//delay(10);
+	//  delay ???
 }
