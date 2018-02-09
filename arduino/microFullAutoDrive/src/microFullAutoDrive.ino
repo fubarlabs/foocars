@@ -340,31 +340,21 @@ void loop() {
 	//	The signal for stopping autonomous driving is user putting car in reverse
 	//	   this can be a normal operation in manual driving, so a test for auto mode is made
 
-	if( theCommandData.command == RC_SIGNALED_STOP_AUTONOMOUS ) {
-		if( gIsInAutonomousMode )
-			autoShouldBeStopped = true;
-	}
-		
-	else if( theCommandData.command == RC_SIGNAL_WAS_LOST ) 
-		autoShouldBeStopped = true;
-		
-	else{
-		// future use
-	}
-	
-#if DEBUG_INCLUDE_PI_CODE
-	if( autoShouldBeStopped ){
-		theCommandData.command = NO_COMMAND_AVAILABLE;	// setup to get at least one pass thru while loop
+	if(( theCommandData.command == RC_SIGNALED_STOP_AUTONOMOUS ) || ( theCommandData.command == RC_SIGNAL_WAS_LOST )){
 		theCommandData.str = gCenteredSteeringValue;	//  center the steering
 		theCommandData.thr = gCenteredThrottleValue;	//  turn off the motor
-		while( theCommandData.command != STOPPED_AUTO_COMMAND_RECEIVED ){	// loop until pi acknowledges STOP auto
-			theCommandData.command = STOP_AUTONOMOUS;
-			sendSerialCommand( &theCommandData );
-			getSerialCommandIfAvailable( &theCommandData );
+
+		if( gIsInAutonomousMode ){	// send the command to pi to stop autonomous
+			theCommandData.command = NO_COMMAND_AVAILABLE;	// setup to get at least one pass thru while loop
+			while( theCommandData.command != STOPPED_AUTO_COMMAND_RECEIVED ){	// loop until pi acknowledges STOP auto
+				theCommandData.command = STOP_AUTONOMOUS;
+				sendSerialCommand( &theCommandData );
+				getSerialCommandIfAvailable( &theCommandData );
+			}
 		}
-		
-		gIsInAutonomousMode = false;
 	}
+			
+#if DEBUG_INCLUDE_PI_CODE
 		
 	getSerialCommandIfAvailable( &theCommandData );
 	
