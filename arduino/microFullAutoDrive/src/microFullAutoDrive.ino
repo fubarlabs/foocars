@@ -7,7 +7,7 @@
 
 #define DEBUG_SERIAL 1
 
-#define DEBUG_INCLUDE_PI_CODE false
+#define DEBUG_INCLUDE_PI_CODE true
 
 #define MAX_CMD_BUF 17 
 #define CMD_AUTO 0
@@ -141,29 +141,15 @@ void setup() {
 	gCenteredSteeringValue = 0;
 	gCenteredThrottleValue = 0;
 	const int closeEnough = 10;
-	int numPasses = 1;
 	bool centeredRCvaluesNotStable = true;
 	while( centeredRCvaluesNotStable ){
 		unsigned long STR_VAL = pulseIn(PIN_IN_STR, HIGH, 25000); // Read pulse width of
 		unsigned long THR_VAL = pulseIn(PIN_IN_THR, HIGH, 25000); // each channel
 		gCenteredSteeringValue = ( gCenteredSteeringValue + STR_VAL )/ 2;
-		gCenteredThrottleValue = ( gCenteredThrottleValue + STR_VAL )/ 2;
-		long deltaSteeringValue = gCenteredSteeringValue - STR_VAL;
-		long deltaThrottleValue = gCenteredThrottleValue - STR_VAL;
-		if(( abs( deltaSteeringValue ) < closeEnough ) && ( abs( deltaSteeringValue ) < closeEnough )){
+		gCenteredThrottleValue = ( gCenteredThrottleValue + THR_VAL )/ 2;
+		if(( abs( gCenteredSteeringValue - STR_VAL ) < closeEnough ) && ( abs( gCenteredThrottleValue - THR_VAL ) < closeEnough )){
 			centeredRCvaluesNotStable = false;
 		}
-		numPasses = numPasses + 1;
-	}
-	
-	while( 1 ){
-		Serial.print( numPasses );
-		Serial.print(",");
-		Serial.print( gCenteredSteeringValue );
-		Serial.print(",");
-		Serial.print( gCenteredThrottleValue );
-		Serial.println();
-		Serial.println();
 	}
 	
 	initIMU();
@@ -368,10 +354,8 @@ void loop() {
 #if DEBUG_INCLUDE_PI_CODE
 	if( autoShouldBeStopped ){
 		theCommandData.command = NO_COMMAND_AVAILABLE;	// setup to get at least one pass thru while loop
-	
-		theCommandData.str = 1500;	//  center the steering
-		theCommandData.thr = 1500;	//  turn off the motor
-			
+		theCommandData.str = gCenteredSteeringValue;	//  center the steering
+		theCommandData.thr = gCenteredThrottleValue;	//  turn off the motor
 		while( theCommandData.command != STOPPED_AUTO_COMMAND_RECEIVED ){	// loop until pi acknowledges STOP auto
 			theCommandData.command = STOP_AUTONOMOUS;
 			sendSerialCommand( &theCommandData );
@@ -396,8 +380,8 @@ void loop() {
 			else if( theCommandData.command == STOP_AUTONOMOUS ){
 				theCommandData.command = STOPPED_AUTO_COMMAND_RECEIVED;
 				sendSerialCommand( &theCommandData );
-				theCommandData.str = 1500;	//  center the steering
-				theCommandData.thr = 1500;	//  turn off the motor
+				theCommandData.str = gCenteredSteeringValue;	//  center the steering
+				theCommandData.thr = gCenteredThrottleValue;	//  turn off the motor
 				gIsInAutonomousMode = false;
 			}			
 			
