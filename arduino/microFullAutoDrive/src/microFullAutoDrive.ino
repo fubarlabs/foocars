@@ -15,6 +15,7 @@
 #define CMD_THR 2
 #define CMD_TIME 3
 
+
 enum errorEnumeration{
 	NOT_ACTUAL_COMMAND = 0,
 	RC_SIGNAL_WAS_LOST = 1,
