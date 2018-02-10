@@ -26,7 +26,7 @@ enum errorEnumeration{
 	STOP_AUTONOMOUS = 6,
 	STOPPED_AUTO_COMMAND_RECEIVED = 7,
 	NO_COMMAND_AVAILABLE = 8,
-	GOOD_AUTO_COMMAND_RECEIVED = 9,
+	GOOD_PI_COMMAND_RECEIVED = 9,
 	TOO_MANY_VALUES_IN_COMMAND = 10,
 	GOOD_RC_SIGNALS_RECEIVED = 11
 };
@@ -246,7 +246,7 @@ void getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
 					Serial.print(theDataPtr->time);
 					Serial.println();
 				}
-				theDataPtr->command = GOOD_AUTO_COMMAND_RECEIVED;	
+				theDataPtr->command = GOOD_PI_COMMAND_RECEIVED;	
 			}
 		}
 	}
@@ -258,14 +258,19 @@ void getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
 
 void handleRCSignals( commandDataStruct *theDataPtr ) {
 
-	const unsigned long minimumSteeringValue = 1200;
+	const unsigned long minimumSteeringValue = 1100;
 	const unsigned long maximumSteeringValue = 1800;
 	const unsigned long minimumThrottleValue = 1250;
 	const unsigned long maximumThrottleValue = 1650;
-	const unsigned long throttleThresholdToShutdownAuto = 1200;
+	const unsigned long throttleThresholdToShutdownAuto = 1300;
 	
 	unsigned long STR_VAL = pulseIn(PIN_IN_STR, HIGH, 25000); // Read pulse width of
 	unsigned long THR_VAL = pulseIn(PIN_IN_THR, HIGH, 25000); // each channel
+
+//	Serial.print(STR_VAL);
+//	Serial.print(",");
+//	Serial.print(THR_VAL);
+//	Serial.println();
 	
 	if (STR_VAL == 0) {	// no steering RC signal 
 		if (DEBUG_SERIAL) {
@@ -335,6 +340,7 @@ void loop() {
 	commandDataStruct theCommandData;
 	bool autoShouldBeStopped = false;
 	
+	// ------------------------- Handle RC Commands -------------------------------
 	handleRCSignals( &theCommandData );
 		
 	//	The signal for stopping autonomous driving is user putting car in reverse
@@ -353,13 +359,20 @@ void loop() {
 			}
 		}
 	}
-			
-#if DEBUG_INCLUDE_PI_CODE
-		
+	
+	else if( theCommandData.command == GOOD_RC_SIGNALS_RECEIVED ){
+		if( gIsInAutonomousMode == false ){
+			sendSerialCommand( &theCommandData );
+			ServoSTR.writeMicroseconds( theCommandData.str );
+			ServoTHR.writeMicroseconds( theCommandData.thr );
+		}
+	}
+	
+	// ------------------------- Handle Pi Commands -------------------------------
 	getSerialCommandIfAvailable( &theCommandData );
 	
 	if( theCommandData.command != NO_COMMAND_AVAILABLE ){		// if there is a command, process it
-		if ( theCommandData.command != GOOD_AUTO_COMMAND_RECEIVED ){
+		if ( theCommandData.command != GOOD_PI_COMMAND_RECEIVED ){
 			// ignore bad command
 		}
 
@@ -379,21 +392,12 @@ void loop() {
 			else{
 				// for new commands
 			}
+			
+			ServoSTR.writeMicroseconds( theCommandData.str );
+			ServoTHR.writeMicroseconds( theCommandData.thr );
 		}
 	}
 	
-	if( theCommandData.command == GOOD_AUTO_COMMAND_RECEIVED ){
-		ServoSTR.writeMicroseconds( theCommandData.str );
-		ServoTHR.writeMicroseconds( theCommandData.thr );
-	}
-	
-#endif
-
-	if( theCommandData.command == GOOD_RC_SIGNALS_RECEIVED ){
-		sendSerialCommand( &theCommandData );
-		ServoSTR.writeMicroseconds( theCommandData.str );
-		ServoTHR.writeMicroseconds( theCommandData.thr );
-	}
 	
 	//  delay ???
 }
