@@ -17,6 +17,7 @@ import shutil
 import threading
 import tensorflow as tf
 import keras
+from enum import Enum     
 
 from dropout_model import model
 
@@ -68,6 +69,22 @@ LED_OFF = GPIO.LOW
 # -------- Relay state constants --------- 
 RELAY_ON = GPIO.HIGH
 RELAY_OFF = GPIO.LOW
+
+# -------- Command enumeration same as ones on fubarino --------- 
+#	use like this: commandEnum.NO_COMMAND_AVAILABLE
+class commandEnum(Enum):
+	NOT_ACTUAL_COMMAND = 0
+	RC_SIGNAL_WAS_LOST = 1
+	RC_SIGNALED_STOP_AUTONOMOUS = 2
+	STEERING_VALUE_OUT_OF_RANGE = 3
+	THROTTLE_VALUE_OUT_OF_RANGE= 4
+	RUN_AUTONOMOUSLY = 5
+	STOP_AUTONOMOUS = 6
+	STOPPED_AUTO_COMMAND_RECEIVED = 7
+	NO_COMMAND_AVAILABLE = 8
+	GOOD_PI_COMMAND_RECEIVED = 9
+	TOO_MANY_VALUES_IN_COMMAND = 10
+	GOOD_RC_SIGNALS_RECEIVED = 11
 
 # --------Old Data Collection Command Line Startup Code--------- 
 time_format='%Y-%m-%d_%H-%M-%S'
@@ -264,6 +281,56 @@ g_camera.framerate=10 #<---- framerate (fps) determines speed of data recording
 #	in normal operation:
 # all LEDs blinking					Tried to shutdown without first saving Data folder
 # read and save LEDs blinking together			USB drive not mounted - insert or remove and insert USB drive
+
+# -------- Wait or Not for a good command list from Fubarino --------
+def getSerialCommandIfAvailable( theCommandList, dontWaitForCommand, theCommand ):
+	numberOfCharsWaiting = ser.inWaiting()
+	
+	if( numberOfCharsWaiting == 0 ):
+		if( dontWaitForCommand ):
+			theCommand = commandEnum.NO_COMMAND_AVAILABLE
+			return
+	
+	serial_input_is_no_damn_good = true
+	while( serial_input_is_no_damn_good ):		
+		try:
+			number_of_serial_items = 0
+			required_number_of_data_items = 9
+					
+			while( serial_input_is_no_damn_good ):
+				ser.flushInput()	# dump partial command
+				serial_line_received = ser.readline()
+				raw_serial_list = list( str(serial_line_received,'ascii').split(','))
+				theCommand = raw_serial_list[ 0 ]
+			 
+				number_of_serial_items = len( raw_serial_list )
+				line_not_checked = True
+			
+				while( line_not_checked ):
+					if( number_of_serial_items == required_number_of_data_items ):
+				
+						no_conversion_errors = True
+						for i in range( 1, required_number_of_data_items + 1 ):
+							try:
+								theCommandList.append( float( raw_serial_list[ i ]))
+							except ValueError:
+								no_conversion_errors = False
+								logging.debug( 'error converting to float = ' + str( raw_serial_list[ i ]))
+						
+							if( no_conversion_errors ):
+								serial_input_is_no_damn_good = False							
+							line_not_checked = False
+										
+					else:		# first test of received line fails 
+						line_not_checked = False
+						logging.debug( 'serial input error: # data items = ' + str( number_of_serial_items  ))
+							
+			self.debugSerialInput = serial_line_received
+		
+		except Exception as the_bad_news:				
+			handle_exception( the_bad_news )
+			logging.debug( 'Error: receiving command from fubarino' )
+
 
 # -------- LED functions to make code clearer --------- 
 def turn_ON_LED( which_LED ):
