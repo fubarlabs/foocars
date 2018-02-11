@@ -7,16 +7,13 @@
 
 #define DEBUG_SERIAL 1
 
-#define DEBUG_INCLUDE_PI_CODE true
-
 #define MAX_CMD_BUF 17 
 #define CMD_AUTO 0
 #define CMD_STR 1
 #define CMD_THR 2
 #define CMD_TIME 3
 
-
-enum errorEnumeration{
+enum commandEnumeration{
 	NOT_ACTUAL_COMMAND = 0,
 	RC_SIGNAL_WAS_LOST = 1,
 	RC_SIGNALED_STOP_AUTONOMOUS = 2,
@@ -53,14 +50,9 @@ const int PIN_IN_THR = 12;
 unsigned long gCenteredSteeringValue;
 unsigned long gCenteredThrottleValue;
 
-unsigned long last_serial_time;
-unsigned long last_time;
-boolean BLINK = true;
 boolean gIsInAutonomousMode;
-
-// shoot through delay
-int PREV_DIR = LOW;
-const int SHOOT_DELAY = 250;
+int gTheOldRCcommand;
+int gTheOldPiCommand;
 
 Servo ServoSTR;
 Servo ServoTHR;
@@ -154,11 +146,12 @@ void setup() {
 	}
 	
 	initIMU();
+	gTheOldRCcommand = NOT_ACTUAL_COMMAND;
+	gTheOldPiCommand = NOT_ACTUAL_COMMAND;
 	gIsInAutonomousMode = false;
 }
 
 void sendSerialCommand( commandDataStruct *theDataPtr ){
-	Serial.flush();
 	Serial.print(theDataPtr->command);
 	Serial.print(",");
 	Serial.print(theDataPtr->ax);
@@ -179,6 +172,7 @@ void sendSerialCommand( commandDataStruct *theDataPtr ){
 	Serial.print(",");
 	Serial.print(theDataPtr->thr);
 	Serial.println();
+	Serial.flush();		// Serial.flush halts program until all characters are sent
 }
 
 void getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
@@ -259,81 +253,83 @@ void getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
 void handleRCSignals( commandDataStruct *theDataPtr ) {
 
 	const unsigned long minimumSteeringValue = 1100;
-	const unsigned long maximumSteeringValue = 1800;
+	const unsigned long maximumSteeringValue = 1700;
 	const unsigned long minimumThrottleValue = 1250;
 	const unsigned long maximumThrottleValue = 1650;
 	const unsigned long throttleThresholdToShutdownAuto = 1300;
 	
 	unsigned long STR_VAL = pulseIn(PIN_IN_STR, HIGH, 25000); // Read pulse width of
 	unsigned long THR_VAL = pulseIn(PIN_IN_THR, HIGH, 25000); // each channel
-
-//	Serial.print(STR_VAL);
-//	Serial.print(",");
-//	Serial.print(THR_VAL);
-//	Serial.println();
 	
 	if (STR_VAL == 0) {	// no steering RC signal 
-		if (DEBUG_SERIAL) {
-			Serial.println("RC out of range or powered off\n");
+		if( gTheOldRCcommand != RC_SIGNAL_WAS_LOST ){	// only print RC message once
+			if (DEBUG_SERIAL) {
+				Serial.println("RC out of range or powered off\n");
+			}
+			
+			gTheOldRCcommand = RC_SIGNAL_WAS_LOST;
 		}
+		
 		theDataPtr->command = RC_SIGNAL_WAS_LOST;
+		return;
 	}
 
 	// check for reverse ESC signal from RC while in autonomous mode (user wants to stop auto)	
-	else if ( gIsInAutonomousMode ) {	
+	if ( gIsInAutonomousMode ) {	
 		if( THR_VAL < throttleThresholdToShutdownAuto ){	 
 			if (DEBUG_SERIAL) {
 				Serial.println("User wants to halt autonomous\n");
 			}
 			theDataPtr->command = RC_SIGNALED_STOP_AUTONOMOUS;
+			return;
 		}
 	} 
 	
-	else {	// clip the RC signals to more car appropriate ones
-		if( STR_VAL > maximumSteeringValue )
-			STR_VAL = maximumSteeringValue;
+	// clip the RC signals to more car appropriate ones
+	if( STR_VAL > maximumSteeringValue )
+		STR_VAL = maximumSteeringValue;
 
-		else if( STR_VAL < minimumSteeringValue )
-			STR_VAL = minimumSteeringValue;
+	else if( STR_VAL < minimumSteeringValue )
+		STR_VAL = minimumSteeringValue;
 
-		if( THR_VAL > maximumThrottleValue )
-			THR_VAL = maximumThrottleValue;
+	if( THR_VAL > maximumThrottleValue )
+		THR_VAL = maximumThrottleValue;
 
-		else if( THR_VAL < minimumThrottleValue )
-			THR_VAL = minimumThrottleValue;
-			
-		uint8_t Buf[14];
-		I2Cread(MPU9250_ADDRESS,0x3B,14,Buf);
-
-		// Create 16 bits values from 8 bits data
-		// Accelerometer
-		theDataPtr->ax=-(Buf[0]<<8 | Buf[1]);
-		theDataPtr->ay=-(Buf[2]<<8 | Buf[3]);
-		theDataPtr->az=Buf[4]<<8 | Buf[5];
-
-		// Gyroscope
-		theDataPtr->gx=-(Buf[8]<<8 | Buf[9]);
-		theDataPtr->gy=-(Buf[10]<<8 | Buf[11]);
-		theDataPtr->gz=Buf[12]<<8 | Buf[13];
-	
-		// _____________________
-		// :::	Magnetometer ::: 
-		// Read register Status 1 and wait for the DRDY: Data Ready
-		// I2Cread(MAG_ADDRESS,0x02,1,&ST1);
-		// Read magnetometer data	
-		//uint8_t Mag[7];	
-		//I2Cread(MAG_ADDRESS,0x03,7,Mag);		
-		// Create 16 bits values from 8 bits data 
-		// Magnetometer
-		//int16_t mx=-(Mag[3]<<8 | Mag[2]);
-		//int16_t my=-(Mag[1]<<8 | Mag[0]);
-		//int16_t mz=-(Mag[5]<<8 | Mag[4]);	
+	else if( THR_VAL < minimumThrottleValue )
+		THR_VAL = minimumThrottleValue;
 		
-		theDataPtr->thr = (int) THR_VAL;
-		theDataPtr->str = (int) STR_VAL;
-		theDataPtr->time = millis();
-		theDataPtr->command = GOOD_RC_SIGNALS_RECEIVED;
-	}
+	uint8_t Buf[14];
+	I2Cread(MPU9250_ADDRESS,0x3B,14,Buf);
+
+	// Create 16 bits values from 8 bits data
+	// Accelerometer
+	theDataPtr->ax=-(Buf[0]<<8 | Buf[1]);
+	theDataPtr->ay=-(Buf[2]<<8 | Buf[3]);
+	theDataPtr->az=Buf[4]<<8 | Buf[5];
+
+	// Gyroscope
+	theDataPtr->gx=-(Buf[8]<<8 | Buf[9]);
+	theDataPtr->gy=-(Buf[10]<<8 | Buf[11]);
+	theDataPtr->gz=Buf[12]<<8 | Buf[13];
+
+	// _____________________
+	// :::	Magnetometer ::: 
+	// Read register Status 1 and wait for the DRDY: Data Ready
+	// I2Cread(MAG_ADDRESS,0x02,1,&ST1);
+	// Read magnetometer data	
+	//uint8_t Mag[7];	
+	//I2Cread(MAG_ADDRESS,0x03,7,Mag);		
+	// Create 16 bits values from 8 bits data 
+	// Magnetometer
+	//int16_t mx=-(Mag[3]<<8 | Mag[2]);
+	//int16_t my=-(Mag[1]<<8 | Mag[0]);
+	//int16_t mz=-(Mag[5]<<8 | Mag[4]);	
+	
+	theDataPtr->thr = (int) THR_VAL;
+	theDataPtr->str = (int) STR_VAL;
+	theDataPtr->time = millis();
+	theDataPtr->command = GOOD_RC_SIGNALS_RECEIVED;
+
 }
 
 void loop() {	
@@ -342,6 +338,14 @@ void loop() {
 	
 	// ------------------------- Handle RC Commands -------------------------------
 	handleRCSignals( &theCommandData );
+	
+	if( gTheOldRCcommand != theCommandData.command ){	// only print RC command once 
+		Serial.print( "RC command: " );
+		Serial.print(theCommandData.command);
+		Serial.println();
+		Serial.flush();		// wait for serial to finish
+		gTheOldRCcommand = theCommandData.command;
+	}
 		
 	//	The signal for stopping autonomous driving is user putting car in reverse
 	//	   this can be a normal operation in manual driving, so a test for auto mode is made
@@ -356,6 +360,7 @@ void loop() {
 				theCommandData.command = STOP_AUTONOMOUS;
 				sendSerialCommand( &theCommandData );
 				getSerialCommandIfAvailable( &theCommandData );
+				Serial.println( "waiting for pi acknowledgement" );
 			}
 		}
 	}
@@ -370,6 +375,14 @@ void loop() {
 	
 	// ------------------------- Handle Pi Commands -------------------------------
 	getSerialCommandIfAvailable( &theCommandData );
+	
+	if( gTheOldPiCommand != theCommandData.command ){
+		Serial.print( "Pi command: " );
+		Serial.print(theCommandData.command);
+		Serial.println();
+		Serial.flush();		// wait for serial to finish
+		gTheOldPiCommand = theCommandData.command;
+	}
 	
 	if( theCommandData.command != NO_COMMAND_AVAILABLE ){		// if there is a command, process it
 		if ( theCommandData.command != GOOD_PI_COMMAND_RECEIVED ){
