@@ -141,30 +141,21 @@ class DataCollector(object):
 	def write(self, s):
 		'''this is the function that is called every time the PiCamera has a new frame'''
 		imdata=np.reshape(np.fromstring(s, dtype=np.uint8), (96, 128, 3), 'C')
-		
-		#	now we read from the serial port and format and save the data:
-		#	  There are a few problems that can arise if the serial buffer happens to be flushed in the midst of receiving a line:
-		#	   1- the serial line received can be only partially received
-		#	   2- the number of data items in that partial line is less than the required number
-		#	   3- the number of items is correct, but one of data items is not whole and cannot be converted into a float
-		#	  So, if any of those errors are detected, the line is discarded and the next line received is tested
-				
+						
 		try:
-			data = [0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-			dontWaitForCommand = False
-			theCommand = 0
-			getSerialCommandIfAvailable( data, dontWaitForCommand, theCommand )
-			logging.debug( 'serial command: ' + str( data ))
+			dontWaitForCommand = False	#  Keep waiting for a good command
+			theCommandList = getSerialCommandIfAvailable( dontWaitForCommand )
+			logging.debug( 'serial command: ' + str( theCommandList ))
 			
 			#Note: the data from the IMU requires some processing which does not happen here:
 			self.imgs[self.idx]=imdata
-			accelData=np.array([data[0], data[1], data[2]], dtype=np.float32)
-			gyroData=np.array([data[3], data[4], data[5]], )
-			datatime=np.array([int(data[6])], dtype=np.float32)
-			steer_command=int(data[7])
-			gas_command=int(data[8])
+			accelData=np.array([theCommandList[1], theCommandList[2], theCommandList[3]], dtype=np.float32)
+			gyroData=np.array([theCommandList[4], theCommandList[5], theCommandList[6]], )
+			datatime=np.array([int(theCommandList[7])], dtype=np.float32)
+			steering_value=int(theCommandList[8])
+			throttle_value=int(theCommandList[9])
 			self.IMUdata[self.idx]=np.concatenate((accelData, gyroData, datatime))
-			self.RCcommands[self.idx]=np.array([steer_command, gas_command])
+			self.RCcommands[self.idx]=np.array([steering_value, throttle_value])
 			self.idx+=1
 			
 			if ((self.idx % 20 ) == 0 ): 	# blink the LED everytime 20 frames are recorded
@@ -253,38 +244,46 @@ g_camera.framerate=10 #<---- framerate (fps) determines speed of data recording
 # read and save LEDs blinking together			USB drive not mounted - insert or remove and insert USB drive
 
 # -------- Wait or Not for a good command list from Fubarino --------
-def getSerialCommandIfAvailable( theCommandList, dontWaitForCommand, theCommand ):
-	numberOfCharsWaiting = 0
+#	read from the serial port and format and save the data:
+#	  There are a few problems that can arise if the serial buffer happens to be flushed in the midst of receiving a line:
+#	   1- the serial line received can be only partially received
+#	   2- the number of data items in that partial line is less than the required number
+#	   3- the number of items is correct, but one of data items is not whole and cannot be converted into a float
+#	  So, if any of those errors are detected, the line is discarded and the next line received is tested
+
+#----------- Wait or Not for a serial command from the fubarino -------------
+#	return turn with a list of 10 floats: the command and then 9 data values
+def getSerialCommandIfAvailable( dontWaitForCommand ):
+	numberOfCharsWaiting = ser.in_waiting()
 	
 	if( numberOfCharsWaiting == 0 ):
 		if( dontWaitForCommand ):
-			theCommand = commandEnum.NO_COMMAND_AVAILABLE
+			theResult = commandEnum.NO_COMMAND_AVAILABLE
 			return
 	
 	serial_input_is_no_damn_good = True
 	while( serial_input_is_no_damn_good ):		
 		try:
 			number_of_serial_items = 0
-			required_number_of_data_items = 10
+			required_number_of_serial_items = 10
 					
 			while( serial_input_is_no_damn_good ):
 				ser.flushInput()	# dump partial command
 				serial_line_received = ser.readline()
 				serial_line_received = serial_line_received.decode("utf-8")
 				logging.debug( 'serial line received = ' + serial_line_received )
-#				serial_line_received = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10"
-#				raw_serial_list = list( str(serial_line_received,'ascii').split(','))
+#				raw_serial_list = list( str(serial_line_received,'ascii').split(','))	# this seems to throw an error
 				raw_serial_list = list( serial_line_received.split(','))
-				theCommand = raw_serial_list[ 0 ]
-			 
+
+				theCommandList = []			 
 				number_of_serial_items = len( raw_serial_list )
 				line_not_checked = True
 			
 				while( line_not_checked ):
-					if( number_of_serial_items == required_number_of_data_items ):
+					if( number_of_serial_items == required_number_of_serial_items ):
 				
 						no_conversion_errors = True
-						for i in range( 1, required_number_of_data_items + 1 ):
+						for i in range( 0, required_number_of_serial_items ):
 							try:
 								theCommandList.append( float( raw_serial_list[ i ]))
 							except ValueError:
@@ -299,11 +298,13 @@ def getSerialCommandIfAvailable( theCommandList, dontWaitForCommand, theCommand 
 						line_not_checked = False
 						logging.debug( 'serial input error: # data items = ' + str( number_of_serial_items  ))
 							
-			self.debugSerialInput = serial_line_received
+			debugSerialInput = serial_line_received
 		
 		except Exception as the_bad_news:				
 			handle_exception( the_bad_news )
 			logging.debug( 'Error: receiving command from fubarino' )
+	
+	return( theCommandList )		
 
 # -------- LED functions to make code clearer --------- 
 def turn_ON_LED( which_LED ):
@@ -312,8 +313,6 @@ def turn_ON_LED( which_LED ):
 def turn_OFF_LED( which_LED ):
 	GPIO.output( which_LED, LED_OFF )	
 	
-
-
 def at_least_one_momentary_switch_is_up():
 	if(( GPIO.input( SWITCH_save_to_USBdrive ) == SWITCH_UP ) or ( GPIO.input( SWITCH_read_from_USBdrive ) == SWITCH_UP ) 
 			or ( GPIO.input( SWITCH_shutdown_RPi ) == SWITCH_UP )):	

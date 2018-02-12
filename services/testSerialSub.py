@@ -2,7 +2,7 @@
 #	changed from #!/usr/bin/python3 and enum worked
 
 import sys, os
-import serial
+#import serial
 
 from enum import Enum   
   
@@ -43,38 +43,40 @@ def handle_exception( the_bad_news ):
 		message = the_bad_news.args[1]			
 		logging.debug( 'error number = ' + str(the_bad_news.args[0]) + ': ' + str(the_bad_news.args[1]))
 
-# -------- Wait or Not for a good command list from Fubarino --------
-def getSerialCommandIfAvailable( theCommandList, dontWaitForCommand, theCommand ):
+#----------- Wait or Not for a serial command from the fubarino -------------
+#	return turn with a list of 10 floats: the command and then 9 data values
+def getSerialCommandIfAvailable( dontWaitForCommand ):
 	numberOfCharsWaiting = 0
 	
 	if( numberOfCharsWaiting == 0 ):
 		if( dontWaitForCommand ):
-			theCommand = commandEnum.NO_COMMAND_AVAILABLE
+			theResult = commandEnum.NO_COMMAND_AVAILABLE
 			return
 	
 	serial_input_is_no_damn_good = True
 	while( serial_input_is_no_damn_good ):		
 		try:
 			number_of_serial_items = 0
-			required_number_of_data_items = 9
+			required_number_of_serial_items = 10
 					
 			while( serial_input_is_no_damn_good ):
 #				ser.flushInput()	# dump partial command
 #				serial_line_received = ser.readline()
-				serial_line_received = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10"
-				
+				serial_line_received = b'99, 1, 2, 3, 4, 5, 6, 7, 8, 9'
+				serial_line_received = serial_line_received.decode("utf-8")
+				logging.debug( 'serial line received = ' + serial_line_received )
 #				raw_serial_list = list( str(serial_line_received,'ascii').split(','))
 				raw_serial_list = list( serial_line_received.split(','))
-				theCommand = raw_serial_list[ 0 ]
-			 
+
+				theCommandList = []			 
 				number_of_serial_items = len( raw_serial_list )
 				line_not_checked = True
 			
 				while( line_not_checked ):
-					if( number_of_serial_items == required_number_of_data_items + 1 ):
+					if( number_of_serial_items == required_number_of_serial_items ):
 				
 						no_conversion_errors = True
-						for i in range( 1, required_number_of_data_items + 1 ):
+						for i in range( 0, required_number_of_serial_items ):
 							try:
 								theCommandList.append( float( raw_serial_list[ i ]))
 							except ValueError:
@@ -89,18 +91,18 @@ def getSerialCommandIfAvailable( theCommandList, dontWaitForCommand, theCommand 
 						line_not_checked = False
 						logging.debug( 'serial input error: # data items = ' + str( number_of_serial_items  ))
 							
-			self.debugSerialInput = serial_line_received
+			debugSerialInput = serial_line_received
 		
 		except Exception as the_bad_news:				
 			handle_exception( the_bad_news )
 			logging.debug( 'Error: receiving command from fubarino' )
-			
+	
+	return( theCommandList )		
 
 
 theCommand = 0
 dontWaitForCommand = False
-theCommandList = []
-getSerialCommandIfAvailable( theCommandList, dontWaitForCommand, theCommand )
+theCommandList = getSerialCommandIfAvailable( dontWaitForCommand )
 print ( theCommandList )	
 	
 	
