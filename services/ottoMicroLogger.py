@@ -169,7 +169,6 @@ class DataCollector(object):
 		except Exception as the_bad_news:				
 			handle_exception( the_bad_news )
 			logging.debug( 'self.idx = ' + str( self.idx ))
-			logging.debug( datainput )
 			logging.debug( 'Error: exception in data collection write' )
 
 	def flush(self):
@@ -254,7 +253,7 @@ g_camera.framerate=10 #<---- framerate (fps) determines speed of data recording
 #----------- Wait or Not for a serial command from the fubarino -------------
 #	return turn with a list of 10 floats: the command and then 9 data values
 def getSerialCommandIfAvailable( dontWaitForCommand ):
-	numberOfCharsWaiting = ser.in_waiting()
+	numberOfCharsWaiting = ser.inWaiting()
 	
 	if( numberOfCharsWaiting == 0 ):
 		if( dontWaitForCommand ):
@@ -271,7 +270,7 @@ def getSerialCommandIfAvailable( dontWaitForCommand ):
 				ser.flushInput()	# dump partial command
 				serial_line_received = ser.readline()
 				serial_line_received = serial_line_received.decode("utf-8")
-				logging.debug( 'serial line received = ' + serial_line_received )
+#				logging.debug( 'serial line received = ' + serial_line_received )
 #				raw_serial_list = list( str(serial_line_received,'ascii').split(','))	# this seems to throw an error
 				raw_serial_list = list( serial_line_received.split(','))
 

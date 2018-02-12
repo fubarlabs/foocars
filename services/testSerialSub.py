@@ -47,6 +47,7 @@ def handle_exception( the_bad_news ):
 #	return turn with a list of 10 floats: the command and then 9 data values
 def getSerialCommandIfAvailable( dontWaitForCommand ):
 	numberOfCharsWaiting = 0
+	numberOfCharsWaiting = ser.in_waiting()
 	
 	if( numberOfCharsWaiting == 0 ):
 		if( dontWaitForCommand ):
