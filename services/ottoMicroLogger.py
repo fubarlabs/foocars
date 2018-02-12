@@ -150,41 +150,11 @@ class DataCollector(object):
 		#	  So, if any of those errors are detected, the line is discarded and the next line received is tested
 				
 		try:
-			number_of_serial_items = 0
-			required_number_of_data_items = 9
-			serial_input_is_OK = False
-			data = []
-						
-			while( serial_input_is_OK == False ):
-				ser.flushInput()
-				serial_line_received = ser.readline()
-				raw_serial_list = list( str(serial_line_received,'ascii').split(',')) 
-				number_of_serial_items = len( raw_serial_list )
-				line_not_checked = True
-				
-				while( line_not_checked ):
-					if( number_of_serial_items == required_number_of_data_items ):
-					
-						no_conversion_errors = True
-						for i in range( 0, required_number_of_data_items ):
-							try:
-								data.append( float( raw_serial_list[ i ]))
-							except ValueError:
-								no_conversion_errors = False
-								logging.debug( 'error converting to float = ' + str( raw_serial_list[ i ]))
-							
-							if( no_conversion_errors ):
-								serial_input_is_OK = True							
-							line_not_checked = False
-											
-					else:		# first test of received line fails 
-						line_not_checked = False
-						logging.debug( 'serial input error: # data items = ' + str( number_of_serial_items  ))
-								
-			self.debugSerialInput = serial_line_received
-			
-#			logging.debug( data )
-#			logging.debug( 'got cereal\n' )
+			data = [0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+			dontWaitForCommand = False
+			theCommand = 0
+			getSerialCommandIfAvailable( data, dontWaitForCommand, theCommand )
+			logging.debug( 'serial command: ' + str( data ))
 			
 			#Note: the data from the IMU requires some processing which does not happen here:
 			self.imgs[self.idx]=imdata
@@ -284,23 +254,27 @@ g_camera.framerate=10 #<---- framerate (fps) determines speed of data recording
 
 # -------- Wait or Not for a good command list from Fubarino --------
 def getSerialCommandIfAvailable( theCommandList, dontWaitForCommand, theCommand ):
-	numberOfCharsWaiting = ser.inWaiting()
+	numberOfCharsWaiting = 0
 	
 	if( numberOfCharsWaiting == 0 ):
 		if( dontWaitForCommand ):
 			theCommand = commandEnum.NO_COMMAND_AVAILABLE
 			return
 	
-	serial_input_is_no_damn_good = true
+	serial_input_is_no_damn_good = True
 	while( serial_input_is_no_damn_good ):		
 		try:
 			number_of_serial_items = 0
-			required_number_of_data_items = 9
+			required_number_of_data_items = 10
 					
 			while( serial_input_is_no_damn_good ):
 				ser.flushInput()	# dump partial command
 				serial_line_received = ser.readline()
-				raw_serial_list = list( str(serial_line_received,'ascii').split(','))
+				serial_line_received = serial_line_received.decode("utf-8")
+				logging.debug( 'serial line received = ' + serial_line_received )
+#				serial_line_received = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10"
+#				raw_serial_list = list( str(serial_line_received,'ascii').split(','))
+				raw_serial_list = list( serial_line_received.split(','))
 				theCommand = raw_serial_list[ 0 ]
 			 
 				number_of_serial_items = len( raw_serial_list )
@@ -330,7 +304,6 @@ def getSerialCommandIfAvailable( theCommandList, dontWaitForCommand, theCommand 
 		except Exception as the_bad_news:				
 			handle_exception( the_bad_news )
 			logging.debug( 'Error: receiving command from fubarino' )
-
 
 # -------- LED functions to make code clearer --------- 
 def turn_ON_LED( which_LED ):
