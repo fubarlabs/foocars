@@ -100,18 +100,18 @@ except Exception as the_bad_news:
 	
 	
 # -------------- Data Getter Object -------------------------------  
-class datagetter(object):
+class DataGetter(object):
 	def __init__(self):
 		pass
 
 	def write(self, s):
-		global imageData
+		global g_image_data
 		imagerawdata=np.reshape(np.fromstring(s, dtype=np.uint8), (96, 128, 3), 'C')
 		imdata=imagerawdata[0:78, :]
 		immean=imdata.mean()
 		imvar=imdata.std()
 		lock.acquire()
-		imageData=np.copy((imdata-immean)/imvar)
+		g_image_data=np.copy((imdata-immean)/imvar)
 		lock.release()
 
 	def flush(self):
@@ -119,13 +119,14 @@ class datagetter(object):
 	
 # -------------- Image Processor Function -------------------------------  
 def imageprocessor(event):
-	global imagedata
-	global graph
-	with graph.as_default():
+	global g_image_data
+	global g_graph
+	
+	with g_graph.as_default():
 		time.sleep(1)
 		while not event.is_set():
 			lock.acquire()
-			tmpimg=np.copy(imageData)
+			tmpimg=np.copy(g_image_data)
 			lock.release()
 			immean=tmpimg.mean()
 			imvar=tmpimg.std()
@@ -145,41 +146,64 @@ def imageprocessor(event):
 				ser.readline()
 				ser.readline()
 				#print(ser.readline())
-				#print(ser.readline())
-			except:
-				print("some serial problem")
+
+			except Exception as the_bad_news:				
+				handle_exception( the_bad_news )
 
 # ------------------------------------------------- 
 def callback_switch_autonomous( channel ):  
-	global g_No_Callback_Function_Running
+	global g_Recorded_Data_Not_Saved
+	global g_Wants_To_See_Video
+	global g_Is_Autonomous
+	global g_Camera_Is_Recording
+	global g_camera
+	global g_getter
 
-	# don't reenter an already running callback and don't respond to a high to low switch transition
-	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_autonomous ) == SWITCH_UP )): 
-		g_No_Callback_Function_Running = False
-				
-		try:
-			turn_ON_LED( LED_autonomous )
-			time.sleep( .1 )		# debounce switch some more
-			# do the autonomous ....
-			logging.debug( 'from autonmous:' )
-			raise Exception( 8, 'autonomous function not implemented yet' )
-			logging.debug( 'OK: automonous successful' )			
-	
-		except Exception as the_bad_news:				
-			while( GPIO.input( SWITCH_autonomous ) == SWITCH_UP ): 	# wait for user to flip switch down before thowing error
-				pass
-				
-			handle_exception( the_bad_news )
-			logging.debug( 'NG: automonous failure' )			
+	if( GPIO.input( SWITCH_autonomous ) == SWITCH_UP ):
+		if( g_Camera_Is_Recording == False ):
+			try:
+				turn_ON_LED( LED_autonomous )
+				g_camera.start_recording( g_getter, format='rgb' )
+				ipthread=threading.Thread(target=imageprocessor, args=[stopEvent])
+				ipthread.start()
+				stopEvent.set()
+				g_Camera_Is_Recording = True
+				g_Is_Autonomous = True
+				logging.debug( '* camera is recording' )
+				if ( g_Wants_To_See_Video ):
+					g_camera.start_preview() #displays video while it's being recorded
+
+			except Exception as the_bad_news:				
+				handle_exception( the_bad_news )
 			
-		finally:
-			g_No_Callback_Function_Running = True
-			turn_OFF_LED( LED_autonomous )
-			logging.debug( 'exiting autonomous' )
+		else:
+			logging.debug( '* warning: while recording, ANOTHER RISING transition on the autonomous switch' )
 		
-	else: 
-		logging.debug( 'skipped: another callback from autonomous' )
+	else:	# a autonomous data switch down position has occurred		
+		if( g_Camera_Is_Recording == True ):
+			logging.debug( '* autonomous switch is now down' )
+			try:
+				if ( g_Wants_To_See_Video ):
+					g_camera.stop_preview()
+				g_camera.stop_recording()			
+				stopEvent.set()
+				logging.debug( 'OK: autonomous complete' )
 
+			except Exception as the_bad_news:				
+				handle_exception( the_bad_news )
+				logging.debug( 'NG: autonomous problem' )
+				
+			finally:
+				g_Camera_Is_Recording = False
+				g_Recorded_Data_Not_Saved = True
+				turn_OFF_LED( LED_collect_data )
+				ipthread.join()
+				logging.debug( 'exiting autonomous\n' )
+
+		else:
+			#	this should not happen
+			raise Exception( 30, 'should not happen -> NOT recording and a FALLING transition on the autonomous switch' )
+			
 # -------------- Data Collector Object -------------------------------  
 NUM_FRAMES = 100
 
@@ -290,7 +314,7 @@ def callback_switch_collect_data( channel ):
 				handle_exception( the_bad_news )
 			
 		else:
-			logging.debug( '* warning: while recording, another rising transition detected on the collect data switch' )
+			logging.debug( '* warning: while recording, ANOTHER RISING transition on the collect switch' )
 		
 	else:	# a collect data switch down position has occurred		
 		if( g_Camera_Is_Recording == True ):
@@ -313,7 +337,7 @@ def callback_switch_collect_data( channel ):
 
 		else:
 			#	this should not happen
-			raise Exception( 31, 'NOT recording and a FALLING transition detected on the collect data switch' )
+			raise Exception( 31, 'should not happen -> NOT recording and a FALLING transition on the collect switch' )
 			
 
 
@@ -702,23 +726,33 @@ def turn_ON_all_LEDs():
 def initialize_RPi_Stuff():
 #	note: global variables start with a little "g"
 	global g_camera
+	global g_Camera_Is_Recording
+	global g_Is_Autonomous
 	global g_Wants_To_See_Video
 	global g_Recorded_Data_Not_Saved
 	global g_No_Callback_Function_Running
 	global g_Current_Exception_Not_Finished
 	global g_collector
+	global g_getter
+	global g_graph
 	
 	g_Wants_To_See_Video = True
 	g_Camera_Is_Recording = False
+	g_Is_Autonomous = False
 	g_Recorded_Data_Not_Saved = False
 	g_No_Callback_Function_Running = True
 	g_Current_Exception_Not_Finished = False
 	g_collector=DataCollector()
+	g_getter=DataGetter()
 	g_camera = picamera.PiCamera()
 	g_camera.resolution=(128, 96) #final image size
 
 	# g_camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
 	g_camera.framerate=10 #<---- framerate (fps) determines speed of data recording
+	
+	model.load_weights('Nweights.h5')
+	model._make_predict_function()
+	g_graph=tf.get_default_graph()
 	
 	# blink LEDs as an alarm if autonmous or collect switches have been left up
 	LED_state = LED_ON
