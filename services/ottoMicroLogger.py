@@ -99,8 +99,88 @@ except Exception as the_bad_news:
 	handle_exception( the_bad_news ) 
 	
 	
-# -------------- Data Collector Object -------------------------------  
+# -------------- Data Getter Object -------------------------------  
+class datagetter(object):
+	def __init__(self):
+		pass
 
+	def write(self, s):
+		global imageData
+		imagerawdata=np.reshape(np.fromstring(s, dtype=np.uint8), (96, 128, 3), 'C')
+		imdata=imagerawdata[0:78, :]
+		immean=imdata.mean()
+		imvar=imdata.std()
+		lock.acquire()
+		imageData=np.copy((imdata-immean)/imvar)
+		lock.release()
+
+	def flush(self):
+		pass
+	
+# -------------- Image Processor Function -------------------------------  
+def imageprocessor(event):
+	global imagedata
+	global graph
+	with graph.as_default():
+		time.sleep(1)
+		while not event.is_set():
+			lock.acquire()
+			tmpimg=np.copy(imageData)
+			lock.release()
+			immean=tmpimg.mean()
+			imvar=tmpimg.std()
+			#print('{0}, {1}'.format(immean, imvar))
+			start=time.time()
+			pred=model.predict(np.expand_dims(tmpimg, axis=0))
+			end=time.time()
+			if(end-start)<.2:
+				time.sleep(.2-(end-start))
+			end2=time.time()
+			steer_command=pred[0][0]*steerstats[1]+steerstats[0]
+			dataline='{0}, {1}, {2}, {3}\n'.format(1, int(steer_command), 1570, 0)
+			print(dataline)
+			try:
+				ser.flushInput()
+				ser.write(dataline.encode('ascii'))
+				ser.readline()
+				ser.readline()
+				#print(ser.readline())
+				#print(ser.readline())
+			except:
+				print("some serial problem")
+
+# ------------------------------------------------- 
+def callback_switch_autonomous( channel ):  
+	global g_No_Callback_Function_Running
+
+	# don't reenter an already running callback and don't respond to a high to low switch transition
+	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_autonomous ) == SWITCH_UP )): 
+		g_No_Callback_Function_Running = False
+				
+		try:
+			turn_ON_LED( LED_autonomous )
+			time.sleep( .1 )		# debounce switch some more
+			# do the autonomous ....
+			logging.debug( 'from autonmous:' )
+			raise Exception( 8, 'autonomous function not implemented yet' )
+			logging.debug( 'OK: automonous successful' )			
+	
+		except Exception as the_bad_news:				
+			while( GPIO.input( SWITCH_autonomous ) == SWITCH_UP ): 	# wait for user to flip switch down before thowing error
+				pass
+				
+			handle_exception( the_bad_news )
+			logging.debug( 'NG: automonous failure' )			
+			
+		finally:
+			g_No_Callback_Function_Running = True
+			turn_OFF_LED( LED_autonomous )
+			logging.debug( 'exiting autonomous' )
+		
+	else: 
+		logging.debug( 'skipped: another callback from autonomous' )
+
+# -------------- Data Collector Object -------------------------------  
 NUM_FRAMES = 100
 
 class DataCollector(object):
@@ -187,24 +267,54 @@ class DataCollector(object):
 		logging.debug( 'OK: camera flush, frame index = ' + str( self.idx ))
 		self.idx=0
 		
+# ------------------------------------------------- 
+def callback_switch_collect_data( channel ):  
+	global g_Recorded_Data_Not_Saved
+	global g_Wants_To_See_Video
+	global g_Camera_Is_Recording
+	global g_camera
+	global g_collector
 		
+	if( GPIO.input( SWITCH_collect_data ) == SWITCH_UP ):
+		if( g_Camera_Is_Recording == False ):
+			try:
+				turn_ON_LED( LED_collect_data )
+				g_collector.idx = 0		# just in case it wasn't zeroed by flush routine				
+				g_camera.start_recording( g_collector, format='rgb' )
+				g_Camera_Is_Recording = True
+				logging.debug( '* camera is recording' )
+				if ( g_Wants_To_See_Video ):
+					g_camera.start_preview() #displays video while it's being recorded
+
+			except Exception as the_bad_news:				
+				handle_exception( the_bad_news )
+			
+		else:
+			logging.debug( '* warning: while recording, another rising transition detected on the collect data switch' )
 		
-# -------------- Global Variables -------------------------------
-# -------- note: global variables start with a little "g" --------- 
+	else:	# a collect data switch down position has occurred		
+		if( g_Camera_Is_Recording == True ):
+			logging.debug( '* recording switch is now down' )
+			try:
+				if ( g_Wants_To_See_Video ):
+					g_camera.stop_preview()
+				g_camera.stop_recording()			
+				logging.debug( 'OK: Camera recorded' )
 
-g_Wants_To_See_Video = True
-g_Camera_Is_Recording = False
-g_Recorded_Data_Not_Saved = False
-g_No_Callback_Function_Running = True
-g_Current_Exception_Not_Finished = False
-g_collector=DataCollector()
-g_camera = picamera.PiCamera()
-#	Note: these are just parameters to set up the camera, so the order is not important
+			except Exception as the_bad_news:				
+				handle_exception( the_bad_news )
+				logging.debug( 'NG: Camera NOT recorded' )
+				
+			finally:
+				g_Camera_Is_Recording = False
+				g_Recorded_Data_Not_Saved = True
+				turn_OFF_LED( LED_collect_data )
+				logging.debug( 'exiting collect data\n' )
 
-g_camera.resolution=(128, 96) #final image size
-
-# g_camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
-g_camera.framerate=10 #<---- framerate (fps) determines speed of data recording
+		else:
+			#	this should not happen
+			raise Exception( 31, 'NOT recording and a FALLING transition detected on the collect data switch' )
+			
 
 
 # -------- Switch / Button use cheatsheet --------- 
@@ -251,7 +361,7 @@ g_camera.framerate=10 #<---- framerate (fps) determines speed of data recording
 #	  So, if any of those errors are detected, the line is discarded and the next line received is tested
 
 #----------- Wait or Not for a serial command from the fubarino -------------
-#	return turn with a list of 10 floats: the command and then 9 data values
+#	return with a list of 10 FLOATS: the command and then 9 data values
 def getSerialCommandIfAvailable( dontWaitForCommand ):
 	numberOfCharsWaiting = ser.inWaiting()
 	
@@ -391,55 +501,7 @@ def handle_exception( the_bad_news ):
 		logging.debug( "*** exception cleared by user\n" )
 		g_Current_Exception_Not_Finished = False
 		 	
-# ------------------------------------------------- 
-def callback_switch_collect_data( channel ):  
-	global g_Recorded_Data_Not_Saved
-	global g_Wants_To_See_Video
-	global g_Camera_Is_Recording
-	global g_camera
-	global g_collector
-		
-	if( GPIO.input( SWITCH_collect_data ) == SWITCH_UP ):
-		if( g_Camera_Is_Recording == False ):
-			try:
-				turn_ON_LED( LED_collect_data )
-				g_collector.idx = 0		# just in case it wasn't zeroed by flush routine				
-				g_camera.start_recording( g_collector, format='rgb' )
-				g_Camera_Is_Recording = True
-				logging.debug( '* camera is recording' )
-				if ( g_Wants_To_See_Video ):
-					g_camera.start_preview() #displays video while it's being recorded
-
-			except Exception as the_bad_news:				
-				handle_exception( the_bad_news )
-			
-		else:
-			logging.debug( '* warning: while recording, another rising transition detected on the collect data switch' )
-		
-	else:	# a collect data switch down position has occurred		
-		if( g_Camera_Is_Recording == True ):
-			logging.debug( '* recording switch is now down' )
-			try:
-				if ( g_Wants_To_See_Video ):
-					g_camera.stop_preview()
-				g_camera.stop_recording()			
-				logging.debug( 'OK: Camera recorded' )
-
-			except Exception as the_bad_news:				
-				handle_exception( the_bad_news )
-				logging.debug( 'NG: Camera NOT recorded' )
-				
-			finally:
-				g_Camera_Is_Recording = False
-				g_Recorded_Data_Not_Saved = True
-				turn_OFF_LED( LED_collect_data )
-				logging.debug( 'exiting collect data\n' )
-
-		else:
-			#	this should not happen
-			raise Exception( 31, 'NOT recording and a FALLING transition detected on the collect data switch' )
-		 
-# -------- Functions called by switch callback functions --------- 
+	 
 def callback_switch_save_to_USBdrive( channel ): 
 	global g_No_Callback_Function_Running
 	
@@ -538,37 +600,6 @@ def callback_switch_read_from_USBdrive( channel ):
 	else: 
 		logging.debug( 'callback skipped: falling edge of read_from_USBdrive' )
 	 
-# ------------------------------------------------- 
-def callback_switch_autonomous( channel ):  
-	global g_No_Callback_Function_Running
-
-	# don't reenter an already running callback and don't respond to a high to low switch transition
-	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_autonomous ) == SWITCH_UP )): 
-		g_No_Callback_Function_Running = False
-				
-		try:
-			turn_ON_LED( LED_autonomous )
-			time.sleep( .1 )		# debounce switch some more
-			# do the autonomous ....
-			logging.debug( 'from autonmous:' )
-			raise Exception( 8, 'autonomous function not implemented yet' )
-			logging.debug( 'OK: automonous successful' )			
-	
-		except Exception as the_bad_news:				
-			while( GPIO.input( SWITCH_autonomous ) == SWITCH_UP ): 	# wait for user to flip switch down before thowing error
-				pass
-				
-			handle_exception( the_bad_news )
-			logging.debug( 'NG: automonous failure' )			
-			
-		finally:
-			g_No_Callback_Function_Running = True
-			turn_OFF_LED( LED_autonomous )
-			logging.debug( 'exiting autonomous' )
-		
-	else: 
-		logging.debug( 'skipped: another callback from autonomous' )
-
 # ------------------------------------------------- 
 #	regular exception handling not used with shutdown function
 def callback_switch_shutdown_RPi( channel ):
@@ -669,7 +700,25 @@ def turn_ON_all_LEDs():
 	 	
 # ------------------------------------------------- 
 def initialize_RPi_Stuff():
+#	note: global variables start with a little "g"
 	global g_camera
+	global g_Wants_To_See_Video
+	global g_Recorded_Data_Not_Saved
+	global g_No_Callback_Function_Running
+	global g_Current_Exception_Not_Finished
+	global g_collector
+	
+	g_Wants_To_See_Video = True
+	g_Camera_Is_Recording = False
+	g_Recorded_Data_Not_Saved = False
+	g_No_Callback_Function_Running = True
+	g_Current_Exception_Not_Finished = False
+	g_collector=DataCollector()
+	g_camera = picamera.PiCamera()
+	g_camera.resolution=(128, 96) #final image size
+
+	# g_camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
+	g_camera.framerate=10 #<---- framerate (fps) determines speed of data recording
 	
 	# blink LEDs as an alarm if autonmous or collect switches have been left up
 	LED_state = LED_ON
