@@ -1,7 +1,9 @@
 # FUBAR Labs Autonomous Racing Vehicles
 
 Autonmous Vehicle Project at Fubar Labs for the Autonomous Powerwheels Racing compeition.
-* Autonmous Powerwheels Racing event will be Makerfaire NYC 2017
+* Autonomous Powerwheels Racing Pittsburg Makerfiare 2017
+ * We totally did laps. We were on the track on time and ready to go!
+* Autonmous Powerwheels Racing Makerfaire NYC 2017
 * Autonmous Vehicle Competition via Sparkfun at Denver Makerfaire 2017
 
 ## Quickstart
@@ -9,18 +11,26 @@ Autonmous Vehicle Project at Fubar Labs for the Autonomous Powerwheels Racing co
 
 
 ### Car Code
+
 Prepare your PI
+
 ```
 sudo apt-getupdate
-sudo apt-get install python3-pip python3-dev
+sudo apt-get install python3-pip python3-dev ython3-dev python3-pip python-pip python3-h5py \
+python3-numpy python3-matplotlib python3-scipy python3-pandas 
 ```
 Get TensorFlow for PI installed (http://www.instructables.com/id/Google-Tensorflow-on-Rapsberry-Pi/)
 ```
-wget https://github.com/samjabrahams/tensorflow-on-raspberry-pi/releases/download/v1.0.1/tensorflow-1.0.1-cp34-cp34m-linux_armv7l.whl
+wget https://github.com/samjabrahams/tensorflow-on-raspberry-pi/releases/download/v1.1.0/tensorflow-1.1.0-cp34-cp34m-linux_armv7l.whl
 ```
 Install Tensorflow for Python 3.4
 ```
-sudo pip3 install tensorflow-1.0.1-cp34-cp34m-linux_armv7l.whl
+sudo pip3 install pip3 install tensorflow-1.1.0-cp34-cp34m-linux_armv7l.whl 
+```
+If you have Tensorflow on Raspberry PI with Stretch you need to rename the Tensorflow wheel binary:
+
+```
+cp tensorflow-1.1.0-cp34-cp34m-linux_armv7l.whl tensorflow-1.1.0-cp35-cp35m-linux_armv7l.whl
 ```
 
 Fix a potential error message:
@@ -28,21 +38,21 @@ Fix a potential error message:
 sudo pip3 uninstall mock
 sudo pip3 install mock
 ```
+Install the Python libraries:
 
-Raspberry PI open cv installation:
-
-Training system needs openCV for image review. It's a nice to have for the PI.
-```
-TODO: custom compilation information
-```
-
-The actual car code:
 ```
 git clone https://github.com/fubarlabs/autonomous
 cd autonomous
 virtualenv auto -p python3 
 source auto/bin/activate
 pip install -r requirements.txt
+```
+Set up the raspberry pi services
+```
+cd /usr/local/bin
+ln -s /autonomous/services/ottoMicroLogger.py
+ln -s /autonomous/services/ottoMicroLogger.service
+systemctl enable /autonomous/services/ottoMicroLogger.service
 ```
 
 ### Note for Arduino
