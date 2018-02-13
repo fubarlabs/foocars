@@ -17,6 +17,7 @@ import shutil
 import threading
 import tensorflow as tf
 import keras
+from enum import Enum     
 
 from dropout_model import model
 
@@ -69,6 +70,22 @@ LED_OFF = GPIO.LOW
 RELAY_ON = GPIO.HIGH
 RELAY_OFF = GPIO.LOW
 
+# -------- Command enumeration same as ones on fubarino --------- 
+#	use like this: commandEnum.NO_COMMAND_AVAILABLE
+class commandEnum(Enum):
+	NOT_ACTUAL_COMMAND = 0
+	RC_SIGNAL_WAS_LOST = 1
+	RC_SIGNALED_STOP_AUTONOMOUS = 2
+	STEERING_VALUE_OUT_OF_RANGE = 3
+	THROTTLE_VALUE_OUT_OF_RANGE= 4
+	RUN_AUTONOMOUSLY = 5
+	STOP_AUTONOMOUS = 6
+	STOPPED_AUTO_COMMAND_RECEIVED = 7
+	NO_COMMAND_AVAILABLE = 8
+	GOOD_PI_COMMAND_RECEIVED = 9
+	TOO_MANY_VALUES_IN_COMMAND = 10
+	GOOD_RC_SIGNALS_RECEIVED = 11
+
 # --------Old Data Collection Command Line Startup Code--------- 
 time_format='%Y-%m-%d_%H-%M-%S'
 
@@ -82,8 +99,88 @@ except Exception as the_bad_news:
 	handle_exception( the_bad_news ) 
 	
 	
-# -------------- Data Collector Object -------------------------------  
+# -------------- Data Getter Object -------------------------------  
+class datagetter(object):
+	def __init__(self):
+		pass
 
+	def write(self, s):
+		global imageData
+		imagerawdata=np.reshape(np.fromstring(s, dtype=np.uint8), (96, 128, 3), 'C')
+		imdata=imagerawdata[0:78, :]
+		immean=imdata.mean()
+		imvar=imdata.std()
+		lock.acquire()
+		imageData=np.copy((imdata-immean)/imvar)
+		lock.release()
+
+	def flush(self):
+		pass
+	
+# -------------- Image Processor Function -------------------------------  
+def imageprocessor(event):
+	global imagedata
+	global graph
+	with graph.as_default():
+		time.sleep(1)
+		while not event.is_set():
+			lock.acquire()
+			tmpimg=np.copy(imageData)
+			lock.release()
+			immean=tmpimg.mean()
+			imvar=tmpimg.std()
+			#print('{0}, {1}'.format(immean, imvar))
+			start=time.time()
+			pred=model.predict(np.expand_dims(tmpimg, axis=0))
+			end=time.time()
+			if(end-start)<.2:
+				time.sleep(.2-(end-start))
+			end2=time.time()
+			steer_command=pred[0][0]*steerstats[1]+steerstats[0]
+			dataline='{0}, {1}, {2}, {3}\n'.format(1, int(steer_command), 1570, 0)
+			print(dataline)
+			try:
+				ser.flushInput()
+				ser.write(dataline.encode('ascii'))
+				ser.readline()
+				ser.readline()
+				#print(ser.readline())
+				#print(ser.readline())
+			except:
+				print("some serial problem")
+
+# ------------------------------------------------- 
+def callback_switch_autonomous( channel ):  
+	global g_No_Callback_Function_Running
+
+	# don't reenter an already running callback and don't respond to a high to low switch transition
+	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_autonomous ) == SWITCH_UP )): 
+		g_No_Callback_Function_Running = False
+				
+		try:
+			turn_ON_LED( LED_autonomous )
+			time.sleep( .1 )		# debounce switch some more
+			# do the autonomous ....
+			logging.debug( 'from autonmous:' )
+			raise Exception( 8, 'autonomous function not implemented yet' )
+			logging.debug( 'OK: automonous successful' )			
+	
+		except Exception as the_bad_news:				
+			while( GPIO.input( SWITCH_autonomous ) == SWITCH_UP ): 	# wait for user to flip switch down before thowing error
+				pass
+				
+			handle_exception( the_bad_news )
+			logging.debug( 'NG: automonous failure' )			
+			
+		finally:
+			g_No_Callback_Function_Running = True
+			turn_OFF_LED( LED_autonomous )
+			logging.debug( 'exiting autonomous' )
+		
+	else: 
+		logging.debug( 'skipped: another callback from autonomous' )
+
+# -------------- Data Collector Object -------------------------------  
 NUM_FRAMES = 100
 
 class DataCollector(object):
@@ -124,60 +221,21 @@ class DataCollector(object):
 	def write(self, s):
 		'''this is the function that is called every time the PiCamera has a new frame'''
 		imdata=np.reshape(np.fromstring(s, dtype=np.uint8), (96, 128, 3), 'C')
-		
-		#	now we read from the serial port and format and save the data:
-		#	  There are a few problems that can arise if the serial buffer happens to be flushed in the midst of receiving a line:
-		#	   1- the serial line received can be only partially received
-		#	   2- the number of data items in that partial line is less than the required number
-		#	   3- the number of items is correct, but one of data items is not whole and cannot be converted into a float
-		#	  So, if any of those errors are detected, the line is discarded and the next line received is tested
-				
-		try:
-			number_of_serial_items = 0
-			required_number_of_data_items = 9
-			serial_input_is_OK = False
-			data = []
 						
-			while( serial_input_is_OK == False ):
-				ser.flushInput()
-				serial_line_received = ser.readline()
-				raw_serial_list = list( str(serial_line_received,'ascii').split(',')) 
-				number_of_serial_items = len( raw_serial_list )
-				line_not_checked = True
-				
-				while( line_not_checked ):
-					if( number_of_serial_items == required_number_of_data_items ):
-					
-						no_conversion_errors = True
-						for i in range( 0, required_number_of_data_items ):
-							try:
-								data.append( float( raw_serial_list[ i ]))
-							except ValueError:
-								no_conversion_errors = False
-								logging.debug( 'error converting to float = ' + str( raw_serial_list[ i ]))
-							
-							if( no_conversion_errors ):
-								serial_input_is_OK = True							
-							line_not_checked = False
-											
-					else:		# first test of received line fails 
-						line_not_checked = False
-						logging.debug( 'serial input error: # data items = ' + str( number_of_serial_items  ))
-								
-			self.debugSerialInput = serial_line_received
-			
-#			logging.debug( data )
-#			logging.debug( 'got cereal\n' )
+		try:
+			dontWaitForCommand = False	#  Keep waiting for a good command
+			theCommandList = getSerialCommandIfAvailable( dontWaitForCommand )
+			logging.debug( 'serial command: ' + str( theCommandList ))
 			
 			#Note: the data from the IMU requires some processing which does not happen here:
 			self.imgs[self.idx]=imdata
-			accelData=np.array([data[0], data[1], data[2]], dtype=np.float32)
-			gyroData=np.array([data[3], data[4], data[5]], )
-			datatime=np.array([int(data[6])], dtype=np.float32)
-			steer_command=int(data[7])
-			gas_command=int(data[8])
+			accelData=np.array([theCommandList[1], theCommandList[2], theCommandList[3]], dtype=np.float32)
+			gyroData=np.array([theCommandList[4], theCommandList[5], theCommandList[6]], )
+			datatime=np.array([int(theCommandList[7])], dtype=np.float32)
+			steering_value=int(theCommandList[8])
+			throttle_value=int(theCommandList[9])
 			self.IMUdata[self.idx]=np.concatenate((accelData, gyroData, datatime))
-			self.RCcommands[self.idx]=np.array([steer_command, gas_command])
+			self.RCcommands[self.idx]=np.array([steering_value, throttle_value])
 			self.idx+=1
 			
 			if ((self.idx % 20 ) == 0 ): 	# blink the LED everytime 20 frames are recorded
@@ -191,7 +249,6 @@ class DataCollector(object):
 		except Exception as the_bad_news:				
 			handle_exception( the_bad_news )
 			logging.debug( 'self.idx = ' + str( self.idx ))
-			logging.debug( datainput )
 			logging.debug( 'Error: exception in data collection write' )
 
 	def flush(self):
@@ -210,24 +267,54 @@ class DataCollector(object):
 		logging.debug( 'OK: camera flush, frame index = ' + str( self.idx ))
 		self.idx=0
 		
+# ------------------------------------------------- 
+def callback_switch_collect_data( channel ):  
+	global g_Recorded_Data_Not_Saved
+	global g_Wants_To_See_Video
+	global g_Camera_Is_Recording
+	global g_camera
+	global g_collector
 		
+	if( GPIO.input( SWITCH_collect_data ) == SWITCH_UP ):
+		if( g_Camera_Is_Recording == False ):
+			try:
+				turn_ON_LED( LED_collect_data )
+				g_collector.idx = 0		# just in case it wasn't zeroed by flush routine				
+				g_camera.start_recording( g_collector, format='rgb' )
+				g_Camera_Is_Recording = True
+				logging.debug( '* camera is recording' )
+				if ( g_Wants_To_See_Video ):
+					g_camera.start_preview() #displays video while it's being recorded
+
+			except Exception as the_bad_news:				
+				handle_exception( the_bad_news )
+			
+		else:
+			logging.debug( '* warning: while recording, another rising transition detected on the collect data switch' )
 		
-# -------------- Global Variables -------------------------------
-# -------- note: global variables start with a little "g" --------- 
+	else:	# a collect data switch down position has occurred		
+		if( g_Camera_Is_Recording == True ):
+			logging.debug( '* recording switch is now down' )
+			try:
+				if ( g_Wants_To_See_Video ):
+					g_camera.stop_preview()
+				g_camera.stop_recording()			
+				logging.debug( 'OK: Camera recorded' )
 
-g_Wants_To_See_Video = True
-g_Camera_Is_Recording = False
-g_Recorded_Data_Not_Saved = False
-g_No_Callback_Function_Running = True
-g_Current_Exception_Not_Finished = False
-g_collector=DataCollector()
-g_camera = picamera.PiCamera()
-#	Note: these are just parameters to set up the camera, so the order is not important
+			except Exception as the_bad_news:				
+				handle_exception( the_bad_news )
+				logging.debug( 'NG: Camera NOT recorded' )
+				
+			finally:
+				g_Camera_Is_Recording = False
+				g_Recorded_Data_Not_Saved = True
+				turn_OFF_LED( LED_collect_data )
+				logging.debug( 'exiting collect data\n' )
 
-g_camera.resolution=(128, 96) #final image size
-
-# g_camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
-g_camera.framerate=10 #<---- framerate (fps) determines speed of data recording
+		else:
+			#	this should not happen
+			raise Exception( 31, 'NOT recording and a FALLING transition detected on the collect data switch' )
+			
 
 
 # -------- Switch / Button use cheatsheet --------- 
@@ -265,6 +352,69 @@ g_camera.framerate=10 #<---- framerate (fps) determines speed of data recording
 # all LEDs blinking					Tried to shutdown without first saving Data folder
 # read and save LEDs blinking together			USB drive not mounted - insert or remove and insert USB drive
 
+# -------- Wait or Not for a good command list from Fubarino --------
+#	read from the serial port and format and save the data:
+#	  There are a few problems that can arise if the serial buffer happens to be flushed in the midst of receiving a line:
+#	   1- the serial line received can be only partially received
+#	   2- the number of data items in that partial line is less than the required number
+#	   3- the number of items is correct, but one of data items is not whole and cannot be converted into a float
+#	  So, if any of those errors are detected, the line is discarded and the next line received is tested
+
+#----------- Wait or Not for a serial command from the fubarino -------------
+#	return with a list of 10 FLOATS: the command and then 9 data values
+def getSerialCommandIfAvailable( dontWaitForCommand ):
+	numberOfCharsWaiting = ser.inWaiting()
+	
+	if( numberOfCharsWaiting == 0 ):
+		if( dontWaitForCommand ):
+			theResult = commandEnum.NO_COMMAND_AVAILABLE
+			return
+	
+	serial_input_is_no_damn_good = True
+	while( serial_input_is_no_damn_good ):		
+		try:
+			number_of_serial_items = 0
+			required_number_of_serial_items = 10
+					
+			while( serial_input_is_no_damn_good ):
+				ser.flushInput()	# dump partial command
+				serial_line_received = ser.readline()
+				serial_line_received = serial_line_received.decode("utf-8")
+#				logging.debug( 'serial line received = ' + serial_line_received )
+#				raw_serial_list = list( str(serial_line_received,'ascii').split(','))	# this seems to throw an error
+				raw_serial_list = list( serial_line_received.split(','))
+
+				theCommandList = []			 
+				number_of_serial_items = len( raw_serial_list )
+				line_not_checked = True
+			
+				while( line_not_checked ):
+					if( number_of_serial_items == required_number_of_serial_items ):
+				
+						no_conversion_errors = True
+						for i in range( 0, required_number_of_serial_items ):
+							try:
+								theCommandList.append( float( raw_serial_list[ i ]))
+							except ValueError:
+								no_conversion_errors = False
+								logging.debug( 'error converting to float = ' + str( raw_serial_list[ i ]))
+						
+							if( no_conversion_errors ):
+								serial_input_is_no_damn_good = False							
+							line_not_checked = False
+										
+					else:		# first test of received line fails 
+						line_not_checked = False
+						logging.debug( 'serial input error: # data items = ' + str( number_of_serial_items  ))
+							
+			debugSerialInput = serial_line_received
+		
+		except Exception as the_bad_news:				
+			handle_exception( the_bad_news )
+			logging.debug( 'Error: receiving command from fubarino' )
+	
+	return( theCommandList )		
+
 # -------- LED functions to make code clearer --------- 
 def turn_ON_LED( which_LED ):
 	GPIO.output( which_LED, LED_ON )
@@ -272,8 +422,6 @@ def turn_ON_LED( which_LED ):
 def turn_OFF_LED( which_LED ):
 	GPIO.output( which_LED, LED_OFF )	
 	
-
-
 def at_least_one_momentary_switch_is_up():
 	if(( GPIO.input( SWITCH_save_to_USBdrive ) == SWITCH_UP ) or ( GPIO.input( SWITCH_read_from_USBdrive ) == SWITCH_UP ) 
 			or ( GPIO.input( SWITCH_shutdown_RPi ) == SWITCH_UP )):	
@@ -353,55 +501,7 @@ def handle_exception( the_bad_news ):
 		logging.debug( "*** exception cleared by user\n" )
 		g_Current_Exception_Not_Finished = False
 		 	
-# ------------------------------------------------- 
-def callback_switch_collect_data( channel ):  
-	global g_Recorded_Data_Not_Saved
-	global g_Wants_To_See_Video
-	global g_Camera_Is_Recording
-	global g_camera
-	global g_collector
-		
-	if( GPIO.input( SWITCH_collect_data ) == SWITCH_UP ):
-		if( g_Camera_Is_Recording == False ):
-			try:
-				turn_ON_LED( LED_collect_data )
-				g_collector.idx = 0		# just in case it wasn't zeroed by flush routine				
-				g_camera.start_recording( g_collector, format='rgb' )
-				g_Camera_Is_Recording = True
-				logging.debug( '* camera is recording' )
-				if ( g_Wants_To_See_Video ):
-					g_camera.start_preview() #displays video while it's being recorded
-
-			except Exception as the_bad_news:				
-				handle_exception( the_bad_news )
-			
-		else:
-			logging.debug( '* warning: while recording, another rising transition detected on the collect data switch' )
-		
-	else:	# a collect data switch down position has occurred		
-		if( g_Camera_Is_Recording == True ):
-			logging.debug( '* recording switch is now down' )
-			try:
-				if ( g_Wants_To_See_Video ):
-					g_camera.stop_preview()
-				g_camera.stop_recording()			
-				logging.debug( 'OK: Camera recorded' )
-
-			except Exception as the_bad_news:				
-				handle_exception( the_bad_news )
-				logging.debug( 'NG: Camera NOT recorded' )
-				
-			finally:
-				g_Camera_Is_Recording = False
-				g_Recorded_Data_Not_Saved = True
-				turn_OFF_LED( LED_collect_data )
-				logging.debug( 'exiting collect data\n' )
-
-		else:
-			#	this should not happen
-			raise Exception( 31, 'NOT recording and a FALLING transition detected on the collect data switch' )
-		 
-# -------- Functions called by switch callback functions --------- 
+	 
 def callback_switch_save_to_USBdrive( channel ): 
 	global g_No_Callback_Function_Running
 	
@@ -500,37 +600,6 @@ def callback_switch_read_from_USBdrive( channel ):
 	else: 
 		logging.debug( 'callback skipped: falling edge of read_from_USBdrive' )
 	 
-# ------------------------------------------------- 
-def callback_switch_autonomous( channel ):  
-	global g_No_Callback_Function_Running
-
-	# don't reenter an already running callback and don't respond to a high to low switch transition
-	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_autonomous ) == SWITCH_UP )): 
-		g_No_Callback_Function_Running = False
-				
-		try:
-			turn_ON_LED( LED_autonomous )
-			time.sleep( .1 )		# debounce switch some more
-			# do the autonomous ....
-			logging.debug( 'from autonmous:' )
-			raise Exception( 8, 'autonomous function not implemented yet' )
-			logging.debug( 'OK: automonous successful' )			
-	
-		except Exception as the_bad_news:				
-			while( GPIO.input( SWITCH_autonomous ) == SWITCH_UP ): 	# wait for user to flip switch down before thowing error
-				pass
-				
-			handle_exception( the_bad_news )
-			logging.debug( 'NG: automonous failure' )			
-			
-		finally:
-			g_No_Callback_Function_Running = True
-			turn_OFF_LED( LED_autonomous )
-			logging.debug( 'exiting autonomous' )
-		
-	else: 
-		logging.debug( 'skipped: another callback from autonomous' )
-
 # ------------------------------------------------- 
 #	regular exception handling not used with shutdown function
 def callback_switch_shutdown_RPi( channel ):
@@ -631,7 +700,25 @@ def turn_ON_all_LEDs():
 	 	
 # ------------------------------------------------- 
 def initialize_RPi_Stuff():
+#	note: global variables start with a little "g"
 	global g_camera
+	global g_Wants_To_See_Video
+	global g_Recorded_Data_Not_Saved
+	global g_No_Callback_Function_Running
+	global g_Current_Exception_Not_Finished
+	global g_collector
+	
+	g_Wants_To_See_Video = True
+	g_Camera_Is_Recording = False
+	g_Recorded_Data_Not_Saved = False
+	g_No_Callback_Function_Running = True
+	g_Current_Exception_Not_Finished = False
+	g_collector=DataCollector()
+	g_camera = picamera.PiCamera()
+	g_camera.resolution=(128, 96) #final image size
+
+	# g_camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
+	g_camera.framerate=10 #<---- framerate (fps) determines speed of data recording
 	
 	# blink LEDs as an alarm if autonmous or collect switches have been left up
 	LED_state = LED_ON
