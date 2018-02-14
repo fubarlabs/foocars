@@ -13,6 +13,18 @@
 #define CMD_THR 2
 #define CMD_TIME 3
 
+enum LEDdebugEnum{
+	LED_DEBUG_0 = 0,
+	LED_DEBUG_1 = 1,
+	LED_DEBUG_2 = 2,
+	LED_DEBUG_3 = 3,
+	LED_DEBUG_4 = 4,
+	LED_DEBUG_5 = 5,
+	LED_DEBUG_6 = 6,
+	LED_DEBUG_7 = 7,
+	LED_DEBUG_8 = 8
+};
+
 enum commandEnumeration{
 	NOT_ACTUAL_COMMAND = 0,
 	RC_SIGNAL_WAS_LOST = 1,
@@ -46,6 +58,9 @@ const int PIN_STR = 9;
 const int PIN_THR = 7;
 const int PIN_IN_STR = 13;
 const int PIN_IN_THR = 12;
+
+byte LEDdebugPins[] = {A11, A12, A13, A14, 27, 26, 25, 24};
+byte toggle = 0;
 
 unsigned long gCenteredSteeringValue;
 unsigned long gCenteredThrottleValue;
@@ -119,10 +134,27 @@ int initIMU() {
 	I2CwriteByte(MAG_ADDRESS,0x0A,0x16);
 }
 
+void displayBinaryOnLEDS(byte n)
+{
+	for (byte i=0; i<8; i++) {
+		digitalWrite( LEDdebugPins[i], n & 1);
+		n /= 2;
+	}
+}
+
 void setup() {
 	Wire.begin();
+	for (int x = 0; x < 8; x++)
+		pinMode( LEDdebugPins[x], OUTPUT);
+		
+	displayBinaryOnLEDS( 0xff );
+	
 	Serial.begin(9600);
-	delay(250);
+	delay( 5000 );
+	displayBinaryOnLEDS( 0 );
+	
+	Serial.println( "Starting up..." );
+	
 
 	pinMode(PIN_IN_STR, INPUT);
 	pinMode(PIN_IN_THR, INPUT);
@@ -147,7 +179,6 @@ void setup() {
 	
 	initIMU();
 	gTheOldRCcommand = NOT_ACTUAL_COMMAND;
-	gTheOldPiCommand = NOT_ACTUAL_COMMAND;
 	gIsInAutonomousMode = false;
 }
 
@@ -339,7 +370,9 @@ void loop() {
 	// ------------------------- Handle RC Commands -------------------------------
 	handleRCSignals( &theCommandData );
 	
-	if( gTheOldRCcommand != theCommandData.command ){	// only print RC command once 
+	displayBinaryOnLEDS( LED_DEBUG_1 );
+		
+	if( gTheOldRCcommand != theCommandData.command ){	// for debugging purposes only print RC command once 
 		Serial.print( "RC command: " );
 		Serial.print(theCommandData.command);
 		Serial.println();
@@ -355,6 +388,7 @@ void loop() {
 		theCommandData.thr = gCenteredThrottleValue;	//  turn off the motor
 
 		if( gIsInAutonomousMode ){	// send the command to pi to stop autonomous
+			Serial.println( "Autonomous mode is on " );
 			theCommandData.command = NO_COMMAND_AVAILABLE;	// setup to get at least one pass thru while loop
 			while( theCommandData.command != STOPPED_AUTO_COMMAND_RECEIVED ){	// loop until pi acknowledges STOP auto
 				theCommandData.command = STOP_AUTONOMOUS;
@@ -366,6 +400,9 @@ void loop() {
 	}
 	
 	else if( theCommandData.command == GOOD_RC_SIGNALS_RECEIVED ){
+	
+		displayBinaryOnLEDS( LED_DEBUG_2 );
+	
 		if( gIsInAutonomousMode == false ){
 			sendSerialCommand( &theCommandData );
 			ServoSTR.writeMicroseconds( theCommandData.str );
@@ -375,6 +412,8 @@ void loop() {
 	
 	// ------------------------- Handle Pi Commands -------------------------------
 	getSerialCommandIfAvailable( &theCommandData );
+	
+	displayBinaryOnLEDS( LED_DEBUG_4 );
 	
 	if( gTheOldPiCommand != theCommandData.command ){
 		Serial.print( "Pi command: " );
@@ -405,6 +444,8 @@ void loop() {
 			else{
 				// for new commands
 			}
+			
+			displayBinaryOnLEDS( LED_DEBUG_8 );
 			
 			ServoSTR.writeMicroseconds( theCommandData.str );
 			ServoTHR.writeMicroseconds( theCommandData.thr );
