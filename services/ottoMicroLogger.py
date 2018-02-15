@@ -110,9 +110,9 @@ class DataGetter(object):
 		imdata=imagerawdata[0:78, :]
 		immean=imdata.mean()
 		imvar=imdata.std()
-		lock.acquire()
+		g_lock.acquire()
 		g_image_data=np.copy((imdata-immean)/imvar)
-		lock.release()
+		g_lock.release()
 
 	def flush(self):
 		pass
@@ -123,32 +123,40 @@ def imageprocessor(event):
 	global g_graph
 	
 	with g_graph.as_default():
-		time.sleep(1)
-		while not event.is_set():
-			lock.acquire()
-			tmpimg=np.copy(g_image_data)
-			lock.release()
-			immean=tmpimg.mean()
-			imvar=tmpimg.std()
+#		time.sleep(1)
+#		while not event.is_set():
+			#g_lock.acquire()
+			#tmpimg=np.copy(g_image_data)
+			#g_lock.release()
+			#immean=tmpimg.mean()
+			#imvar=tmpimg.std()
 			#print('{0}, {1}'.format(immean, imvar))
-			start=time.time()
-			pred=model.predict(np.expand_dims(tmpimg, axis=0))
-			end=time.time()
-			if(end-start)<.2:
-				time.sleep(.2-(end-start))
-			end2=time.time()
-			steer_command=pred[0][0]*steerstats[1]+steerstats[0]
-			dataline='{0}, {1}, {2}, {3}\n'.format(1, int(steer_command), 1570, 0)
-			print(dataline)
-			try:
-				ser.flushInput()
+			#start=time.time()
+			#pred=model.predict(np.expand_dims(tmpimg, axis=0))
+			#end=time.time()
+			#if(end-start)<.2:
+			#	time.sleep(.2-(end-start))
+			#end2=time.time()
+			#steer_command=pred[0][0]*steerstats[1]+steerstats[0]
+			#dataline='{0}, {1}, {2}, {3}\n'.format(1, int(steer_command), 1570, 0)
+			#print(dataline)
+		logging.debug( '* got to try in imageprocessor' )
+		try:
+#				ser.flushInput()
+#				ser.write(dataline.encode('ascii'))
+#				ser.readline()
+#				ser.readline()
+			#print(ser.readline())
+			while( 1 ):
+				dataline='{0}, {1}, {2}, {3}\n'.format( commandEnum.RUN_AUTONOMOUSLY, 1300, 1500, 0)
 				ser.write(dataline.encode('ascii'))
-				ser.readline()
-				ser.readline()
-				#print(ser.readline())
+				time.sleep( .2)
+				dataline='{0}, {1}, {2}, {3}\n'.format( commandEnum.RUN_AUTONOMOUSLY, 1700, 1500, 0)
+				ser.write(dataline.encode('ascii'))
+				time.sleep( .2)
 
-			except Exception as the_bad_news:				
-				handle_exception( the_bad_news )
+		except Exception as the_bad_news:				
+			handle_exception( the_bad_news )
 
 # ------------------------------------------------- 
 def callback_switch_autonomous( channel ):  
@@ -158,18 +166,20 @@ def callback_switch_autonomous( channel ):
 	global g_Camera_Is_Recording
 	global g_camera
 	global g_getter
+	global g_stop_event
+	global g_ip_thread
 
 	if( GPIO.input( SWITCH_autonomous ) == SWITCH_UP ):
 		if( g_Camera_Is_Recording == False ):
 			try:
 				turn_ON_LED( LED_autonomous )
 				g_camera.start_recording( g_getter, format='rgb' )
-				ipthread=threading.Thread(target=imageprocessor, args=[stopEvent])
-				ipthread.start()
-				stopEvent.set()
+				g_ip_thread=threading.Thread(target=imageprocessor, args=[g_stop_event])
+				g_ip_thread.start()
+				g_stop_event.set()
 				g_Camera_Is_Recording = True
 				g_Is_Autonomous = True
-				logging.debug( '* camera is recording' )
+				logging.debug( '* in autonomous mode, camera is recording' )
 				if ( g_Wants_To_See_Video ):
 					g_camera.start_preview() #displays video while it's being recorded
 
@@ -186,7 +196,7 @@ def callback_switch_autonomous( channel ):
 				if ( g_Wants_To_See_Video ):
 					g_camera.stop_preview()
 				g_camera.stop_recording()			
-				stopEvent.set()
+				g_stop_event.set()
 				logging.debug( 'OK: autonomous complete' )
 
 			except Exception as the_bad_news:				
@@ -196,13 +206,12 @@ def callback_switch_autonomous( channel ):
 			finally:
 				g_Camera_Is_Recording = False
 				g_Recorded_Data_Not_Saved = True
-				turn_OFF_LED( LED_collect_data )
-				ipthread.join()
+				turn_OFF_LED( LED_autonomous )
+				g_ip_thread.join()
 				logging.debug( 'exiting autonomous\n' )
 
 		else:
-			#	this should not happen
-			raise Exception( 30, 'should not happen -> NOT recording and a FALLING transition on the autonomous switch' )
+			logging.debug( '* warning: while recording, ANOTHER FALLING transition on the autonomous switch' )
 			
 # -------------- Data Collector Object -------------------------------  
 NUM_FRAMES = 100
@@ -247,6 +256,7 @@ class DataCollector(object):
 		imdata=np.reshape(np.fromstring(s, dtype=np.uint8), (96, 128, 3), 'C')
 						
 		try:
+			# !!!!!!!!!   This will be an INFINITE LOOP if either the RC or ESC is off    !!!!!!!!
 			dontWaitForCommand = False	#  Keep waiting for a good command
 			theCommandList = getSerialCommandIfAvailable( dontWaitForCommand )
 			logging.debug( 'serial command: ' + str( theCommandList ))
@@ -306,7 +316,7 @@ def callback_switch_collect_data( channel ):
 				g_collector.idx = 0		# just in case it wasn't zeroed by flush routine				
 				g_camera.start_recording( g_collector, format='rgb' )
 				g_Camera_Is_Recording = True
-				logging.debug( '* camera is recording' )
+				logging.debug( '* in collect mode, camera is recording' )
 				if ( g_Wants_To_See_Video ):
 					g_camera.start_preview() #displays video while it's being recorded
 
@@ -318,7 +328,7 @@ def callback_switch_collect_data( channel ):
 		
 	else:	# a collect data switch down position has occurred		
 		if( g_Camera_Is_Recording == True ):
-			logging.debug( '* recording switch is now down' )
+			logging.debug( '* collect switch is now down' )
 			try:
 				if ( g_Wants_To_See_Video ):
 					g_camera.stop_preview()
@@ -336,8 +346,7 @@ def callback_switch_collect_data( channel ):
 				logging.debug( 'exiting collect data\n' )
 
 		else:
-			#	this should not happen
-			raise Exception( 31, 'should not happen -> NOT recording and a FALLING transition on the collect switch' )
+			logging.debug( '* warning: while recording, ANOTHER FALLING transition on the collect switch' )
 			
 
 
@@ -735,7 +744,12 @@ def initialize_RPi_Stuff():
 	global g_collector
 	global g_getter
 	global g_graph
+	global g_image_data
+	global g_stop_event
+	global g_lock
+	global g_ip_thread
 	
+	g_ip_thread = 0
 	g_Wants_To_See_Video = True
 	g_Camera_Is_Recording = False
 	g_Is_Autonomous = False
@@ -750,9 +764,13 @@ def initialize_RPi_Stuff():
 	# g_camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
 	g_camera.framerate=10 #<---- framerate (fps) determines speed of data recording
 	
-	model.load_weights('Nweights.h5')
-	model._make_predict_function()
+#	model.load_weights('/home/pi/autonomous/services/Nweights.h5')
+#	model._make_predict_function()
 	g_graph=tf.get_default_graph()
+
+	g_image_data=np.zeros((78, 128, 3), dtype=np.uint8)
+	g_stop_event=threading.Event()
+	g_lock=threading.Lock()
 	
 	# blink LEDs as an alarm if autonmous or collect switches have been left up
 	LED_state = LED_ON

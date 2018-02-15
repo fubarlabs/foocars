@@ -147,10 +147,16 @@ void setup() {
 	for (int x = 0; x < 8; x++)
 		pinMode( LEDdebugPins[x], OUTPUT);
 		
-	displayBinaryOnLEDS( 0xff );
+	for( int i=1; i<6; i++){
+		int n = 1;
+		while( n < 129 ){
+			displayBinaryOnLEDS( n );
+			n = n * 2;
+			delay( 125 );
+		}
+	}
 	
 	Serial.begin(9600);
-	delay( 5000 );
 	displayBinaryOnLEDS( 0 );
 	
 	Serial.println( "Starting up..." );
@@ -213,7 +219,7 @@ void getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
 	// the buffer is 1 bigger than the max. size because strtok requires a null byte '0' on the end of the string
 	char cmdBuf[MAX_CMD_BUF + 1];
 
-	if (Serial.available() > 0) {		
+	if (Serial.available()) {		
 		byte size = Serial.readBytes(cmdBuf, MAX_CMD_BUF);
 	
 		// tack on a null byte to the end of the line
@@ -370,8 +376,6 @@ void loop() {
 	// ------------------------- Handle RC Commands -------------------------------
 	handleRCSignals( &theCommandData );
 	
-	displayBinaryOnLEDS( LED_DEBUG_1 );
-		
 	if( gTheOldRCcommand != theCommandData.command ){	// for debugging purposes only print RC command once 
 		Serial.print( "RC command: " );
 		Serial.print(theCommandData.command);
@@ -402,6 +406,7 @@ void loop() {
 	else if( theCommandData.command == GOOD_RC_SIGNALS_RECEIVED ){
 	
 		displayBinaryOnLEDS( LED_DEBUG_2 );
+		delay( 200 );
 	
 		if( gIsInAutonomousMode == false ){
 			sendSerialCommand( &theCommandData );
@@ -414,6 +419,7 @@ void loop() {
 	getSerialCommandIfAvailable( &theCommandData );
 	
 	displayBinaryOnLEDS( LED_DEBUG_4 );
+	delay( 200 );
 	
 	if( gTheOldPiCommand != theCommandData.command ){
 		Serial.print( "Pi command: " );
@@ -429,6 +435,7 @@ void loop() {
 		}
 
 		else{	// some sort of good command received
+			
 			if( theCommandData.command == RUN_AUTONOMOUSLY ){
 				gIsInAutonomousMode = true;
 			}
@@ -446,6 +453,7 @@ void loop() {
 			}
 			
 			displayBinaryOnLEDS( LED_DEBUG_8 );
+			delay( 200 );
 			
 			ServoSTR.writeMicroseconds( theCommandData.str );
 			ServoTHR.writeMicroseconds( theCommandData.thr );
