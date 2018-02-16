@@ -107,7 +107,7 @@ class DataGetter(object):
 	def write(self, s):
 		global g_image_data
 		imagerawdata=np.reshape(np.fromstring(s, dtype=np.uint8), (96, 128, 3), 'C')
-		imdata=imagerawdata[0:78, :]
+		imdata=imagerawdata[20:56, :]
 		immean=imdata.mean()
 		imvar=imdata.std()
 		g_lock.acquire()
@@ -121,26 +121,28 @@ class DataGetter(object):
 def imageprocessor(event):
 	global g_image_data
 	global g_graph
+	global g_steerstats
 	
 	with g_graph.as_default():
-#		time.sleep(1)
-#		while not event.is_set():
-			#g_lock.acquire()
-			#tmpimg=np.copy(g_image_data)
-			#g_lock.release()
-			#immean=tmpimg.mean()
-			#imvar=tmpimg.std()
-			#print('{0}, {1}'.format(immean, imvar))
-			#start=time.time()
-			#pred=model.predict(np.expand_dims(tmpimg, axis=0))
-			#end=time.time()
-			#if(end-start)<.2:
-			#	time.sleep(.2-(end-start))
-			#end2=time.time()
-			#steer_command=pred[0][0]*steerstats[1]+steerstats[0]
-			#dataline='{0}, {1}, {2}, {3}\n'.format(1, int(steer_command), 1570, 0)
-			#print(dataline)
-		logging.debug( '* got to try in imageprocessor' )
+		time.sleep(1)
+		logging.debug( '* got here in imageprocessor' )
+		while not event.is_set():
+			g_lock.acquire()
+			tmpimg=np.copy(g_image_data)
+			g_lock.release()
+			immean=tmpimg.mean()
+			imvar=tmpimg.std()
+			print('{0}, {1}'.format(immean, imvar))
+			start=time.time()
+			pred=model.predict(np.expand_dims(tmpimg, axis=0))
+			end=time.time()
+			if(end-start)<.2:
+				time.sleep(.2-(end-start))
+			end2=time.time()
+			steer_command=pred[0][0]*g_steerstats[1]+g_steerstats[0]
+			dataline='{0}, {1}, {2}, {3}\n'.format(1, int(steer_command), 1570, 0)
+			print(dataline)
+			logging.debug( '* got to try in imageprocessor' )
 		try:
 #				ser.flushInput()
 #				ser.write(dataline.encode('ascii'))
@@ -176,7 +178,7 @@ def callback_switch_autonomous( channel ):
 				g_camera.start_recording( g_getter, format='rgb' )
 				g_ip_thread=threading.Thread(target=imageprocessor, args=[g_stop_event])
 				g_ip_thread.start()
-				g_stop_event.set()
+				#g_stop_event.set()
 				g_Camera_Is_Recording = True
 				g_Is_Autonomous = True
 				logging.debug( '* in autonomous mode, camera is recording' )
@@ -748,6 +750,7 @@ def initialize_RPi_Stuff():
 	global g_stop_event
 	global g_lock
 	global g_ip_thread
+	global g_steerstats
 	
 	g_ip_thread = 0
 	g_Wants_To_See_Video = True
@@ -764,11 +767,13 @@ def initialize_RPi_Stuff():
 	# g_camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
 	g_camera.framerate=10 #<---- framerate (fps) determines speed of data recording
 	
-#	model.load_weights('/home/pi/autonomous/services/Nweights.h5')
-#	model._make_predict_function()
+	g_steerstats=np.load('/home/pi/autonomous/services/steerstats.npz')['arr_0']
+
+	model.load_weights('/home/pi/autonomous/services/Nov16weights5.h5')
+	model._make_predict_function()
 	g_graph=tf.get_default_graph()
 
-	g_image_data=np.zeros((78, 128, 3), dtype=np.uint8)
+	g_image_data=np.zeros((36, 128, 3), dtype=np.uint8)
 	g_stop_event=threading.Event()
 	g_lock=threading.Lock()
 	
