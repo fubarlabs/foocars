@@ -7,7 +7,7 @@
 
 #define DEBUG_SERIAL 1
 
-#define MAX_CMD_BUF 17 
+#define MAX_CMD_BUF 100 
 #define CMD_AUTO 0
 #define CMD_STR 1
 #define CMD_THR 2
@@ -146,12 +146,11 @@ void setup() {
 	Wire.begin();
 	for (int x = 0; x < 8; x++)
 		pinMode( LEDdebugPins[x], OUTPUT);
-		
-	for( int i=1; i<6; i++){
-		int n = 1;
-		while( n < 129 ){
-			displayBinaryOnLEDS( n );
-			n = n * 2;
+
+	// razzle dazzle Night Rider display for 5 seconds		
+	for( int j=1; j<3; j++){
+		for( int i=0; i<8; i++){
+			displayBinaryOnLEDS( pow( 2, i ));
 			delay( 125 );
 		}
 	}
@@ -234,7 +233,10 @@ void getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
 		while (command != 0) {		
 			switch (cmd_cnt) {
 			case CMD_AUTO:
-				theDataPtr->command = atoi(command);	
+				theDataPtr->command = atoi(command);
+				while(1){	
+					displayBinaryOnLEDS( theDataPtr->command );
+				}
 				break;
 			case CMD_STR:
 				theDataPtr->str = atoi(command);	
@@ -277,7 +279,6 @@ void getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
 					Serial.print(theDataPtr->time);
 					Serial.println();
 				}
-				theDataPtr->command = GOOD_PI_COMMAND_RECEIVED;	
 			}
 		}
 	}
@@ -405,8 +406,7 @@ void loop() {
 	
 	else if( theCommandData.command == GOOD_RC_SIGNALS_RECEIVED ){
 	
-		displayBinaryOnLEDS( LED_DEBUG_2 );
-		delay( 200 );
+//		displayBinaryOnLEDS( LED_DEBUG_2 );
 	
 		if( gIsInAutonomousMode == false ){
 			sendSerialCommand( &theCommandData );
@@ -418,48 +418,32 @@ void loop() {
 	// ------------------------- Handle Pi Commands -------------------------------
 	getSerialCommandIfAvailable( &theCommandData );
 	
-	displayBinaryOnLEDS( LED_DEBUG_4 );
-	delay( 200 );
+	digitalWrite( LEDdebugPins[1], 1);
 	
-	if( gTheOldPiCommand != theCommandData.command ){
-		Serial.print( "Pi command: " );
-		Serial.print(theCommandData.command);
-		Serial.println();
-		Serial.flush();		// wait for serial to finish
-		gTheOldPiCommand = theCommandData.command;
+	if( theCommandData.command != NO_COMMAND_AVAILABLE ){
+		sendSerialCommand( &theCommandData );	// echo the received command right back to the pi
+		digitalWrite( LEDdebugPins[2], 1);
 	}
 	
-	if( theCommandData.command != NO_COMMAND_AVAILABLE ){		// if there is a command, process it
-		if ( theCommandData.command != GOOD_PI_COMMAND_RECEIVED ){
-			// ignore bad command
-		}
-
-		else{	// some sort of good command received
-			
-			if( theCommandData.command == RUN_AUTONOMOUSLY ){
-				gIsInAutonomousMode = true;
-			}
-			
-			else if( theCommandData.command == STOP_AUTONOMOUS ){
-				theCommandData.command = STOPPED_AUTO_COMMAND_RECEIVED;
-				sendSerialCommand( &theCommandData );
-				theCommandData.str = gCenteredSteeringValue;	//  center the steering
-				theCommandData.thr = gCenteredThrottleValue;	//  turn off the motor
-				gIsInAutonomousMode = false;
-			}			
-			
-			else{
-				// for new commands
-			}
-			
-			displayBinaryOnLEDS( LED_DEBUG_8 );
-			delay( 200 );
-			
-			ServoSTR.writeMicroseconds( theCommandData.str );
-			ServoTHR.writeMicroseconds( theCommandData.thr );
-		}
+	if( theCommandData.command == RUN_AUTONOMOUSLY ){
+		ServoSTR.writeMicroseconds( theCommandData.str );
+		ServoTHR.writeMicroseconds( theCommandData.thr );
+		gIsInAutonomousMode = true;
+		digitalWrite( LEDdebugPins[3], 1);
 	}
 	
+	else if( theCommandData.command == STOP_AUTONOMOUS ){
+		theCommandData.command = STOPPED_AUTO_COMMAND_RECEIVED;
+		sendSerialCommand( &theCommandData );
+		theCommandData.str = gCenteredSteeringValue;	//  center the steering
+		theCommandData.thr = gCenteredThrottleValue;	//  turn off the motor
+		ServoSTR.writeMicroseconds( theCommandData.str );
+		ServoTHR.writeMicroseconds( theCommandData.thr );
+		gIsInAutonomousMode = false;
+		digitalWrite( LEDdebugPins[4], 1);
+	}
 	
-	//  delay ???
+	else{	// some sort of bad command received
+		digitalWrite( LEDdebugPins[5], 1);
+	}
 }
