@@ -55,6 +55,8 @@ SWITCH_shutdown_RPi = 6
 
 OUTPUT_to_relay = 13
 
+DEFAULT_AUTONOMOUS_THROTTLE = 1570
+
 # -------- Switch constants --------- 
 # switch position-UP connects GPIO pin to GROUND, 
 #  thus internal pull up  resistors are used  
@@ -125,7 +127,6 @@ def imageprocessor(event):
 	
 	with g_graph.as_default():
 		time.sleep(1)
-		logging.debug( '* got here in imageprocessor' )
 		while not event.is_set():
 			g_lock.acquire()
 			tmpimg=np.copy(g_image_data)
@@ -140,22 +141,15 @@ def imageprocessor(event):
 				time.sleep(.2-(end-start))
 			end2=time.time()
 			steer_command=pred[0][0]*g_steerstats[1]+g_steerstats[0]
-			dataline='{0}, {1}, {2}, {3}\n'.format(1, int(steer_command), 1570, 0)
+#			dataline='{0}, {1}, {2}, {3}\n'.format( commandEnum.RUN_AUTONOMOUSLY, int(steer_command), DEFAULT_AUTONOMOUS_THROTTLE, 0 )
+			dataline='{0}, {1}, {2}, {3}\n'.format( 5, int(steer_command), DEFAULT_AUTONOMOUS_THROTTLE, 0 )
 			print(dataline)
-			logging.debug( '* got to try in imageprocessor' )
+			logging.debug( 'autonomous command: ' + str( dataline ))
 		try:
-#				ser.flushInput()
-#				ser.write(dataline.encode('ascii'))
-#				ser.readline()
-#				ser.readline()
-			#print(ser.readline())
-			while( 1 ):
-				dataline='{0}, {1}, {2}, {3}\n'.format( commandEnum.RUN_AUTONOMOUSLY, 1300, 1500, 0)
+				ser.flushInput()
 				ser.write(dataline.encode('ascii'))
-				time.sleep( .2)
-				dataline='{0}, {1}, {2}, {3}\n'.format( commandEnum.RUN_AUTONOMOUSLY, 1700, 1500, 0)
-				ser.write(dataline.encode('ascii'))
-				time.sleep( .2)
+				ser.readline()
+				print(ser.readline())
 
 		except Exception as the_bad_news:				
 			handle_exception( the_bad_news )
@@ -707,6 +701,15 @@ def callback_switch_shutdown_RPi( channel ):
 	else: 
 		logging.debug( 'skipped: another callback from shutdown_RPi' )
 				 	
+# -------- Put binary (6 bit) number on LEDs ---------
+def displayBinaryOnLEDs( theNumber ):
+	GPIO.output( LED_read_from_USBdrive, theNumber & 0b000001 )
+	GPIO.output( LED_save_to_USBdrive, ( theNumber & 0b000010 ) >> 1 )
+	GPIO.output( LED_collect_data, ( theNumber & 0b000100 ) >> 2 )
+	GPIO.output( LED_autonomous, ( theNumber & 0b001000 ) >> 3 )
+	GPIO.output( LED_shutdown_RPi, ( theNumber & 0b010000 ) >> 4 )
+	GPIO.output( LED_boot_RPi, ( theNumber & 0b100000 ) >> 5 )
+
 # ------------------------------------------------- 
 def turn_OFF_all_LEDs():
 	turn_OFF_LED( LED_save_to_USBdrive )
@@ -776,6 +779,16 @@ def initialize_RPi_Stuff():
 	g_image_data=np.zeros((36, 128, 3), dtype=np.uint8)
 	g_stop_event=threading.Event()
 	g_lock=threading.Lock()
+	
+	# dazzle them with Night Rider LED show...
+	for x in range(0, 3):
+		for i in range(0, 6):
+			displayBinaryOnLEDs( 2 ** i )
+			time.sleep( .125 )
+			
+		for i in range(5, -1, -1):
+			displayBinaryOnLEDs( 2 ** i )
+			time.sleep( .125 )	# dazzle them with Night Rider LED show...
 	
 	# blink LEDs as an alarm if autonmous or collect switches have been left up
 	LED_state = LED_ON
