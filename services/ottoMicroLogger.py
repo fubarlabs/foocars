@@ -144,12 +144,12 @@ def imageprocessor(event):
 #			dataline='{0}, {1}, {2}, {3}\n'.format( commandEnum.RUN_AUTONOMOUSLY, int(steer_command), DEFAULT_AUTONOMOUS_THROTTLE, 0 )
 			dataline='{0}, {1}, {2}, {3}\n'.format( 5, int(steer_command), DEFAULT_AUTONOMOUS_THROTTLE, 0 )
 			print(dataline)
-			logging.debug( 'autonomous command: ' + str( dataline ))
 		try:
-				ser.flushInput()
-				ser.write(dataline.encode('ascii'))
-				ser.readline()
-				print(ser.readline())
+			ser.flushInput()
+#			ser.write(dataline.encode('ascii'))
+			ser.write(b"5,6,7,8")
+			logging.debug( 'autonomous command: ' + str( dataline ))
+#			print('read line ' + ser.readline())
 
 		except Exception as the_bad_news:				
 			handle_exception( the_bad_news )

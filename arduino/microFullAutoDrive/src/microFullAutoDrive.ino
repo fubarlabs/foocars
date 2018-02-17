@@ -218,9 +218,15 @@ void getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
 	// the buffer is 1 bigger than the max. size because strtok requires a null byte '0' on the end of the string
 	char cmdBuf[MAX_CMD_BUF + 1];
 
+	displayBinaryOnLEDS( 255 );
+	delay( 2500 );
+	
 	if (Serial.available()) {		
 		byte size = Serial.readBytes(cmdBuf, MAX_CMD_BUF);
 	
+		displayBinaryOnLEDS( 55 );
+		delay( 2500 );
+		
 		// tack on a null byte to the end of the line
 		cmdBuf[size] = 0;
 	
@@ -234,9 +240,10 @@ void getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
 			switch (cmd_cnt) {
 			case CMD_AUTO:
 				theDataPtr->command = atoi(command);
-				while(1){	
-					displayBinaryOnLEDS( theDataPtr->command );
-				}
+				displayBinaryOnLEDS( theDataPtr->command );
+				delay( 2500 );
+				displayBinaryOnLEDS( 0 );
+				delay( 2500 );
 				break;
 			case CMD_STR:
 				theDataPtr->str = atoi(command);	
