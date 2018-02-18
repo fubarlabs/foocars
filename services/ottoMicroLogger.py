@@ -142,12 +142,13 @@ def imageprocessor(event):
 			end2=time.time()
 			steer_command=pred[0][0]*g_steerstats[1]+g_steerstats[0]
 #			dataline='{0}, {1}, {2}, {3}\n'.format( commandEnum.RUN_AUTONOMOUSLY, int(steer_command), DEFAULT_AUTONOMOUS_THROTTLE, 0 )
-			dataline='{0}, {1}, {2}, {3}\n'.format( 5, int(steer_command), DEFAULT_AUTONOMOUS_THROTTLE, 0 )
+#			dataline='{0}, {1}, {2}, {3}\n'.format( 5, int(steer_command), DEFAULT_AUTONOMOUS_THROTTLE, 0 )
+			dataline='{0}, {1}, {2}, {3}\n'.format( 5,1300,1500,0 )
 			print(dataline)
 		try:
 			ser.flushInput()
-#			ser.write(dataline.encode('ascii'))
-			ser.write(b"5,6,7,8")
+			ser.write(dataline.encode('ascii'))
+#			ser.write(b"5,6,7,8")
 			logging.debug( 'autonomous command: ' + str( dataline ))
 #			print('read line ' + ser.readline())
 
