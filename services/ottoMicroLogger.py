@@ -55,6 +55,8 @@ SWITCH_shutdown_RPi = 6
 
 OUTPUT_to_relay = 13
 
+DEFAULT_AUTONOMOUS_THROTTLE = 1570
+
 # -------- Switch constants --------- 
 # switch position-UP connects GPIO pin to GROUND, 
 #  thus internal pull up  resistors are used  
@@ -100,86 +102,114 @@ except Exception as the_bad_news:
 	
 	
 # -------------- Data Getter Object -------------------------------  
-class datagetter(object):
+class DataGetter(object):
 	def __init__(self):
 		pass
 
 	def write(self, s):
-		global imageData
+		global g_image_data
 		imagerawdata=np.reshape(np.fromstring(s, dtype=np.uint8), (96, 128, 3), 'C')
-		imdata=imagerawdata[0:78, :]
+		imdata=imagerawdata[20:56, :]
 		immean=imdata.mean()
 		imvar=imdata.std()
-		lock.acquire()
-		imageData=np.copy((imdata-immean)/imvar)
-		lock.release()
+		g_lock.acquire()
+		g_image_data=np.copy((imdata-immean)/imvar)
+		g_lock.release()
 
 	def flush(self):
 		pass
 	
 # -------------- Image Processor Function -------------------------------  
 def imageprocessor(event):
-	global imagedata
-	global graph
-	with graph.as_default():
+	global g_image_data
+	global g_graph
+	global g_steerstats
+	
+	with g_graph.as_default():
 		time.sleep(1)
 		while not event.is_set():
-			lock.acquire()
-			tmpimg=np.copy(imageData)
-			lock.release()
+			g_lock.acquire()
+			tmpimg=np.copy(g_image_data)
+			g_lock.release()
 			immean=tmpimg.mean()
 			imvar=tmpimg.std()
-			#print('{0}, {1}'.format(immean, imvar))
+			print('{0}, {1}'.format(immean, imvar))
 			start=time.time()
 			pred=model.predict(np.expand_dims(tmpimg, axis=0))
 			end=time.time()
 			if(end-start)<.2:
 				time.sleep(.2-(end-start))
 			end2=time.time()
-			steer_command=pred[0][0]*steerstats[1]+steerstats[0]
-			dataline='{0}, {1}, {2}, {3}\n'.format(1, int(steer_command), 1570, 0)
+			steer_command=pred[0][0]*g_steerstats[1]+g_steerstats[0]
+#			dataline='{0}, {1}, {2}, {3}\n'.format( commandEnum.RUN_AUTONOMOUSLY, int(steer_command), DEFAULT_AUTONOMOUS_THROTTLE, 0 )
+#			dataline='{0}, {1}, {2}, {3}\n'.format( 5, int(steer_command), DEFAULT_AUTONOMOUS_THROTTLE, 0 )
+			dataline='{0}, {1}, {2}, {3}\n'.format( 5,1300,1500,0 )
 			print(dataline)
-			try:
-				ser.flushInput()
-				ser.write(dataline.encode('ascii'))
-				ser.readline()
-				ser.readline()
-				#print(ser.readline())
-				#print(ser.readline())
-			except:
-				print("some serial problem")
+		try:
+			ser.flushInput()
+#			ser.write(dataline.encode('ascii'))
+			ser.write(b"5,6,7,8")
+			logging.debug( 'autonomous command: ' + str( dataline ))
+#			print('read line ' + ser.readline())
+
+		except Exception as the_bad_news:				
+			handle_exception( the_bad_news )
 
 # ------------------------------------------------- 
 def callback_switch_autonomous( channel ):  
-	global g_No_Callback_Function_Running
+	global g_Recorded_Data_Not_Saved
+	global g_Wants_To_See_Video
+	global g_Is_Autonomous
+	global g_Camera_Is_Recording
+	global g_camera
+	global g_getter
+	global g_stop_event
+	global g_ip_thread
 
-	# don't reenter an already running callback and don't respond to a high to low switch transition
-	if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_autonomous ) == SWITCH_UP )): 
-		g_No_Callback_Function_Running = False
-				
-		try:
-			turn_ON_LED( LED_autonomous )
-			time.sleep( .1 )		# debounce switch some more
-			# do the autonomous ....
-			logging.debug( 'from autonmous:' )
-			raise Exception( 8, 'autonomous function not implemented yet' )
-			logging.debug( 'OK: automonous successful' )			
-	
-		except Exception as the_bad_news:				
-			while( GPIO.input( SWITCH_autonomous ) == SWITCH_UP ): 	# wait for user to flip switch down before thowing error
-				pass
-				
-			handle_exception( the_bad_news )
-			logging.debug( 'NG: automonous failure' )			
+	if( GPIO.input( SWITCH_autonomous ) == SWITCH_UP ):
+		if( g_Camera_Is_Recording == False ):
+			try:
+				turn_ON_LED( LED_autonomous )
+				g_camera.start_recording( g_getter, format='rgb' )
+				g_ip_thread=threading.Thread(target=imageprocessor, args=[g_stop_event])
+				g_ip_thread.start()
+				#g_stop_event.set()
+				g_Camera_Is_Recording = True
+				g_Is_Autonomous = True
+				logging.debug( '* in autonomous mode, camera is recording' )
+				if ( g_Wants_To_See_Video ):
+					g_camera.start_preview() #displays video while it's being recorded
+
+			except Exception as the_bad_news:				
+				handle_exception( the_bad_news )
 			
-		finally:
-			g_No_Callback_Function_Running = True
-			turn_OFF_LED( LED_autonomous )
-			logging.debug( 'exiting autonomous' )
+		else:
+			logging.debug( '* warning: while recording, ANOTHER RISING transition on the autonomous switch' )
 		
-	else: 
-		logging.debug( 'skipped: another callback from autonomous' )
+	else:	# a autonomous data switch down position has occurred		
+		if( g_Camera_Is_Recording == True ):
+			logging.debug( '* autonomous switch is now down' )
+			try:
+				if ( g_Wants_To_See_Video ):
+					g_camera.stop_preview()
+				g_camera.stop_recording()			
+				g_stop_event.set()
+				logging.debug( 'OK: autonomous complete' )
 
+			except Exception as the_bad_news:				
+				handle_exception( the_bad_news )
+				logging.debug( 'NG: autonomous problem' )
+				
+			finally:
+				g_Camera_Is_Recording = False
+				g_Recorded_Data_Not_Saved = True
+				turn_OFF_LED( LED_autonomous )
+				g_ip_thread.join()
+				logging.debug( 'exiting autonomous\n' )
+
+		else:
+			logging.debug( '* warning: while recording, ANOTHER FALLING transition on the autonomous switch' )
+			
 # -------------- Data Collector Object -------------------------------  
 NUM_FRAMES = 100
 
@@ -223,6 +253,7 @@ class DataCollector(object):
 		imdata=np.reshape(np.fromstring(s, dtype=np.uint8), (96, 128, 3), 'C')
 						
 		try:
+			# !!!!!!!!!   This will be an INFINITE LOOP if either the RC or ESC is off    !!!!!!!!
 			dontWaitForCommand = False	#  Keep waiting for a good command
 			theCommandList = getSerialCommandIfAvailable( dontWaitForCommand )
 			logging.debug( 'serial command: ' + str( theCommandList ))
@@ -282,7 +313,7 @@ def callback_switch_collect_data( channel ):
 				g_collector.idx = 0		# just in case it wasn't zeroed by flush routine				
 				g_camera.start_recording( g_collector, format='rgb' )
 				g_Camera_Is_Recording = True
-				logging.debug( '* camera is recording' )
+				logging.debug( '* in collect mode, camera is recording' )
 				if ( g_Wants_To_See_Video ):
 					g_camera.start_preview() #displays video while it's being recorded
 
@@ -290,11 +321,11 @@ def callback_switch_collect_data( channel ):
 				handle_exception( the_bad_news )
 			
 		else:
-			logging.debug( '* warning: while recording, another rising transition detected on the collect data switch' )
+			logging.debug( '* warning: while recording, ANOTHER RISING transition on the collect switch' )
 		
 	else:	# a collect data switch down position has occurred		
 		if( g_Camera_Is_Recording == True ):
-			logging.debug( '* recording switch is now down' )
+			logging.debug( '* collect switch is now down' )
 			try:
 				if ( g_Wants_To_See_Video ):
 					g_camera.stop_preview()
@@ -312,8 +343,7 @@ def callback_switch_collect_data( channel ):
 				logging.debug( 'exiting collect data\n' )
 
 		else:
-			#	this should not happen
-			raise Exception( 31, 'NOT recording and a FALLING transition detected on the collect data switch' )
+			logging.debug( '* warning: while recording, ANOTHER FALLING transition on the collect switch' )
 			
 
 
@@ -672,6 +702,15 @@ def callback_switch_shutdown_RPi( channel ):
 	else: 
 		logging.debug( 'skipped: another callback from shutdown_RPi' )
 				 	
+# -------- Put binary (6 bit) number on LEDs ---------
+def displayBinaryOnLEDs( theNumber ):
+	GPIO.output( LED_read_from_USBdrive, theNumber & 0b000001 )
+	GPIO.output( LED_save_to_USBdrive, ( theNumber & 0b000010 ) >> 1 )
+	GPIO.output( LED_collect_data, ( theNumber & 0b000100 ) >> 2 )
+	GPIO.output( LED_autonomous, ( theNumber & 0b001000 ) >> 3 )
+	GPIO.output( LED_shutdown_RPi, ( theNumber & 0b010000 ) >> 4 )
+	GPIO.output( LED_boot_RPi, ( theNumber & 0b100000 ) >> 5 )
+
 # ------------------------------------------------- 
 def turn_OFF_all_LEDs():
 	turn_OFF_LED( LED_save_to_USBdrive )
@@ -702,23 +741,55 @@ def turn_ON_all_LEDs():
 def initialize_RPi_Stuff():
 #	note: global variables start with a little "g"
 	global g_camera
+	global g_Camera_Is_Recording
+	global g_Is_Autonomous
 	global g_Wants_To_See_Video
 	global g_Recorded_Data_Not_Saved
 	global g_No_Callback_Function_Running
 	global g_Current_Exception_Not_Finished
 	global g_collector
+	global g_getter
+	global g_graph
+	global g_image_data
+	global g_stop_event
+	global g_lock
+	global g_ip_thread
+	global g_steerstats
 	
+	g_ip_thread = 0
 	g_Wants_To_See_Video = True
 	g_Camera_Is_Recording = False
+	g_Is_Autonomous = False
 	g_Recorded_Data_Not_Saved = False
 	g_No_Callback_Function_Running = True
 	g_Current_Exception_Not_Finished = False
 	g_collector=DataCollector()
+	g_getter=DataGetter()
 	g_camera = picamera.PiCamera()
 	g_camera.resolution=(128, 96) #final image size
 
 	# g_camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
 	g_camera.framerate=10 #<---- framerate (fps) determines speed of data recording
+	
+	g_steerstats=np.load('/home/pi/autonomous/services/steerstats.npz')['arr_0']
+
+	model.load_weights('/home/pi/autonomous/services/Nov16weights5.h5')
+	model._make_predict_function()
+	g_graph=tf.get_default_graph()
+
+	g_image_data=np.zeros((36, 128, 3), dtype=np.uint8)
+	g_stop_event=threading.Event()
+	g_lock=threading.Lock()
+	
+	# dazzle them with Night Rider LED show...
+	for x in range(0, 3):
+		for i in range(0, 6):
+			displayBinaryOnLEDs( 2 ** i )
+			time.sleep( .125 )
+			
+		for i in range(5, -1, -1):
+			displayBinaryOnLEDs( 2 ** i )
+			time.sleep( .125 )	# dazzle them with Night Rider LED show...
 	
 	# blink LEDs as an alarm if autonmous or collect switches have been left up
 	LED_state = LED_ON
