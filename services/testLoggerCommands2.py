@@ -9,6 +9,7 @@ ser.baudrate = 9600
 ser.bytesize = serial.EIGHTBITS        #number of bits per bytes
 ser.parity = serial.PARITY_NONE        #set parity check: no parity
 ser.stopbits = serial.STOPBITS_ONE     #number of stop bits
+time.sleep( .1)
 
 for x in range(0, 3):
       # spaces after the commas throw an error
