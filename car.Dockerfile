@@ -38,16 +38,19 @@ RUN pio device list
 WORKDIR /autonomous
 RUN pip3 install -r requirements.txt
 
+# This section is being replaced because Docker and Systemd don't work easily togeter.
+# Instead we'll run ottoMicrologger.py directly
 # Set up the raspberry pi services
-WORKDIR /usr/local/bin
-RUN ln -s /autonomous/services/ottoMicroLogger.py
-RUN ln -s /autonomous/services/ottoMicroLogger.service
-RUN systemctl enable /autonomous/services/ottoMicroLogger.service
+#WORKDIR /usr/local/bin
+#RUN ln -s /autonomous/services/ottoMicroLogger.py
+#RUN ln -s /autonomous/services/ottoMicroLogger.service
+#RUN systemctl enable /autonomous/services/ottoMicroLogger.service
 
 # TODO: Enable USB Flash drive code
-# TODO: upload Arduino code to car
+# TODO: doccker command to upload Arduino code to car
 
 # TODO: add default weigths
+# TODO: Run ottoMicrologger.py upon running the car docker
 
 
 RUN echo  "Done"
