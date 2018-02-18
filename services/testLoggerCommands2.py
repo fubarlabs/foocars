@@ -25,3 +25,4 @@ for x in range(0, 3):
 dataline='{0}, {1}, {2}, {3}\n'.format( 6,1500,1500,0 )
 ser.write(dataline.encode('ascii'))
 time.sleep( 1)
+ser.close()

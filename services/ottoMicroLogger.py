@@ -147,8 +147,8 @@ def imageprocessor(event):
 			print(dataline)
 		try:
 			ser.flushInput()
-			ser.write(dataline.encode('ascii'))
-#			ser.write(b"5,6,7,8")
+#			ser.write(dataline.encode('ascii'))
+			ser.write(b"5,6,7,8")
 			logging.debug( 'autonomous command: ' + str( dataline ))
 #			print('read line ' + ser.readline())
 
