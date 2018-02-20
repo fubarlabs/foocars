@@ -47,7 +47,6 @@ const int PIN_STR = 9;
 const int PIN_THR = 7;
 
 byte LEDdebugPins[] = {24, 25, 26, 27, A14, A13, A12, A11};    // lsb on the right
-byte toggle = 0;
 
 int gTotalNumberOfPassesForCommandDisplay = 15000;
 int gCountOfPassesForCommandDisplay = gTotalNumberOfPassesForCommandDisplay;
@@ -224,7 +223,6 @@ void setup() {
     T2CONbits.TCKPS = 6;  // 1:64 prescale, which means 80MHz/64 or 1.25MHz clock rate
     T2CONbits.TON = 1;    // Turn on Timer2
 
-
     pinMode(RC_INPUT_STR, INPUT);
     pinMode(RC_INPUT_THR, INPUT);
 
@@ -238,7 +236,6 @@ void setup() {
     setIntPriority(_INPUT_CAPTURE_4_VECTOR, 4, 0);
     clearIntFlag(_INPUT_CAPTURE_4_IRQ);
     setIntEnable(_INPUT_CAPTURE_4_IRQ);
-
     
     ServoSTR.attach(PIN_STR);
     ServoTHR.attach(PIN_THR);
@@ -279,12 +276,13 @@ void getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
     // http://arduino.stackexchange.com/questions/1013/how-do-i-split-an-incoming-string
     int cmd_cnt = 0;
     char cmdBuf[MAX_CMD_BUF];
-    
                 
     if (Serial.available()) {        
         byte size = Serial.readBytes(cmdBuf, MAX_CMD_BUF);
         
-        Serial.write(cmdBuf, size);
+        if (DEBUG_SERIAL) {
+            Serial.write(cmdBuf, size);    //echo what the Pi sent right back to it
+        }
             
         // tack on a null byte to the end of the line
         cmdBuf[size] = 0;
@@ -352,7 +350,6 @@ void getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
 }
 
 void handleRCSignals( commandDataStruct *theDataPtr ) {
-
     const unsigned long minimumSteeringValue = 1100;
     const unsigned long maximumSteeringValue = 1700;
     const unsigned long minimumThrottleValue = 1250;
@@ -386,13 +383,11 @@ void handleRCSignals( commandDataStruct *theDataPtr ) {
         }
     }
 
- 
 //    Serial.print("ch1:");
 //    Serial.print(STR_VAL);
 //    Serial.print("ch2:");
 //    Serial.print(THR_VAL);
 //    Serial.print("\n");
-
 
     // clip the RC signals to more car appropriate ones
     if( STR_VAL > maximumSteeringValue )
@@ -438,20 +433,19 @@ void handleRCSignals( commandDataStruct *theDataPtr ) {
     theDataPtr->str = (int) STR_VAL;
     theDataPtr->time = millis();
     theDataPtr->command = GOOD_RC_SIGNALS_RECEIVED;
-
 }
 
-void loop() {    
-    commandDataStruct theCommandData;
-    bool autoShouldBeStopped = false;
+void loop() {
     
-    // ------------------------- Handle RC Commands -------------------------------
+// ------------------------- Handle RC Commands -------------------------------
+    commandDataStruct theCommandData;
         
     handleRCSignals( &theCommandData );
     
+    //----------LED debugging code-------------
     if( gCountOfPassesForCommandDisplay >= gTotalNumberOfPassesForCommandDisplay / 2 )        // display the command from the RC on the LEDs
         displayBinaryOnLEDS( theCommandData.command + gIsInAutonomousMode * 128 );
-    
+    //----------LED debugging code-------------
         
     //    The signal for stopping autonomous driving is user putting car in reverse
     //       this can be a normal operation in manual driving, so a test for auto mode is made
@@ -461,27 +455,31 @@ void loop() {
         theCommandData.thr = gCenteredThrottleValue;    //  turn off the motor
 
         if( gIsInAutonomousMode ){    // send the command to pi to stop autonomous
-            
-            if (DEBUG_SERIAL) {
-                Serial.println("Received RC stop while Autonomous mode is on ");
-            }        
+//            if (DEBUG_SERIAL) {
+//                Serial.println("Received RC stop while Autonomous mode is on ");
+//            }        
                 
             theCommandData.command = STOP_AUTONOMOUS;
-            sendSerialCommand( &theCommandData );
-            theCommandData.command = STOPPED_AUTO_COMMAND_RECEIVED;
+            for( int i = 0; i < 5; i++ )	// fire off 5 stop auto commands
+                sendSerialCommand( &theCommandData );
             gIsInAutonomousMode = false;
         }
     }
     
     else if( theCommandData.command == GOOD_RC_SIGNALS_RECEIVED ){
-        if( gIsInAutonomousMode == false ){
+        if( gIsInAutonomousMode == false ){	
+            //    If not in auto mode, send RC command values back to Pi
             sendSerialCommand( &theCommandData );
+            //    If not in auto mode, send RC values to servo and ESC
             ServoSTR.writeMicroseconds( theCommandData.str );
             ServoTHR.writeMicroseconds( theCommandData.thr );
         }
     }
     
-    // ------------------------- Handle Pi Commands -------------------------------
+    else{    // either no command or a bad command was received
+    }
+
+// ------------------------- Handle Pi Commands -------------------------------
     getSerialCommandIfAvailable( &theCommandData );
             
     if( theCommandData.command == RUN_AUTONOMOUSLY ){
@@ -501,6 +499,7 @@ void loop() {
     else{    // either no command or a bad command was received
     }
         
+    //----------LED debugging code-------------
     if( gCountOfPassesForCommandDisplay < gTotalNumberOfPassesForCommandDisplay / 2 )    // display the command from the Pi on the LEDs
         displayBinaryOnLEDS( theCommandData.command + gIsInAutonomousMode * 128  );
         
@@ -508,5 +507,6 @@ void loop() {
     
     if( gCountOfPassesForCommandDisplay < 0 )    
         gCountOfPassesForCommandDisplay = gTotalNumberOfPassesForCommandDisplay;
+    //----------LED debugging code-------------
         
 }
