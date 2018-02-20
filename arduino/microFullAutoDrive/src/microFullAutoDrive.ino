@@ -5,9 +5,9 @@
 //#include <SoftPWMServo.h>
 #include <Servo.h>
 
-#define DEBUG_SERIAL 0
+#define DEBUG_SERIAL 1
 
-#define MAX_CMD_BUF 100 
+#define MAX_CMD_BUF 17 
 #define CMD_AUTO 0
 #define CMD_STR 1
 #define CMD_THR 2
@@ -41,18 +41,15 @@ unsigned long time;	// millis
 int str;		// steering 1000-2000
 int thr;		// throttle 1000-2000
 // int checksum;	someday???
-}g_commandStruct;
+};
 
 const int PIN_STR = 9;
 const int PIN_THR = 7;
-const int PIN_IN_STR = 13;
-const int PIN_IN_THR = 12;
 
-// byte LEDdebugPins[] = {A11, A12, A13, A14, 27, 26, 25, 24};
 byte LEDdebugPins[] = {24, 25, 26, 27, A14, A13, A12, A11};	// lsb on the right
 byte toggle = 0;
 
-int gTotalNumberOfPassesForCommandDisplay = 24;
+int gTotalNumberOfPassesForCommandDisplay = 15000;
 int gCountOfPassesForCommandDisplay = gTotalNumberOfPassesForCommandDisplay;
 
 boolean gWantsLEDon;
@@ -87,6 +84,60 @@ MPU9250 ottoIMU;
 #define		ACC_FULL_SCALE_16_G		0x18
 
 #define WHO_AM_I_MPU9250 0x75 // Should return 0x71
+
+//These lines are for the input capture for pwm read off RC
+#define RC_INPUT_STR 3
+#define RC_INPUT_THR 0
+#define RC_INPUT_COUNT 2
+volatile uint16_t pulseHighTime[RC_INPUT_COUNT];
+volatile uint16_t pulseLowTime[RC_INPUT_COUNT];
+
+//This function pulls the data being populated by the input capture interrupts.
+//it corrects for the timer restarting.
+inline int pulseRead(int RCindex){return (pulseHighTime[RCindex]>0)?(int)(0.8*pulseHighTime[RCindex]):(int)(0.8*pulseHighTime[RCindex]+0xFFFF);}
+//inline int pulseRead(int RCindex){return (int)(0.8*pulseHighTime[RCindex]);}
+
+//interrupt service routine for first input capture module
+void __USER_ISR InputCaptureTHR_ISR(void) {
+  static uint16_t risingEdgeTime = 0;
+  static uint16_t fallingEdgeTime = 0;
+  
+  clearIntFlag(_INPUT_CAPTURE_1_IRQ);
+  if (IC1CONbits.ICBNE == 1)
+  {
+    if (digitalRead(RC_INPUT_THR) == HIGH)
+    {
+      risingEdgeTime = IC1BUF;
+      pulseLowTime[0] = risingEdgeTime - fallingEdgeTime;
+    }
+    else
+    {
+      fallingEdgeTime = IC1BUF;
+      pulseHighTime[0] = fallingEdgeTime - risingEdgeTime;
+    }
+  }
+}
+
+//interrupt service routine for second input capture module
+void __USER_ISR InputCaptureSTR_ISR(void) {
+  static uint16_t risingEdgeTime = 0;
+  static uint16_t fallingEdgeTime = 0;
+  
+  clearIntFlag(_INPUT_CAPTURE_4_IRQ);
+  if (IC4CONbits.ICBNE == 1)
+  {
+    if (digitalRead(RC_INPUT_STR) == HIGH)
+    {
+      risingEdgeTime = IC4BUF;
+      pulseLowTime[1] = risingEdgeTime - fallingEdgeTime;
+    }
+    else
+    {
+      fallingEdgeTime = IC4BUF;
+      pulseHighTime[1] = fallingEdgeTime - risingEdgeTime;
+    }
+  }
+}
 
 // This function read Nbytes bytes from I2C device at address Address. 
 // Put read bytes starting at register Register in the Data array. 
@@ -155,34 +206,49 @@ void setup() {
 	
 	Serial.println( "Starting up..." );
 
-	pinMode(PIN_IN_STR, INPUT);
-	pinMode(PIN_IN_THR, INPUT);
+        //setup input capture modules one and two
+	IC1CON = 0;
+	IC1CONbits.ICM = 1;   // Capture an interrupt on every rising and falling edge
+	IC1CONbits.ICTMR = 1; // Set to user Timer2
+	IC1CONbits.ON = 1;    // Turn IC1 on
+
+	IC4CON = 0;
+	IC4CONbits.ICM = 1;   // Capture an interrupt on every rising and falling edge
+	IC4CONbits.ICTMR = 1; // Set to user Timer2
+	IC4CONbits.ON = 1;    // Turn IC2 on
+
+        /*We're using timer2 for the input capture. This shouldn't interfere with pwm
+          output, which uses timers 3-5.
+        */
+	PR2 = 0xFFFF;         // This tells timer 2 to count up to 0xFFFF, after which it will restart at 0
+	T2CONbits.TCKPS = 6;  // 1:64 prescale, which means 80MHz/64 or 1.25MHz clock rate
+	T2CONbits.TON = 1;    // Turn on Timer2
+
+
+	pinMode(RC_INPUT_STR, INPUT);
+	pinMode(RC_INPUT_THR, INPUT);
+
+        //these lines set up the interrupt functions to trigger 
+	setIntVector(_INPUT_CAPTURE_1_VECTOR, InputCaptureTHR_ISR);
+	setIntPriority(_INPUT_CAPTURE_1_VECTOR, 4, 0);
+	clearIntFlag(_INPUT_CAPTURE_1_IRQ);
+	setIntEnable(_INPUT_CAPTURE_1_IRQ);
+
+	setIntVector(_INPUT_CAPTURE_4_VECTOR, InputCaptureSTR_ISR);
+	setIntPriority(_INPUT_CAPTURE_4_VECTOR, 4, 0);
+	clearIntFlag(_INPUT_CAPTURE_4_IRQ);
+	setIntEnable(_INPUT_CAPTURE_4_IRQ);
+
 	
 	ServoSTR.attach(PIN_STR);
 	ServoTHR.attach(PIN_THR);
 	
-	//	determine stable values when RC controls are in the centered positions
-	gCenteredSteeringValue = 0;
-	gCenteredThrottleValue = 0;
-	const int closeEnough = 10;
-	bool centeredRCvaluesNotStable = true;
-	while( centeredRCvaluesNotStable ){
-		unsigned long STR_VAL = pulseIn(PIN_IN_STR, HIGH, 25000); // Read pulse width of
-		unsigned long THR_VAL = pulseIn(PIN_IN_THR, HIGH, 25000); // each channel
-		gCenteredSteeringValue = ( gCenteredSteeringValue + STR_VAL )/ 2;
-		gCenteredThrottleValue = ( gCenteredThrottleValue + THR_VAL )/ 2;
-		if(( abs( gCenteredSteeringValue - STR_VAL ) < closeEnough ) && ( abs( gCenteredThrottleValue - THR_VAL ) < closeEnough )){
-			centeredRCvaluesNotStable = false;
-		}
-	}
+	gCenteredSteeringValue = 1500;
+	gCenteredThrottleValue = 1500;
 	
 	initIMU();
 	gTheOldRCcommand = NOT_ACTUAL_COMMAND;
 	gIsInAutonomousMode = false;
-	g_commandStruct.command=NOT_ACTUAL_COMMAND;
-	g_commandStruct.time=0.0;
-	g_commandStruct.str=1500;
-	g_commandStruct.thr=1500;
 }
 
 void sendSerialCommand( commandDataStruct *theDataPtr ){
@@ -214,8 +280,11 @@ void getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
 	int cmd_cnt = 0;
 	char cmdBuf[MAX_CMD_BUF];
 	
+				
 	if (Serial.available()) {		
 		byte size = Serial.readBytes(cmdBuf, MAX_CMD_BUF);
+		
+		Serial.write(cmdBuf, size);
 			
 		// tack on a null byte to the end of the line
 		cmdBuf[size] = 0;
@@ -251,7 +320,7 @@ void getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
 				
 			default:
 				if (DEBUG_SERIAL) {
-					Serial.println("NOOP");
+					Serial.println("Too many values in command");
 				}
 				theDataPtr->command = TOO_MANY_VALUES_IN_COMMAND;	
 			}
@@ -263,12 +332,13 @@ void getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
 
 			if (cmd_cnt == 4) {
 				if (DEBUG_SERIAL) {
+					Serial.println();
 					Serial.print(theDataPtr->command);
-					Serial.print(",");
+					Serial.print("/ ");
 					Serial.print(theDataPtr->str);
-					Serial.print(",");
+					Serial.print("/ ");
 					Serial.print(theDataPtr->thr);
-					Serial.print(",");
+					Serial.print("/ ");
 					Serial.print(theDataPtr->time);
 					Serial.println();
 				}
@@ -289,8 +359,8 @@ void handleRCSignals( commandDataStruct *theDataPtr ) {
 	const unsigned long maximumThrottleValue = 1650;
 	const unsigned long throttleThresholdToShutdownAuto = 1300;
 	
-	unsigned long STR_VAL = pulseIn(PIN_IN_STR, HIGH, 25000); // Read pulse width of
-	unsigned long THR_VAL = pulseIn(PIN_IN_THR, HIGH, 25000); // each channel
+	unsigned long STR_VAL = pulseRead(RC_INPUT_STR-2); // Read pulse width of
+	unsigned long THR_VAL = pulseRead(RC_INPUT_THR); // each channel
 	
 //	if (STR_VAL == 0) {	// no steering RC signal 
 //		if( gTheOldRCcommand != RC_SIGNAL_WAS_LOST ){	// only print RC message once
@@ -306,16 +376,24 @@ void handleRCSignals( commandDataStruct *theDataPtr ) {
 //	}
 
 	// check for reverse ESC signal from RC while in autonomous mode (user wants to stop auto)	
-//	if ( gIsInAutonomousMode ) {	
-//		if( THR_VAL < throttleThresholdToShutdownAuto ){	 
-//			if (DEBUG_SERIAL) {
-//				Serial.println("User wants to halt autonomous\n");
-//			}
-//			theDataPtr->command = RC_SIGNALED_STOP_AUTONOMOUS;
-//			return;
-//		}
-//	} 
-	
+	if ( gIsInAutonomousMode ) {	
+		if( THR_VAL < throttleThresholdToShutdownAuto ){	 
+			if (DEBUG_SERIAL) {
+				Serial.println("User wants to halt autonomous\n");
+			}
+			theDataPtr->command = RC_SIGNALED_STOP_AUTONOMOUS;
+			return;
+		}
+	}
+
+ 
+//	Serial.print("ch1:");
+//	Serial.print(STR_VAL);
+//	Serial.print("ch2:");
+//	Serial.print(THR_VAL);
+//	Serial.print("\n");
+
+
 	// clip the RC signals to more car appropriate ones
 	if( STR_VAL > maximumSteeringValue )
 		STR_VAL = maximumSteeringValue;
@@ -328,7 +406,7 @@ void handleRCSignals( commandDataStruct *theDataPtr ) {
 
 	else if( THR_VAL < minimumThrottleValue )
 		THR_VAL = minimumThrottleValue;
-		
+ 			
 	uint8_t Buf[14];
 	I2Cread(MPU9250_ADDRESS,0x3B,14,Buf);
 
@@ -360,28 +438,25 @@ void handleRCSignals( commandDataStruct *theDataPtr ) {
 	theDataPtr->str = (int) STR_VAL;
 	theDataPtr->time = millis();
 	theDataPtr->command = GOOD_RC_SIGNALS_RECEIVED;
-	
 
 }
 
 void loop() {	
-	
-	//commandDataStruct theCommandData;
+	// Serial.print(".");
+	commandDataStruct theCommandData;
 	bool autoShouldBeStopped = false;
 	
 	// ------------------------- Handle RC Commands -------------------------------
-	
-	// comment this out and pi testing program will slew servo back and forth
-	
-	if( gIsInAutonomousMode == false )
-		handleRCSignals( &g_commandStruct );
-	else
-		//theCommandData.command = NO_COMMAND_AVAILABLE;	
-		g_commandStruct.command = NO_COMMAND_AVAILABLE;	
+		
+//	if( gIsInAutonomousMode == false )
+//		handleRCSignals( &theCommandData );
+//	else
+//		theCommandData.command = NO_COMMAND_AVAILABLE;	
+
+    handleRCSignals( &theCommandData );
 	
 	if( gCountOfPassesForCommandDisplay >= gTotalNumberOfPassesForCommandDisplay / 2 )		// display the command from the RC on the LEDs
-		//displayBinaryOnLEDS( theCommandData.command + gIsInAutonomousMode * 128 );
-		displayBinaryOnLEDS( g_commandStruct.command + gIsInAutonomousMode * 128 );
+		displayBinaryOnLEDS( theCommandData.command + gIsInAutonomousMode * 128 );
 	
 //	if( gTheOldRCcommand != theCommandData.command ){	// for debugging purposes only print RC command once 
 //		Serial.print( "RC command: " );
@@ -394,70 +469,55 @@ void loop() {
 	//	The signal for stopping autonomous driving is user putting car in reverse
 	//	   this can be a normal operation in manual driving, so a test for auto mode is made
 
-//	if(( theCommandData.command == RC_SIGNALED_STOP_AUTONOMOUS ) || ( theCommandData.command == RC_SIGNAL_WAS_LOST )){
-//		theCommandData.str = gCenteredSteeringValue;	//  center the steering
-//		theCommandData.thr = gCenteredThrottleValue;	//  turn off the motor
+	if(( theCommandData.command == RC_SIGNALED_STOP_AUTONOMOUS ) || ( theCommandData.command == RC_SIGNAL_WAS_LOST )){
+		theCommandData.str = gCenteredSteeringValue;	//  center the steering
+		theCommandData.thr = gCenteredThrottleValue;	//  turn off the motor
 
-//		if( gIsInAutonomousMode ){	// send the command to pi to stop autonomous
-//			Serial.println( "Autonomous mode is on " );
-//			theCommandData.command = NO_COMMAND_AVAILABLE;	// setup to get at least one pass thru while loop
-//			while( theCommandData.command != STOPPED_AUTO_COMMAND_RECEIVED ){	// loop until pi acknowledges STOP auto
-//				theCommandData.command = STOP_AUTONOMOUS;
-//				sendSerialCommand( &theCommandData );
+		if( gIsInAutonomousMode ){	// send the command to pi to stop autonomous
+			
+			if (DEBUG_SERIAL) {
+				Serial.println("Received RC stop while Autonomous mode is on ");
+			}			
+			
+			theCommandData.command = NO_COMMAND_AVAILABLE;	// setup to get at least one pass thru while loop
+			while( theCommandData.command != STOPPED_AUTO_COMMAND_RECEIVED ){	// loop until pi acknowledges STOP auto
+				theCommandData.command = STOP_AUTONOMOUS;
+				sendSerialCommand( &theCommandData );
 //				getSerialCommandIfAvailable( &theCommandData );
-//				Serial.println( "waiting for pi acknowledgement" );
-//			}
-//		}
-//	}
+				theCommandData.command = STOPPED_AUTO_COMMAND_RECEIVED;
+				gIsInAutonomousMode = false;
+			}
+		}
+	}
 	
 //	else if( theCommandData.command == GOOD_RC_SIGNALS_RECEIVED ){
-	//if( theCommandData.command == GOOD_RC_SIGNALS_RECEIVED ){	
-	if( g_commandStruct.command == GOOD_RC_SIGNALS_RECEIVED ){	
+	if( theCommandData.command == GOOD_RC_SIGNALS_RECEIVED ){	
 		if( gIsInAutonomousMode == false ){
 //			sendSerialCommand( &theCommandData );
-			//ServoSTR.writeMicroseconds( theCommandData.str );
-			//ServoTHR.writeMicroseconds( theCommandData.thr );
-			ServoSTR.writeMicroseconds( g_commandStruct.str );
-			ServoTHR.writeMicroseconds( g_commandStruct.thr );
+			ServoSTR.writeMicroseconds( theCommandData.str );
+			ServoTHR.writeMicroseconds( theCommandData.thr );
 		}
 	}
 	
 	// ------------------------- Handle Pi Commands -------------------------------
-	//getSerialCommandIfAvailable( &theCommandData );
-	getSerialCommandIfAvailable( &g_commandStruct );
+	getSerialCommandIfAvailable( &theCommandData );
 		
-	//if( theCommandData.command != NO_COMMAND_AVAILABLE ){
-	if( g_commandStruct.command != NO_COMMAND_AVAILABLE ){
+	if( theCommandData.command != NO_COMMAND_AVAILABLE ){
 //		sendSerialCommand( &theCommandData );	// echo the received command right back to the pi
 	}
 	
-	//if( theCommandData.command == RUN_AUTONOMOUSLY ){
-	//	ServoSTR.writeMicroseconds( theCommandData.str );
-	//	ServoTHR.writeMicroseconds( theCommandData.thr );
-	//	gIsInAutonomousMode = true;
-	//}
-	if( g_commandStruct.command == RUN_AUTONOMOUSLY ){
-		ServoSTR.writeMicroseconds( g_commandStruct.str );
-		ServoTHR.writeMicroseconds( g_commandStruct.thr );
+	if( theCommandData.command == RUN_AUTONOMOUSLY ){
+		ServoSTR.writeMicroseconds( theCommandData.str );
+		ServoTHR.writeMicroseconds( theCommandData.thr );
 		gIsInAutonomousMode = true;
 	}
 	
-	//else if( theCommandData.command == STOP_AUTONOMOUS ){
-	//	theCommandData.command = STOPPED_AUTO_COMMAND_RECEIVED;
-//	//	sendSerialCommand( &theCommandData );
-	//	theCommandData.str = gCenteredSteeringValue;	//  center the steering
-	//	theCommandData.thr = gCenteredThrottleValue;	//  turn off the motor
-	//	ServoSTR.writeMicroseconds( theCommandData.str );
-	//	ServoTHR.writeMicroseconds( theCommandData.thr );
-	//	gIsInAutonomousMode = false;
-	//}
-	else if( g_commandStruct.command == STOP_AUTONOMOUS ){
-		g_commandStruct.command = STOPPED_AUTO_COMMAND_RECEIVED;
-//		sendSerialCommand( &theCommandData );
-		g_commandStruct.str = gCenteredSteeringValue;	//  center the steering
-		g_commandStruct.thr = gCenteredThrottleValue;	//  turn off the motor
-		ServoSTR.writeMicroseconds( g_commandStruct.str );
-		ServoTHR.writeMicroseconds( g_commandStruct.thr );
+	else if( theCommandData.command == STOP_AUTONOMOUS ){
+		theCommandData.command = STOPPED_AUTO_COMMAND_RECEIVED;
+		theCommandData.str = gCenteredSteeringValue;	//  center the steering
+		theCommandData.thr = gCenteredThrottleValue;	//  turn off the motor
+		ServoSTR.writeMicroseconds( theCommandData.str );
+		ServoTHR.writeMicroseconds( theCommandData.thr );
 		gIsInAutonomousMode = false;
 	}
 	
@@ -467,8 +527,7 @@ void loop() {
 		
 	
 	if( gCountOfPassesForCommandDisplay < gTotalNumberOfPassesForCommandDisplay / 2 )	// display the command from the Pi on the LEDs
-		//displayBinaryOnLEDS( theCommandData.command + gIsInAutonomousMode * 128  );
-		displayBinaryOnLEDS( g_commandStruct.command + gIsInAutonomousMode * 128  );
+		displayBinaryOnLEDS( theCommandData.command + gIsInAutonomousMode * 128  );
 		
 	gCountOfPassesForCommandDisplay = gCountOfPassesForCommandDisplay - 1;
 	
