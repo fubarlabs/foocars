@@ -7,19 +7,19 @@ import sys, os
 #import ipdb; ipdb.set_trace()
 
 #ser=serial.Serial('/dev/ttyACM0')          #pi
-#ser=serial.Serial('/dev/cu.usbmodem1411')   #home mac
-ser=serial.Serial('/dev/cu.usbmodem196')        # work mac
+ser=serial.Serial('/dev/cu.usbmodem1441')   #home mac
+#ser=serial.Serial('/dev/cu.usbmodem196')        # work mac
   
 time.sleep( .5 )
+
+ser.flushInput()
 leftValue = 1700
 rightValue = 1300
 currValue = leftValue
 for x in range(0, 10):
     dataline='{0}, {1}, {2}, {3}\n'.format( int(5),int(currValue),int(1500),int(0) )
-#    ser.flushInput()
 #    ser.flushOutput()
     ser.write(dataline.encode('ascii'))
-    time.sleep(.25)
     
     try:
         bytesToRead = ser.inWaiting()
@@ -47,6 +47,8 @@ for x in range(0, 10):
         currValue = rightValue
     else:
         currValue = leftValue
+    
+    time.sleep(.25)
         
                         
 #	send stop autonomous

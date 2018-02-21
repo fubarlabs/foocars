@@ -245,7 +245,7 @@ void setup() {
     
     initIMU();
     gTheOldRCcommand = NOT_ACTUAL_COMMAND;
-    gIsInAutonomousMode = false;
+    gIsInAutonomousMode = false;         //    ****************************
 }
 
 void sendSerialCommand( commandDataStruct *theDataPtr ){
@@ -328,19 +328,19 @@ void getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
             command = strtok(0, ",");
             cmd_cnt++;
 
-            if (cmd_cnt == 4) {
-                if (DEBUG_SERIAL) {
-                    Serial.println();
-                    Serial.print(theDataPtr->command);
-                    Serial.print("/ ");
-                    Serial.print(theDataPtr->str);
-                    Serial.print("/ ");
-                    Serial.print(theDataPtr->thr);
-                    Serial.print("/ ");
-                    Serial.print(theDataPtr->time);
-                    Serial.println();
-                }
-            }
+//             if (cmd_cnt == 4) {
+//                 if (DEBUG_SERIAL) {
+//                     Serial.println();
+//                     Serial.print(theDataPtr->command);
+//                     Serial.print("/ ");
+//                     Serial.print(theDataPtr->str);
+//                     Serial.print("/ ");
+//                     Serial.print(theDataPtr->thr);
+//                     Serial.print("/ ");
+//                     Serial.print(theDataPtr->time);
+//                     Serial.println();
+//                 }
+//             }
         }
     }
         
@@ -354,7 +354,7 @@ void handleRCSignals( commandDataStruct *theDataPtr ) {
     const unsigned long maximumSteeringValue = 1700;
     const unsigned long minimumThrottleValue = 1250;
     const unsigned long maximumThrottleValue = 1650;
-    const unsigned long throttleThresholdToShutdownAuto = 1300;
+    const unsigned long throttleThresholdToShutdownAuto = 1600;
     
     unsigned long STR_VAL = pulseRead(RC_INPUT_STR-2); // Read pulse width of
     unsigned long THR_VAL = pulseRead(RC_INPUT_THR); // each channel
@@ -374,7 +374,7 @@ void handleRCSignals( commandDataStruct *theDataPtr ) {
 
     // check for reverse ESC signal from RC while in autonomous mode (user wants to stop auto)    
     if ( gIsInAutonomousMode ) {    
-        if( THR_VAL < throttleThresholdToShutdownAuto ){     
+        if( THR_VAL > throttleThresholdToShutdownAuto ){     // signals increase with reverse throttle movement
             if (DEBUG_SERIAL) {
                 Serial.println("User wants to halt autonomous\n");
             }
@@ -453,6 +453,8 @@ void loop() {
     if(( theCommandData.command == RC_SIGNALED_STOP_AUTONOMOUS ) || ( theCommandData.command == RC_SIGNAL_WAS_LOST )){
         theCommandData.str = gCenteredSteeringValue;    //  center the steering
         theCommandData.thr = gCenteredThrottleValue;    //  turn off the motor
+        ServoSTR.writeMicroseconds( theCommandData.str );
+        ServoTHR.writeMicroseconds( theCommandData.thr );
 
         if( gIsInAutonomousMode ){    // send the command to pi to stop autonomous
 //            if (DEBUG_SERIAL) {
