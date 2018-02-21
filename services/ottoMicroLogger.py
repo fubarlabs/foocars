@@ -26,7 +26,6 @@ logging.basicConfig(filename='/tmp/ottoMicroLogger.log',level=logging.DEBUG)
 logging.debug( '\n\n new session \n' )
 logging.debug( 'setting up model ')
 
-
 # -------- New Power On/Off functionality --------- 
 
 # 1- User holds boot switch in ON position which energizes power relay coil ( power LED remains unlit )
