@@ -375,9 +375,9 @@ void handleRCSignals( commandDataStruct *theDataPtr ) {
     // check for reverse ESC signal from RC while in autonomous mode (user wants to stop auto)    
     if ( gIsInAutonomousMode ) {    
         if( THR_VAL > throttleThresholdToShutdownAuto ){     // signals increase with reverse throttle movement
-            if (DEBUG_SERIAL) {
-                Serial.println("User wants to halt autonomous\n");
-            }
+//            if (DEBUG_SERIAL) {
+//                Serial.println("User wants to halt autonomous\n");
+//            }
             theDataPtr->command = RC_SIGNALED_STOP_AUTONOMOUS;
             return;
         }
