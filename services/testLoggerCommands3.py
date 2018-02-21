@@ -7,8 +7,8 @@ import sys, os
 #import ipdb; ipdb.set_trace()
 
 #ser=serial.Serial('/dev/ttyACM0')          #pi
-ser=serial.Serial('/dev/cu.usbmodem1441')   #home mac
-#ser=serial.Serial('/dev/cu.usbmodem196')        # work mac
+#ser=serial.Serial('/dev/cu.usbmodem1441')   #home mac
+ser=serial.Serial('/dev/cu.usbmodem205')        # work mac
   
 time.sleep( .5 )
 
@@ -24,24 +24,24 @@ def getCommandFromSerial():
     
     command = 0
     try:
-        numBytes = ser.in_waiting
-        if( numBytes != 0 ):
+#        numBytes = ser.in_waiting
+#        if( numBytes != 0 ):
 #                serBytes = ser.read(bytesToRead)
 #                print ( 'bytes:' + str( serBytes ))
 #                serial_line_received = serBytes.decode('ascii')
 #               serial_line_received = serial_line_received.decode("utf-8")
-                bytes_received = ser.readline()
-                print ( 'bytes received = ' + str( bytes_received ))
-                print ( 'number received = ' + str( len( bytes_received )))
-                serial_line_received = bytes_received.decode('ascii')    # convert to ascii
-                print ( 'ascii received = ' + serial_line_received )
-                raw_serial_list = list( serial_line_received.split(','))
-                print ( 'command received = ' + str( raw_serial_list[ 0 ]))
-                if( len( raw_serial_list ) != 10 ):
-                    gNumErrors = gNumErrors + 1
-                
-                else:
-                    command = int( raw_serial_list[ 0 ])
+        bytes_received = ser.readline()
+        print ( 'bytes received = ' + str( bytes_received ))
+        print ( 'number received = ' + str( len( bytes_received )))
+        serial_line_received = bytes_received.decode('ascii')    # convert to ascii
+        print ( 'ascii received = ' + serial_line_received )
+        raw_serial_list = list( serial_line_received.split(','))
+        print ( 'command received = ' + str( raw_serial_list[ 0 ]))
+        if( len( raw_serial_list ) != 10 ):
+            gNumErrors = gNumErrors + 1
+        
+        else:
+            command = int( raw_serial_list[ 0 ])
                         
     except Exception as the_bad_news:
         print ( 'exception = ' + str(the_bad_news.args[0]))  

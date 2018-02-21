@@ -7,8 +7,8 @@ import sys, os
 #import ipdb; ipdb.set_trace()
 
 #ser=serial.Serial('/dev/ttyACM0')          #pi
-ser=serial.Serial('/dev/cu.usbmodem1441')   #home mac
-#ser=serial.Serial('/dev/cu.usbmodem196')        # work mac
+#ser=serial.Serial('/dev/cu.usbmodem1441')   #home mac
+ser=serial.Serial('/dev/cu.usbmodem206')        # work mac
   
 time.sleep( .5 )
 

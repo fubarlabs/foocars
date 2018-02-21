@@ -7,8 +7,8 @@ import sys, os
 #import ipdb; ipdb.set_trace()
 
 #ser=serial.Serial('/dev/ttyACM0')          #pi
-ser=serial.Serial('/dev/cu.usbmodem1441')   #home mac
-#ser=serial.Serial('/dev/cu.usbmodem196')        # work mac
+#ser=serial.Serial('/dev/cu.usbmodem1441')   #home mac
+ser=serial.Serial('/dev/cu.usbmodem208')        # work mac
   
 time.sleep( .5 )
 
@@ -29,7 +29,7 @@ def getCommandFromSerial():
         ser.flushInput()
         numBytes = 0
         while( numBytes == 0 ):
-            numBytes = ser.in_waiting
+            numBytes = ser.inWaiting()
 #                serBytes = ser.read(bytesToRead)
 #                print ( 'bytes:' + str( serBytes ))
 #                serial_line_received = serBytes.decode('ascii')
