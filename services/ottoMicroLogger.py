@@ -120,7 +120,7 @@ class DataGetter(object):
 
     def flush(self):
         pass
-    
+
 # -------------- Image Processor Function -------------------------------  
 def imageprocessor(event):
     global g_image_data
@@ -145,16 +145,23 @@ def imageprocessor(event):
             steer_command=pred[0][0]*g_steerstats[1]+g_steerstats[0]
             #    !!! must have one space after comma !!!
             dataline='{0}, {1}, {2}, {3}\n'.format( int(commandEnum.RUN_AUTONOMOUSLY ),int( steer_command ),int( DEFAULT_AUTONOMOUS_THROTTLE ),int(0) )
-            print(dataline) 
-    theCommandList = getSerialCommandIfAvailable( 1 )
-    if(theCommandList != [] ):
-        try:
-            ser.flushInput()
-            ser.write(dataline.encode('ascii'))
-            logging.debug( 'autonomous command: ' + str( dataline ))
+            print(dataline)
+             
+            theCommandList = getSerialCommandIfAvailable( 1 )
+            if(theCommandList == [] ):
+                try:
+                    ser.write(dataline.encode('ascii'))
+                    logging.debug( 'autonomous command: ' + str( dataline ))
 
-        except Exception as the_bad_news:                
-            handle_exception( the_bad_news )
+                except Exception as the_bad_news:                
+                    handle_exception( the_bad_news )
+            else:
+                print( theCommandList )
+                if( theCommandList[ 0 ] == 6 ):
+                    if( theCommandList[ 1 ] == echoTestValue ):
+                        print( 'Echoed 6' )
+                    else: 
+                        stop_autonomous()
 
 # ------------------------------------------------- 
 def stop_autonomous():  
@@ -184,6 +191,18 @@ def stop_autonomous():
         turn_OFF_LED( LED_autonomous )
         g_ip_thread.join()
         logging.debug( 'exiting autonomous\n' )
+        
+        # blink LEDs as an alarm if autonmous switch has been left up
+        LED_state = LED_ON
+
+        while( GPIO.input( SWITCH_autonomous ) == SWITCH_UP ): 
+            GPIO.output( LED_autonomous, LED_state )
+            time.sleep( .25 )
+            LED_state = LED_state ^ 1        # XOR bit to turn LEDs off or on
+
+        # turn off all LEDs for initialization
+        turn_OFF_all_LEDs()
+        
 # ------------------------------------------------- 
 def callback_switch_autonomous( channel ):  
     global g_Recorded_Data_Not_Saved
