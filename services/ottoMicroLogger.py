@@ -146,6 +146,8 @@ def imageprocessor(event):
             #    !!! must have one space after comma !!!
             dataline='{0}, {1}, {2}, {3}\n'.format( int(commandEnum.RUN_AUTONOMOUSLY ),int( steer_command ),int( DEFAULT_AUTONOMOUS_THROTTLE ),int(0) )
             print(dataline) 
+    theCommandList = getSerialCommandIfAvailable( 1 )
+    if(theCommandList != [] ):
         try:
             ser.flushInput()
             ser.write(dataline.encode('ascii'))
