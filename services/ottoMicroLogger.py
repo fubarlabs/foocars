@@ -72,20 +72,23 @@ RELAY_ON = GPIO.HIGH
 RELAY_OFF = GPIO.LOW
 
 # -------- Command enumeration same as ones on fubarino --------- 
-#    use like this: commandEnum.NO_COMMAND_AVAILABLE
-class commandEnum(Enum):
-    NOT_ACTUAL_COMMAND = 0
-    RC_SIGNAL_WAS_LOST = 1
-    RC_SIGNALED_STOP_AUTONOMOUS = 2
-    STEERING_VALUE_OUT_OF_RANGE = 3
-    THROTTLE_VALUE_OUT_OF_RANGE= 4
-    RUN_AUTONOMOUSLY = 5
-    STOP_AUTONOMOUS = 6
-    STOPPED_AUTO_COMMAND_RECEIVED = 7
-    NO_COMMAND_AVAILABLE = 8
-    GOOD_PI_COMMAND_RECEIVED = 9
-    TOO_MANY_VALUES_IN_COMMAND = 10
-    GOOD_RC_SIGNALS_RECEIVED = 11
+def enum(**enums):
+    return type('Enum', (), enums)
+       
+commandEnum = enum(  
+    NOT_ACTUAL_COMMAND = 0,
+    RC_SIGNAL_WAS_LOST = 1,
+    RC_SIGNALED_STOP_AUTONOMOUS = 2,
+    STEERING_VALUE_OUT_OF_RANGE = 3,
+    THROTTLE_VALUE_OUT_OF_RANGE= 4,
+    RUN_AUTONOMOUSLY = 5,
+    STOP_AUTONOMOUS = 6,
+    STOPPED_AUTO_COMMAND_RECEIVED = 7,
+    NO_COMMAND_AVAILABLE = 8,
+    GOOD_PI_COMMAND_RECEIVED = 9,
+    TOO_MANY_VALUES_IN_COMMAND = 10,
+    GOOD_RC_SIGNALS_RECEIVED = 11 
+    )
 
 # --------Old Data Collection Command Line Startup Code--------- 
 time_format='%Y-%m-%d_%H-%M-%S'
@@ -140,20 +143,45 @@ def imageprocessor(event):
                 time.sleep(.2-(end-start))
             end2=time.time()                
             steer_command=pred[0][0]*g_steerstats[1]+g_steerstats[0]
-#            dataline='{0}, {1}, {2}, {3}\n'.format( commandEnum.RUN_AUTONOMOUSLY, int(steer_command), DEFAULT_AUTONOMOUS_THROTTLE, 0 )
-#            dataline='{0}, {1}, {2}, {3}\n'.format( 5, int(steer_command), DEFAULT_AUTONOMOUS_THROTTLE, 0 )
-            dataline='{0}, {1}, {2}, {3}\n'.format( 5,1300,1500,0 )
-            print(dataline)
+            #    !!! must have one space after comma !!!
+            dataline='{0}, {1}, {2}, {3}\n'.format( int(commandEnum.RUN_AUTONOMOUSLY ),int( steer_command ),int( DEFAULT_AUTONOMOUS_THROTTLE ),int(0) )
+            print(dataline) 
         try:
             ser.flushInput()
-#            ser.write(dataline.encode('ascii'))
-            ser.write(b"5,6,7,8")
+            ser.write(dataline.encode('ascii'))
             logging.debug( 'autonomous command: ' + str( dataline ))
-#            print('read line ' + ser.readline())
 
         except Exception as the_bad_news:                
             handle_exception( the_bad_news )
 
+# ------------------------------------------------- 
+def stop_autonomous():  
+    global g_Recorded_Data_Not_Saved
+    global g_Wants_To_See_Video
+    global g_Is_Autonomous
+    global g_Camera_Is_Recording
+    global g_camera
+    global g_getter
+    global g_stop_event
+    global g_ip_thread
+    
+    try:
+        if ( g_Wants_To_See_Video ):
+            g_camera.stop_preview()
+        g_camera.stop_recording()            
+        g_stop_event.set()
+        logging.debug( 'OK: autonomous complete' )
+
+    except Exception as the_bad_news:                
+        handle_exception( the_bad_news )
+        logging.debug( 'NG: autonomous problem' )
+        
+    finally:
+        g_Camera_Is_Recording = False
+        g_Recorded_Data_Not_Saved = True
+        turn_OFF_LED( LED_autonomous )
+        g_ip_thread.join()
+        logging.debug( 'exiting autonomous\n' )
 # ------------------------------------------------- 
 def callback_switch_autonomous( channel ):  
     global g_Recorded_Data_Not_Saved
@@ -166,7 +194,7 @@ def callback_switch_autonomous( channel ):
     global g_ip_thread
 
     if( GPIO.input( SWITCH_autonomous ) == SWITCH_UP ):
-        if( g_Camera_Is_Recording == False ):
+        if( g_Is_Autonomous == False ):
             try:
                 turn_ON_LED( LED_autonomous )
                 g_camera.start_recording( g_getter, format='rgb' )
@@ -186,25 +214,9 @@ def callback_switch_autonomous( channel ):
             logging.debug( '* warning: while recording, ANOTHER RISING transition on the autonomous switch' )
         
     else:    # a autonomous data switch down position has occurred        
-        if( g_Camera_Is_Recording == True ):
+        if( g_Is_Autonomous == True ):
             logging.debug( '* autonomous switch is now down' )
-            try:
-                if ( g_Wants_To_See_Video ):
-                    g_camera.stop_preview()
-                g_camera.stop_recording()            
-                g_stop_event.set()
-                logging.debug( 'OK: autonomous complete' )
 
-            except Exception as the_bad_news:                
-                handle_exception( the_bad_news )
-                logging.debug( 'NG: autonomous problem' )
-                
-            finally:
-                g_Camera_Is_Recording = False
-                g_Recorded_Data_Not_Saved = True
-                turn_OFF_LED( LED_autonomous )
-                g_ip_thread.join()
-                logging.debug( 'exiting autonomous\n' )
 
         else:
             logging.debug( '* warning: while recording, ANOTHER FALLING transition on the autonomous switch' )
