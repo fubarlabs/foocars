@@ -200,7 +200,6 @@ def callback_switch_autonomous( channel ):
                 g_camera.start_recording( g_getter, format='rgb' )
                 g_ip_thread=threading.Thread(target=imageprocessor, args=[g_stop_event])
                 g_ip_thread.start()
-                #g_stop_event.set()
                 g_Camera_Is_Recording = True
                 g_Is_Autonomous = True
                 logging.debug( '* in autonomous mode, camera is recording' )
@@ -209,14 +208,13 @@ def callback_switch_autonomous( channel ):
 
             except Exception as the_bad_news:                
                 handle_exception( the_bad_news )
-            
         else:
             logging.debug( '* warning: while recording, ANOTHER RISING transition on the autonomous switch' )
         
     else:    # a autonomous data switch down position has occurred        
         if( g_Is_Autonomous == True ):
             logging.debug( '* autonomous switch is now down' )
-
+            stop_autonomous()
 
         else:
             logging.debug( '* warning: while recording, ANOTHER FALLING transition on the autonomous switch' )
