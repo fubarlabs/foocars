@@ -48,7 +48,7 @@ const int PIN_THR = 7;
 
 byte LEDdebugPins[] = {24, 25, 26, 27, A14, A13, A12, A11};    // lsb on the right
 
-int gTotalNumberOfPassesForCommandDisplay = 15000;
+int gTotalNumberOfPassesForCommandDisplay = 10000;
 int gCountOfPassesForCommandDisplay = gTotalNumberOfPassesForCommandDisplay;
 
 boolean gWantsLEDon;
@@ -245,7 +245,7 @@ void setup() {
     
     initIMU();
     gTheOldRCcommand = NOT_ACTUAL_COMMAND;
-    gIsInAutonomousMode = false;         //    ****************************
+    gIsInAutonomousMode = false;     
 }
 
 void sendSerialCommand( commandDataStruct *theDataPtr ){
@@ -462,6 +462,7 @@ void loop() {
 //            }        
                 
             theCommandData.command = STOP_AUTONOMOUS;
+            delay( 1000 );
             for( int i = 0; i < 5; i++ )	// fire off 5 stop auto commands
                 sendSerialCommand( &theCommandData );
             gIsInAutonomousMode = false;
@@ -469,9 +470,8 @@ void loop() {
     }
     
     else if( theCommandData.command == GOOD_RC_SIGNALS_RECEIVED ){
-        if( gIsInAutonomousMode == false ){	
-            //    If not in auto mode, send RC command values back to Pi
-            sendSerialCommand( &theCommandData );
+       sendSerialCommand( &theCommandData );
+       if( gIsInAutonomousMode == false ){	
             //    If not in auto mode, send RC values to servo and ESC
             ServoSTR.writeMicroseconds( theCommandData.str );
             ServoTHR.writeMicroseconds( theCommandData.thr );
@@ -481,7 +481,7 @@ void loop() {
     else{    // either no command or a bad command was received
     }
     
-    delay( 10 );
+    delay( 100 );
 
 // ------------------------- Handle Pi Commands -------------------------------
     getSerialCommandIfAvailable( &theCommandData );
