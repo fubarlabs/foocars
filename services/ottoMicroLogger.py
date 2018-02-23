@@ -146,22 +146,24 @@ def imageprocessor(event):
             #    !!! must have one space after comma !!!
             dataline='{0}, {1}, {2}, {3}\n'.format( int(commandEnum.RUN_AUTONOMOUSLY ),int( steer_command ),int( DEFAULT_AUTONOMOUS_THROTTLE ),int(0) )
             print(dataline)
-             
+            
+            commandEnum.NO_COMMAND_AVAILABLE 
             theCommandList = getSerialCommandIfAvailable( 1 )
-            if(theCommandList == [] ):
-                try:
-                    ser.write(dataline.encode('ascii'))
-                    logging.debug( 'autonomous command: ' + str( dataline ))
+            
+            try:
+                ser.write(dataline.encode('ascii'))
+                logging.debug( 'autonomous command: ' + str( dataline ))
 
-                except Exception as the_bad_news:                
-                    handle_exception( the_bad_news )
-            else:
-                print( theCommandList )
-                if( theCommandList[ 0 ] == 6 ):
-                    if( theCommandList[ 1 ] == echoTestValue ):
-                        print( 'Echoed 6' )
-                    else: 
-                        stop_autonomous()
+            except Exception as the_bad_news:                
+                 handle_exception( the_bad_news )
+                 
+            print( theCommandList )
+            
+            if( theCommandList[ 0 ] == 6 ):
+                if( theCommandList[ 1 ] == echoTestValue ):
+                    print( 'Echoed 6' )
+                else: 
+                    stop_autonomous()
 
 # ------------------------------------------------- 
 def stop_autonomous():  
@@ -189,7 +191,6 @@ def stop_autonomous():
         g_Camera_Is_Recording = False
         g_Recorded_Data_Not_Saved = True
         turn_OFF_LED( LED_autonomous )
-        g_ip_thread.join()
         logging.debug( 'exiting autonomous\n' )
         
         # blink LEDs as an alarm if autonmous switch has been left up
@@ -236,7 +237,7 @@ def callback_switch_autonomous( channel ):
         if( g_Is_Autonomous == True ):
             logging.debug( '* autonomous switch is now down' )
             stop_autonomous()
-
+            g_ip_thread.join()
         else:
             logging.debug( '* warning: while recording, ANOTHER FALLING transition on the autonomous switch' )
             
