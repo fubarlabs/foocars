@@ -54,11 +54,7 @@ SWITCH_shutdown_RPi = 6
 
 OUTPUT_to_relay = 13
 
-<<<<<<< HEAD
 DEFAULT_AUTONOMOUS_THROTTLE = 1580
-=======
-DEFAULT_AUTONOMOUS_THROTTLE = 1570
->>>>>>> dd4a8fae480d214d1d4aec62682e957aeb0f482c
 
 # -------- Switch constants --------- 
 # switch position-UP connects GPIO pin to GROUND, 
