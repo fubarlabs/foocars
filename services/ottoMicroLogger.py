@@ -804,11 +804,8 @@ def initialize_RPi_Stuff():
     
     g_steerstats=np.load('/home/pi/autonomous/services/steerstats.npz')['arr_0']
 
-<<<<<<< HEAD
     model.load_weights('/home/pi/autonomous/services/weightsBell2.h5')
-=======
-    model.load_weights('/home/pi/autonomous/services/weights_2018-02-24_13-54-45_epoch_40.h5')
->>>>>>> dd4a8fae480d214d1d4aec62682e957aeb0f482c
+
     model._make_predict_function()
     g_graph=tf.get_default_graph()
 
