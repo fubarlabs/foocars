@@ -246,7 +246,7 @@ NUM_FRAMES = 100
 
 class DataCollector(object):
     '''this object is passed to the camera.start_recording function, which will treat it as a 
-    writable object, like a stream or a file'''
+            writable object, like a stream or a file'''
     def __init__(self):
         self.imgs=np.zeros((NUM_FRAMES, 96, 128, 3), dtype=np.uint8) #we put the images in here
         self.IMUdata=np.zeros((NUM_FRAMES, 7), dtype=np.float32) #we put the imu data in here
@@ -257,24 +257,36 @@ class DataCollector(object):
         
         nowtime=datetime.datetime.now()
         
-        not_done_searching_for_a_free_folder = True
-        folder_index = 0
-        folder_index_limit = 20
-        path = '/home/pi/autonomous/data/collected_data'
-        
-        while( not_done_searching_for_a_free_folder ):
-            self.path_with_index = path + str( folder_index )
-            
+        try:        #   reorganize the data collection folder
+            not_done_renumbering_collected_folders = True
+            maximum_folder_index = 9
+            path = '/home/pi/autonomous/data/collected_data'
+            path_with_index = path + str( maximum_folder_index )     # does a folder exist with the maximum index?
             if( os.path.exists( self.path_with_index )):
-                logging.debug( self.path_with_index + ' already exists on USB drive' )
-                folder_index = folder_index + 1
-                if( folder_index > folder_index_limit ):
-                    raise Exception( 'data folder index on USB drive exceeds limit' )
-            else:
-                not_done_searching_for_a_free_folder = False
+                shutil.rmtree( self.path_with_index, ignore_errors=True)    # get rid of the last folder (even if the files inside are not read only)
+            
+            folder_index = maximum_folder_index - 1         # start looking for a folder with one less than the maximum index                
+            while( not_done_renumbering_collected_folders ):
+                old_folder_path = self.( path + str( folder_index ))
+                new_folder_path = self.( path + str( folder_index + 1 ))
+            
+                if( os.path.exists( old_folder_name )):
+                    os.rename( old_folder_path, new_folder_path )
+                    logging.debug( 'old folder = ' + old_folder_path + '  new folder = ' + new_folder_path )
                 
-        os.makedirs( self.path_with_index )                
-        logging.debug( 'collected data path = ' + self.path_with_index )
+                folder_index = folder_index - 1
+                if( folder_index == 1 ):
+                    not_done_renumbering_collected_folders = false
+                
+            path_with_index = path + '0'
+            os.makedirs( self.path_with_index )                
+            logging.debug( 'collected data path = ' + self.path_with_index )
+        
+        except Exception as the_bad_news:                
+            handle_exception( the_bad_news )
+            logging.debug( 'self.idx = ' + str( self.idx ))
+            logging.debug( 'Error: exception in data collection folder reorg' )
+       
         self.img_file = self.path_with_index + '/imgs_{0}'.format(nowtime.strftime(time_format))
         self.IMUdata_file = self.path_with_index + '/IMU_{0}'.format(nowtime.strftime(time_format))
         self.RCcommands_file = self.path_with_index + '/commands_{0}'.format(nowtime.strftime(time_format))
