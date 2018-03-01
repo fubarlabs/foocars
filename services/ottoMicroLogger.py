@@ -262,24 +262,26 @@ class DataCollector(object):
             maximum_folder_index = 9
             path = '/home/pi/autonomous/data/collected_data'
             path_with_index = path + str( maximum_folder_index )     # does a folder exist with the maximum index?
-            if( os.path.exists( self.path_with_index )):
-                shutil.rmtree( self.path_with_index, ignore_errors=True)    # get rid of the last folder (even if the files inside are not read only)
+            if( os.path.exists( path_with_index )):
+                shutil.rmtree( path_with_index, ignore_errors=True)    # get rid of the last folder (even if the files inside are not read only)
             
             folder_index = maximum_folder_index - 1         # start looking for a folder with one less than the maximum index                
             while( not_done_renumbering_collected_folders ):
-                old_folder_path = self.( path + str( folder_index ))
-                new_folder_path = self.( path + str( folder_index + 1 ))
+                old_folder_path = path + str( folder_index )
+                new_folder_path = path + str( folder_index + 1 )
             
-                if( os.path.exists( old_folder_name )):
+                if( os.path.exists( old_folder_path )):
                     os.rename( old_folder_path, new_folder_path )
                     logging.debug( 'old folder = ' + old_folder_path + '  new folder = ' + new_folder_path )
                 
                 folder_index = folder_index - 1
-                if( folder_index == 1 ):
-                    not_done_renumbering_collected_folders = false
+                if( folder_index < 0 ):
+                    not_done_renumbering_collected_folders = False
                 
-            path_with_index = path + '0'
-            os.makedirs( self.path_with_index )                
+            self.path_with_index = path + '0'
+            if( os.path.exists( path_with_index == False )):
+                os.makedirs( self.path_with_index )
+                                
             logging.debug( 'collected data path = ' + self.path_with_index )
         
         except Exception as the_bad_news:                
@@ -353,6 +355,9 @@ def callback_switch_collect_data( channel ):
         if( g_Camera_Is_Recording == False ):
             try:
                 turn_ON_LED( LED_collect_data )
+                
+                g_collector=DataCollector()
+                
                 g_collector.idx = 0        # just in case it wasn't zeroed by flush routine                
                 g_camera.start_recording( g_collector, format='rgb' )
                 g_Camera_Is_Recording = True
@@ -806,7 +811,7 @@ def initialize_RPi_Stuff():
     g_Recorded_Data_Not_Saved = False
     g_No_Callback_Function_Running = True
     g_Current_Exception_Not_Finished = False
-    g_collector=DataCollector()
+#    g_collector=DataCollector()
     g_getter=DataGetter()
     g_camera = picamera.PiCamera()
     g_camera.resolution=(128, 96) #final image size
