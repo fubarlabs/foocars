@@ -38,16 +38,16 @@ logging.debug( 'setting up model ')
 #    CONSTANTS are in ALL CAPS
 
 # -------- GPIO pin numbers for ottoMicro Car --------- 
-LED_read_from_USBdrive = 2
-LED_save_to_USBdrive = 3
+LED_read_from_laptop = 2
+LED_save_to_laptop = 3
 LED_collect_data = 4
 LED_autonomous = 17
 LED_shutdown_RPi = 27
 LED_boot_RPi = 22
 
 SWITCH_collect_data = 10
-SWITCH_save_to_USBdrive = 9
-SWITCH_read_from_USBdrive = 11
+SWITCH_save_to_laptop = 9
+SWITCH_read_from_laptop = 11
 SWITCH_autonomous = 5
 SWITCH_shutdown_RPi = 6
 # SWITCH_boot_RPi -> daughter board relay coil
@@ -414,10 +414,10 @@ def callback_switch_collect_data( channel ):
 # SWITCH_collect_data        up        Start collecting data
 #                down        Stop collection data if doing that        
 #
-# SWITCH_save_to_USBdrive    momentary up    Copy collected data to USB drive
+# SWITCH_save_to_laptop    momentary up    Copy collected data to USB drive
 #                down        normal RPi operation
 #
-# SWITCH_read_from_USBdrive    momentary up    Read training data to from USB drive
+# SWITCH_read_from_laptop    momentary up    Read training data to from USB drive
 #                down        normal RPi operation
 #
 
@@ -501,15 +501,15 @@ def turn_OFF_LED( which_LED ):
     GPIO.output( which_LED, LED_OFF )    
     
 def at_least_one_momentary_switch_is_up():
-    if(( GPIO.input( SWITCH_save_to_USBdrive ) == SWITCH_UP ) or ( GPIO.input( SWITCH_read_from_USBdrive ) == SWITCH_UP ) 
+    if(( GPIO.input( SWITCH_save_to_laptop ) == SWITCH_UP ) or ( GPIO.input( SWITCH_read_from_laptop ) == SWITCH_UP ) 
             or ( GPIO.input( SWITCH_shutdown_RPi ) == SWITCH_UP )):    
         return True
     else:
         return False
         
 def all_switches_are_down():
-    if(( GPIO.input( SWITCH_save_to_USBdrive ) == SWITCH_UP ) or ( GPIO.input( SWITCH_autonomous ) == SWITCH_UP )
-            or ( GPIO.input( SWITCH_read_from_USBdrive ) == SWITCH_UP ) or ( GPIO.input( SWITCH_shutdown_RPi ) == SWITCH_UP )
+    if(( GPIO.input( SWITCH_save_to_laptop ) == SWITCH_UP ) or ( GPIO.input( SWITCH_autonomous ) == SWITCH_UP )
+            or ( GPIO.input( SWITCH_read_from_laptop ) == SWITCH_UP ) or ( GPIO.input( SWITCH_shutdown_RPi ) == SWITCH_UP )
             or ( GPIO.input( SWITCH_collect_data ) == SWITCH_UP )):
         return False
     else:
@@ -553,9 +553,9 @@ def handle_exception( the_bad_news ):
                     error_not_cleared = False            
             if( LED_state == LED_ON ):        # put error_number in binary on the LEDs    
                 LED_state = error_number & 0b00001
-                GPIO.output( LED_read_from_USBdrive, LED_state )
+                GPIO.output( LED_read_from_laptop, LED_state )
                 LED_state = ( error_number & 0b00010 ) >> 1
-                GPIO.output( LED_save_to_USBdrive, LED_state )
+                GPIO.output( LED_save_to_laptop, LED_state )
                 LED_state = ( error_number & 0b00100 ) >> 2
                 GPIO.output( LED_collect_data, LED_state )
                 LED_state = ( error_number & 0b01000 ) >> 3
@@ -580,103 +580,78 @@ def handle_exception( the_bad_news ):
         g_Current_Exception_Not_Finished = False
              
      
-def callback_switch_save_to_USBdrive( channel ): 
+def callback_switch_save_to_laptop( channel ): 
     global g_No_Callback_Function_Running
-    
+    global g_laptop_data_path
+    global g_pi_data_path
+   
     # don't reenter an already running callback and don't respond to a high to low switch transition
-    if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_save_to_USBdrive ) == SWITCH_UP )): 
+    if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_save_to_laptop ) == SWITCH_UP )): 
         g_No_Callback_Function_Running = False
             
         try:
-            turn_ON_LED( LED_save_to_USBdrive )
+            turn_ON_LED( LED_save_to_laptop )
 
             switch_state = SWITCH_UP
             while ( switch_state == SWITCH_UP ):
-                switch_state = GPIO.input( SWITCH_save_to_USBdrive )
+                switch_state = GPIO.input( SWITCH_save_to_laptop )
     
             # do the copying ....
-            logging.debug( 'attempting to save Data folder to USB drive' )
+            logging.debug( 'attempting to save Data folder to laptop' )
             
-            #     check to see if the USB drive is mounted
-            if( os.path.ismount( '/mnt/usbdrive' )):
-                logging.debug( 'OK: USB drive is mounted' )
-            
-            elif(os.path.exists( '/dev/sda1')):
-                call ( 'mount /mnt/usbdrive', shell=True )
-                logging.debug( 'OK: USB drive is remounted' )
-            else:
-                raise Exception( 3, 'error: USB drive not mounted at /mnt/usbdrive' )
-                                
-            pi_data_folder_path = '/home/pi/autonomous/data'
-            nowtime=datetime.datetime.now()
-            usb_path_with_index = '/mnt/usbdrive/data_{0}'.format(nowtime.strftime(time_format))
-            shutil.copytree( pi_data_folder_path, usb_path_with_index )
-            logging.debug( 'OK: folder copied to ' + usb_path_with_index )
-            
-            call ( 'umount /mnt/usbdrive', shell=True )
-            logging.debug( 'OK: USB drive unmounted' )
-            logging.debug( 'OK: data saved to USB' )
+            command = 'scp -i ~/.ssh/id_rsa -r ' + g_pi_data_path + ' ' + g_laptop_data_path
+            call ( command, shell=True )
+                        
             g_Recorded_Data_Not_Saved = False
                                                                     
         except Exception as the_bad_news:                
             handle_exception( the_bad_news )
-            logging.debug( 'NG: data NOT saved to USB' )
+            logging.debug( 'NG: data NOT saved to laptop' )
             
         finally:
             g_No_Callback_Function_Running = True
-            turn_OFF_LED( LED_save_to_USBdrive )
-            logging.debug( 'exiting save to USB drive' )
+            turn_OFF_LED( LED_save_to_laptop )
+            logging.debug( 'OK: folder saved, exiting save to laptop' )
 
     else: 
-        logging.debug( 'callback skipped: falling edge of save_to_USBdrive' )
+        logging.debug( 'callback skipped: falling edge of save_to_laptop' )
     
 # ------------------------------------------------- 
-def callback_switch_read_from_USBdrive( channel ):
+def callback_switch_read_from_laptop( channel ):
     global g_No_Callback_Function_Running
+    global g_laptop_training_steerstats_file
+    global g_laptop_training_weights_file
+    global g_pi_training_steerstats_file
+    global g_pi_training_weights_file
     
     # don't reenter an already running callback and don't respond to a high to low switch transition
-    if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_read_from_USBdrive ) == SWITCH_UP )): 
+    if(( g_No_Callback_Function_Running ) and ( GPIO.input( SWITCH_read_from_laptop ) == SWITCH_UP )): 
         g_No_Callback_Function_Running = False
                         
         try:
-            turn_ON_LED( LED_read_from_USBdrive )
+            turn_ON_LED( LED_read_from_laptop )
             switch_state = SWITCH_UP
             while ( switch_state == SWITCH_UP ):
-                switch_state = GPIO.input( SWITCH_read_from_USBdrive )
+                switch_state = GPIO.input( SWITCH_read_from_laptop )
     
             # do the reading ....
-            logging.debug( 'attempting to read /mnt/usbdrive/weights.h5' )
-            
-            #     check to see if the USB drive is mounted
-            if( os.path.ismount( '/mnt/usbdrive' )):
-                logging.debug( 'OK: USB drive is mounted' )
-            
-            elif(os.path.exists( '/dev/sda1')):
-                call ( 'mount /mnt/usbdrive', shell=True )
-                logging.debug( 'OK: USB drive is remounted' )
-            else:
-                raise Exception( 3, 'error: USB drive not mounted at /mnt/usbdrive' )
-            
-            usb_training_file_path = '/mnt/usbdrive/weights.h5'
-            pi_training_file_path = '/home/pi/autonomous/nntrain/weights.h5'
+            logging.debug( 'attempting to read from laptop' )
 
-            shutil.copy2( usb_training_file_path, pi_training_file_path )    
-            logging.debug( 'OK: file copied ' + usb_training_file_path + ' to ' + pi_training_file_path )
-            
-            call ( 'umount /mnt/usbdrive', shell=True )
-            logging.debug( 'OK: USB drive unmounted' )
-            logging.debug( 'OK: data read from USB' )
+            command = 'scp -i ~/.ssh/id_rsa -r ' + g_laptop_training_weights_file + ' ' + g_pi_training_weights_file
+            call ( command, shell=True )
+            command = 'scp -i ~/.ssh/id_rsa -r ' + g_laptop_training_steerstats_file + ' ' + g_pi_training_steerstats_file
+            call ( command, shell=True )
                             
         except Exception as the_bad_news:                
             handle_exception( the_bad_news )
-            logging.debug( 'NG: data NOT read from USB' )
+            logging.debug( 'NG: data NOT read from laptop' )
             
         finally:
             g_No_Callback_Function_Running = True
-            turn_OFF_LED( LED_read_from_USBdrive )
-            logging.debug( 'exiting read from USB drive' )
+            turn_OFF_LED( LED_read_from_laptop )
+            logging.debug( 'OK: data read, exiting read from laptop' )
     else: 
-        logging.debug( 'callback skipped: falling edge of read_from_USBdrive' )
+        logging.debug( 'callback skipped: falling edge of read_from_laptop' )
      
 # ------------------------------------------------- 
 #    regular exception handling not used with shutdown function
@@ -752,8 +727,8 @@ def callback_switch_shutdown_RPi( channel ):
                      
 # -------- Put binary (6 bit) number on LEDs ---------
 def displayBinaryOnLEDs( theNumber ):
-    GPIO.output( LED_read_from_USBdrive, theNumber & 0b000001 )
-    GPIO.output( LED_save_to_USBdrive, ( theNumber & 0b000010 ) >> 1 )
+    GPIO.output( LED_read_from_laptop, theNumber & 0b000001 )
+    GPIO.output( LED_save_to_laptop, ( theNumber & 0b000010 ) >> 1 )
     GPIO.output( LED_collect_data, ( theNumber & 0b000100 ) >> 2 )
     GPIO.output( LED_autonomous, ( theNumber & 0b001000 ) >> 3 )
     GPIO.output( LED_shutdown_RPi, ( theNumber & 0b010000 ) >> 4 )
@@ -761,8 +736,8 @@ def displayBinaryOnLEDs( theNumber ):
 
 # ------------------------------------------------- 
 def turn_OFF_all_LEDs():
-    turn_OFF_LED( LED_save_to_USBdrive )
-    turn_OFF_LED( LED_read_from_USBdrive )
+    turn_OFF_LED( LED_save_to_laptop )
+    turn_OFF_LED( LED_read_from_laptop )
     turn_OFF_LED( LED_collect_data )
     turn_OFF_LED( LED_shutdown_RPi )
     turn_OFF_LED( LED_autonomous )
@@ -770,16 +745,16 @@ def turn_OFF_all_LEDs():
 
 # ------------------------------------------------- 
 def turn_OFF_all_LEDs_except_BOOT():
-    turn_OFF_LED( LED_save_to_USBdrive )
-    turn_OFF_LED( LED_read_from_USBdrive )
+    turn_OFF_LED( LED_save_to_laptop )
+    turn_OFF_LED( LED_read_from_laptop )
     turn_OFF_LED( LED_collect_data )
     turn_OFF_LED( LED_shutdown_RPi )
     turn_OFF_LED( LED_autonomous )
          
 # ------------------------------------------------- 
 def turn_ON_all_LEDs():
-    turn_ON_LED( LED_save_to_USBdrive )
-    turn_ON_LED( LED_read_from_USBdrive )
+    turn_ON_LED( LED_save_to_laptop )
+    turn_ON_LED( LED_read_from_laptop )
     turn_ON_LED( LED_collect_data )
     turn_ON_LED( LED_shutdown_RPi )
     turn_ON_LED( LED_autonomous )
@@ -803,6 +778,12 @@ def initialize_RPi_Stuff():
     global g_lock
     global g_ip_thread
     global g_steerstats
+    global g_pi_data_path
+    global g_laptop_data_path
+    global g_laptop_training_steerstats_file
+    global g_laptop_training_weights_file
+    global g_pi_training_steerstats_file
+    global g_pi_training_weights_file
     
     g_ip_thread = 0
     g_Wants_To_See_Video = True
@@ -819,9 +800,18 @@ def initialize_RPi_Stuff():
     # g_camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
     g_camera.framerate=10 #<---- framerate (fps) determines speed of data recording
     
-    g_steerstats=np.load('/home/pi/autonomous/services/steerstats.npz')['arr_0']
+#--------- saving collected data paths ----------    
+    g_pi_data_path = '/home/pi/autonomous/data/'
+    g_laptop_data_path = 'jim@jim-XPS-13-9360.local:/home/jim/autonomous/'
+
+#--------- loading training data paths ----------    
+    g_laptop_training_steerstats_file = 'jim@jim-XPS-13-9360.local:/home/jim/autonomous/nnfixed/steerstats.npz'
+    g_laptop_training_weights_file = 'jim@jim-XPS-13-9360.local:/home/jim/autonomous/nnfixed/weights.h5'
+    g_pi_training_steerstats_file = '/home/pi/autonomous/services/steerstats.npz'
+    g_pi_training_weights_file = '/home/pi/autonomous/services/weights.h5'
 
     model.load_weights('/home/pi/autonomous/services/weightsBell2.h5')
+    g_steerstats=np.load('/home/pi/autonomous/services/steerstats.npz')['arr_0']
 
     model._make_predict_function()
     g_graph=tf.get_default_graph()
@@ -861,14 +851,14 @@ GPIO.setmode( GPIO.BCM )
 GPIO.setwarnings( False )
 
 #  falling edge detection setup for all switchs 
-GPIO.setup( SWITCH_save_to_USBdrive, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
+GPIO.setup( SWITCH_save_to_laptop, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
 GPIO.setup( SWITCH_autonomous, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
-GPIO.setup( SWITCH_read_from_USBdrive, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
+GPIO.setup( SWITCH_read_from_laptop, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
 GPIO.setup( SWITCH_shutdown_RPi, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
 GPIO.setup( SWITCH_collect_data, GPIO.IN, pull_up_down = GPIO.PUD_UP ) 
 
-GPIO.setup( LED_read_from_USBdrive, GPIO.OUT )
-GPIO.setup( LED_save_to_USBdrive, GPIO.OUT )
+GPIO.setup( LED_read_from_laptop, GPIO.OUT )
+GPIO.setup( LED_save_to_laptop, GPIO.OUT )
 GPIO.setup( LED_collect_data, GPIO.OUT )
 GPIO.setup( LED_shutdown_RPi, GPIO.OUT )
 GPIO.setup( LED_autonomous, GPIO.OUT )
@@ -878,9 +868,9 @@ GPIO.setup( OUTPUT_to_relay, GPIO.OUT )
 
 # setup callback routines for switch falling edge detection  
 #    NOTE: because of a RPi bug, sometimes a rising edge will also trigger these routines!
-GPIO.add_event_detect( SWITCH_save_to_USBdrive, GPIO.FALLING, callback=callback_switch_save_to_USBdrive, bouncetime=50 )  
+GPIO.add_event_detect( SWITCH_save_to_laptop, GPIO.FALLING, callback=callback_switch_save_to_laptop, bouncetime=50 )  
 GPIO.add_event_detect( SWITCH_autonomous, GPIO.BOTH, callback=callback_switch_autonomous, bouncetime=100 )  
-GPIO.add_event_detect( SWITCH_read_from_USBdrive, GPIO.FALLING, callback=callback_switch_read_from_USBdrive, bouncetime=50 )  
+GPIO.add_event_detect( SWITCH_read_from_laptop, GPIO.FALLING, callback=callback_switch_read_from_laptop, bouncetime=50 )  
 GPIO.add_event_detect( SWITCH_shutdown_RPi, GPIO.FALLING, callback=callback_switch_shutdown_RPi, bouncetime=50 )  
 GPIO.add_event_detect( SWITCH_collect_data, GPIO.BOTH, callback=callback_switch_collect_data, bouncetime=200 ) 
 
