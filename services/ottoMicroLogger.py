@@ -598,6 +598,8 @@ def callback_switch_save_to_laptop( channel ):
     
             # do the copying ....
             logging.debug( 'attempting to save Data folder to laptop' )
+            logging.debug( 'pi path = ' + g_pi_data_path )
+            logging.debug( 'laptop path = ' + g_laptop_data_path )
             
             command = 'scp -i ~/.ssh/id_rsa -r ' + g_pi_data_path + ' ' + g_laptop_data_path
             call ( command, shell=True )
