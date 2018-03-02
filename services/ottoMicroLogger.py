@@ -597,11 +597,9 @@ def callback_switch_save_to_laptop( channel ):
                 switch_state = GPIO.input( SWITCH_save_to_laptop )
     
             # do the copying ....
-            logging.debug( 'attempting to save Data folder to laptop' )
-            logging.debug( 'pi path = ' + g_pi_data_path )
-            logging.debug( 'laptop path = ' + g_laptop_data_path )
-            
+            logging.debug( 'attempting to save Data folder to laptop' )            
             command = 'scp -i ~/.ssh/id_rsa -r ' + g_pi_data_path + ' ' + g_laptop_data_path
+            logging.debug( command )
             call ( command, shell=True )
                         
             g_Recorded_Data_Not_Saved = False
