@@ -882,7 +882,7 @@ LED_state = LED_ON
 LED_count = 0
 
 while ( True ):    
-    if(( LED_count % 100 ) == 0 ):       # every 100 times through flip the led state to show we're alive
+    if(( LED_count % 500000 ) == 0 ):       # every 500000 times through flip the led state to show we're alive
         GPIO.output( LED_boot_RPi, LED_state )
         LED_state = LED_state ^ 1
     LED_count = LED_count + 1 
