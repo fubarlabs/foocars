@@ -876,10 +876,15 @@ GPIO.add_event_detect( SWITCH_collect_data, GPIO.BOTH, callback=callback_switch_
 
 initialize_RPi_Stuff()
     
-turn_ON_LED( LED_boot_RPi )
 GPIO.output( OUTPUT_to_relay, RELAY_ON )
 
+LED_state = LED_ON
+LED_count = 0
+
 while ( True ):    
-    pass
+    if(( LED_count % 100 ) == 0 )       # every 100 times through flip the led state to show we're alive
+        GPIO.output( LED_boot_RPi, LED_state )
+        LED_state = LED_state ^ 1
+    LED_count = LED_count + 1 
     
     
