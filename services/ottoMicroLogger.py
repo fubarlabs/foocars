@@ -111,7 +111,7 @@ class DataGetter(object):
     def write(self, s):
         global g_image_data
         imagerawdata=np.reshape(np.fromstring(s, dtype=np.uint8), (96, 128, 3), 'C')
-        imdata=imagerawdata[0:78, :]
+        imdata=imagerawdata[20:56, :]
         immean=imdata.mean()
         imvar=imdata.std()
         g_lock.acquire()
@@ -815,7 +815,7 @@ def initialize_RPi_Stuff():
     model._make_predict_function()
     g_graph=tf.get_default_graph()
 
-    g_image_data=np.zeros((78, 128, 3), dtype=np.uint8)
+    g_image_data=np.zeros((36, 128, 3), dtype=np.uint8)
     g_stop_event=threading.Event()
     g_lock=threading.Lock()
     
