@@ -598,7 +598,7 @@ def callback_switch_save_to_laptop( channel ):
     
             # do the copying ....
             logging.debug( 'attempting to save Data folder to laptop' )            
-            command = 'sudo scp -i ~/.ssh/id_rsa -r ' + g_pi_data_path + ' ' + g_laptop_data_path
+            command = 'scp -i ~/.ssh/id_rsa -r ' + g_pi_data_path + ' ' + g_laptop_data_path
             logging.debug( command )
             call ( command, shell=True )
                         
@@ -796,15 +796,15 @@ def initialize_RPi_Stuff():
     g_getter=DataGetter()
     g_camera = picamera.PiCamera()
     g_camera.resolution=(128, 96) #final image size
-
-    # g_camera.zoom=(.125, 0, .875, 1) #crop so aspect ratio is 1:1
+ 
     g_camera.framerate=10 #<---- framerate (fps) determines speed of data recording
     
 #--------- saving collected data paths ----------    
     g_pi_data_path = '/home/pi/autonomous/data/'
     g_laptop_data_path = 'jim@jim-XPS-13-9360.local:/home/jim/autonomous/'
 
-#--------- loading training data paths ----------    
+#--------- loading training 
+data paths ----------    
     g_laptop_training_steerstats_file = 'jim@jim-XPS-13-9360.local:/home/jim/autonomous/nnfixed/steerstats.npz'
     g_laptop_training_weights_file = 'jim@jim-XPS-13-9360.local:/home/jim/autonomous/nnfixed/weights.h5'
     g_pi_training_steerstats_file = '/home/pi/autonomous/services/steerstats.npz'
