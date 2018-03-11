@@ -803,8 +803,7 @@ def initialize_RPi_Stuff():
     g_pi_data_path = '/home/pi/autonomous/data/'
     g_laptop_data_path = 'jim@jim-XPS-13-9360.local:/home/jim/autonomous/'
 
-#--------- loading training 
-data paths ----------    
+#--------- loading training data paths ----------    
     g_laptop_training_steerstats_file = 'jim@jim-XPS-13-9360.local:/home/jim/autonomous/nnfixed/steerstats.npz'
     g_laptop_training_weights_file = 'jim@jim-XPS-13-9360.local:/home/jim/autonomous/nnfixed/weights.h5'
     g_pi_training_steerstats_file = '/home/pi/autonomous/services/steerstats.npz'
