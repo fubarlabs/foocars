@@ -809,7 +809,7 @@ def initialize_RPi_Stuff():
     g_pi_training_steerstats_file = '/home/pi/autonomous/services/steerstats.npz'
     g_pi_training_weights_file = '/home/pi/autonomous/services/weights.h5'
 
-    model.load_weights('/home/pi/autonomous/services/weightsBell2.h5')
+#    model.load_weights('/home/pi/autonomous/services/weightsBell2.h5')
     g_steerstats=np.load('/home/pi/autonomous/services/steerstats.npz')['arr_0']
 
     model._make_predict_function()
