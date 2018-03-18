@@ -138,7 +138,7 @@ def imageprocessor(event):
             g_lock.release()
             immean=tmpimg.mean()
             imvar=tmpimg.std()
-            print('{0}, {1}'.format(immean, imvar))
+            print('immean, imvar: {0}, {1}'.format(immean, imvar))
             start=time.time()
             pred=model.predict(np.expand_dims(tmpimg, axis=0))
             end=time.time()
@@ -147,7 +147,7 @@ def imageprocessor(event):
             end2=time.time()                
             steer_command=pred[0][0]*g_steerstats[1]+g_steerstats[0]
             #    !!! must have one space after comma !!!
-            dataline='{0}, {1}, {2}, {3}\n'.format( int(commandEnum.RUN_AUTONOMOUSLY ),int( steer_command ),int( DEFAULT_AUTONOMOUS_THROTTLE ),int(0) )
+            dataline='dataline: {0}, {1}, {2}, {3}\n'.format( int(commandEnum.RUN_AUTONOMOUSLY ),int( steer_command ),int( DEFAULT_AUTONOMOUS_THROTTLE ),int(0) )
             print(dataline)
             
             try:
@@ -190,12 +190,12 @@ def stop_autonomous():
         logging.debug( 'exiting autonomous\n' )
         
         # blink LEDs as an alarm if autonmous switch has been left up
-        LED_state = LED_ON
+#        LED_state = LED_ON
 
-        while( GPIO.input( SWITCH_autonomous ) == SWITCH_UP ): 
-            GPIO.output( LED_autonomous, LED_state )
-            time.sleep( .25 )
-            LED_state = LED_state ^ 1        # XOR bit to turn LEDs off or on
+#        while( GPIO.input( SWITCH_autonomous ) == SWITCH_UP ): 
+#            GPIO.output( LED_autonomous, LED_state )
+#            time.sleep( .25 )
+#            LED_state = LED_state ^ 1        # XOR bit to turn LEDs off or on
 
         # turn off all LEDs for initialization
         turn_OFF_all_LEDs()
@@ -242,18 +242,21 @@ def callback_switch_autonomous( channel ):
             except Exception as the_bad_news:                
                 handle_exception( the_bad_news )
         else:
-            logging.debug( '* warning: while recording, ANOTHER RISING transition on the autonomous switch' )
+            logging.debug( '* warning: RISING transition on the autonomous switch' )
         
     else:    # a autonomous data switch down position has occurred        
+        
         if( g_Is_Autonomous == True ):
             logging.debug( '* autonomous switch is now down' )
             g_UserWantsToStopAutonomous = True
-
-            
-#            g_ip_thread.join()                  # this moved here
+            turn_OFF_LED( LED_autonomous )    
                         
         else:
-            logging.debug( '* warning: while recording, ANOTHER FALLING transition on the autonomous switch' )
+            logging.debug( '* warning: FALLING transition on the autonomous switch' )
+            time.sleep( .1 )     # check for bounce in switch
+            if( GPIO.input( SWITCH_autonomous ) == SWITCH_DOWN ):
+                turn_OFF_LED( LED_autonomous )      # switch must truly be down, turn off LED   
+            
             
 # -------------- Data Collector Object -------------------------------  
 NUM_FRAMES = 100
@@ -383,9 +386,10 @@ def callback_switch_collect_data( channel ):
                 handle_exception( the_bad_news )
             
         else:
-            logging.debug( '* warning: while recording, ANOTHER RISING transition on the collect switch' )
+            logging.debug( '* warning: RISING transition on the collect switch' )
         
     else:    # a collect data switch down position has occurred        
+        
         if( g_Camera_Is_Recording == True ):
             logging.debug( '* collect switch is now down' )
             try:
@@ -401,11 +405,14 @@ def callback_switch_collect_data( channel ):
             finally:
                 g_Camera_Is_Recording = False
                 g_Recorded_Data_Not_Saved = True
-                turn_OFF_LED( LED_collect_data )
+                turn_OFF_LED( LED_collect_data )    # turn off LED just in case
                 logging.debug( 'exiting collect data\n' )
 
         else:
-            logging.debug( '* warning: while recording, ANOTHER FALLING transition on the collect switch' )
+            logging.debug( '* warning: FALLING transition on the collect switch' )
+            time.sleep( .1 )     # check for bounce in switch
+            if( GPIO.input( SWITCH_collect_data ) == SWITCH_DOWN ):
+                turn_OFF_LED( LED_collect_data )      # switch must truly be down, turn off LED   
             
 
 
@@ -844,20 +851,7 @@ def initialize_RPi_Stuff():
         for i in range(5, -1, -1):
             displayBinaryOnLEDs( 2 ** i )
             time.sleep( .125 )    # dazzle them with Night Rider LED show...
-    
-    # blink LEDs as an alarm if autonmous or collect switches have been left up
-    LED_state = LED_ON
-
-    while( GPIO.input( SWITCH_collect_data ) == SWITCH_UP ):
-        GPIO.output( LED_collect_data, LED_state )
-        time.sleep( .25 )
-        LED_state = LED_state ^ 1        # XOR bit to turn LEDs off or on
         
-    while( GPIO.input( SWITCH_autonomous ) == SWITCH_UP ): 
-        GPIO.output( LED_autonomous, LED_state )
-        time.sleep( .25 )
-        LED_state = LED_state ^ 1        # XOR bit to turn LEDs off or on
-    
     # turn off all LEDs for initialization
     turn_OFF_all_LEDs()
 # ---------------- MAIN PROGRAM ------------------------------------- 
@@ -893,13 +887,26 @@ initialize_RPi_Stuff()
     
 GPIO.output( OUTPUT_to_relay, RELAY_ON )
 
-LED_state = LED_ON
+power_LED_state = LED_ON
+collect_LED_state = LED_OFF
+auto_LED_state = LED_OFF
 LED_count = 0
 
 while ( True ):    
     if(( LED_count % 500000 ) == 0 ):       # every 500000 times through flip the led state to show we're alive
-        GPIO.output( LED_boot_RPi, LED_state )
-        LED_state = LED_state ^ 1
+        GPIO.output( LED_boot_RPi, power_LED_state )
+        power_LED_state = power_LED_state ^ 1
+        
+        #  blink collect or autonomous LEDs if switches were left in up position
+        if( g_Camera_Is_Recording == False ):
+            if( GPIO.input( SWITCH_collect_data ) == SWITCH_UP ):
+                GPIO.output( LED_collect_data, collect_LED_state )
+                collect_LED_state = collect_LED_state ^ 1
+            
+            if( GPIO.input( SWITCH_autonomous ) == SWITCH_UP ):
+                GPIO.output( LED_autonomous, auto_LED_state )
+                auto_LED_state = auto_LED_state ^ 1
+            
     LED_count = LED_count + 1 
     
-    
+
