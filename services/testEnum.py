@@ -6,6 +6,7 @@ from enum import Enum
 
 
 # -------- Command enumeration same as ones on fubarino --------- 
+# -------- This works --------- 
 
     
 def enum(**enums):
@@ -26,4 +27,7 @@ commandEnum = enum(
     GOOD_RC_SIGNALS_RECEIVED = 11 
     )
       
-print( int( commandEnum.NO_COMMAND_AVAILABLE ))
+print( 'not actual command = ' + str( int( commandEnum.NOT_ACTUAL_COMMAND )))
+print( 'throttle out of range = ' + str( int( commandEnum.THROTTLE_VALUE_OUT_OF_RANGE )))
+print( 'no command available = ' + str( int( commandEnum.NO_COMMAND_AVAILABLE )))
+print( 'good rc signals received = ' + str( int( commandEnum.GOOD_RC_SIGNALS_RECEIVED )))

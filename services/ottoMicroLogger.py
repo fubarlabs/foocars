@@ -110,6 +110,7 @@ class DataGetter(object):
 
     def write(self, s):
         global g_image_data
+        global g_lock
         imagerawdata=np.reshape(np.fromstring(s, dtype=np.uint8), (96, 128, 3), 'C')
         imdata=imagerawdata[20:56, :]
         immean=imdata.mean()
@@ -124,8 +125,10 @@ class DataGetter(object):
 # -------------- Image Processor Function -------------------------------  
 def imageprocessor(event):
     global g_image_data
+    global g_lock
     global g_graph
     global g_steerstats
+    global g_ip_thread
     
     with g_graph.as_default():
         time.sleep(1)
@@ -147,9 +150,6 @@ def imageprocessor(event):
             dataline='{0}, {1}, {2}, {3}\n'.format( int(commandEnum.RUN_AUTONOMOUSLY ),int( steer_command ),int( DEFAULT_AUTONOMOUS_THROTTLE ),int(0) )
             print(dataline)
             
-            commandEnum.NO_COMMAND_AVAILABLE 
-            theCommandList = getSerialCommandIfAvailable( 1 )
-            
             try:
                 ser.write(dataline.encode('ascii'))
                 logging.debug( 'autonomous command: ' + str( dataline ))
@@ -157,13 +157,7 @@ def imageprocessor(event):
             except Exception as the_bad_news:                
                  handle_exception( the_bad_news )
                  
-            print( theCommandList )
             
-            if( theCommandList[ 0 ] == 6 ):
-                if( theCommandList[ 1 ] == echoTestValue ):
-                    print( 'Echoed 6' )
-                else: 
-                    stop_autonomous()
 
 # ------------------------------------------------- 
 def stop_autonomous():  
@@ -178,8 +172,10 @@ def stop_autonomous():
     
     try:
         if ( g_Wants_To_See_Video ):
-            g_camera.stop_preview()
-        g_camera.stop_recording()            
+            g_camera.stop_preview()            
+        if ( g_Camera_Is_Recording ):
+            g_camera.stop_recording()
+                        
         g_stop_event.set()
         logging.debug( 'OK: autonomous complete' )
 
@@ -204,6 +200,8 @@ def stop_autonomous():
         # turn off all LEDs for initialization
         turn_OFF_all_LEDs()
         
+        g_Is_Autonomous = False
+        
 # ------------------------------------------------- 
 def callback_switch_autonomous( channel ):  
     global g_Recorded_Data_Not_Saved
@@ -214,7 +212,10 @@ def callback_switch_autonomous( channel ):
     global g_getter
     global g_stop_event
     global g_ip_thread
+    global g_UserWantsToStopAutonomous
 
+    userWantsToStopAutonomous = False
+    
     if( GPIO.input( SWITCH_autonomous ) == SWITCH_UP ):
         if( g_Is_Autonomous == False ):
             try:
@@ -227,6 +228,16 @@ def callback_switch_autonomous( channel ):
                 logging.debug( '* in autonomous mode, camera is recording' )
                 if ( g_Wants_To_See_Video ):
                     g_camera.start_preview() #displays video while it's being recorded
+            
+                while ( g_UserWantsToStopAutonomous == False ):
+                    dontWaitForCommand = False    #  wait 
+                    theCommandList = getSerialCommandIfAvailable( dontWaitForCommand )
+                    print( theCommandList )
+                    if( theCommandList[ 0 ] == commandEnum.STOP_AUTONOMOUS ):
+                        g_UserWantsToStopAutonomous = True               
+
+                stop_autonomous()
+                g_ip_thread.join()                  # this moved here
 
             except Exception as the_bad_news:                
                 handle_exception( the_bad_news )
@@ -236,8 +247,11 @@ def callback_switch_autonomous( channel ):
     else:    # a autonomous data switch down position has occurred        
         if( g_Is_Autonomous == True ):
             logging.debug( '* autonomous switch is now down' )
-            stop_autonomous()
-            g_ip_thread.join()
+            g_UserWantsToStopAutonomous = True
+
+            
+#            g_ip_thread.join()                  # this moved here
+                        
         else:
             logging.debug( '* warning: while recording, ANOTHER FALLING transition on the autonomous switch' )
             
@@ -445,8 +459,8 @@ def getSerialCommandIfAvailable( dontWaitForCommand ):
     
     if( numberOfCharsWaiting == 0 ):
         if( dontWaitForCommand ):
-            theResult = commandEnum.NO_COMMAND_AVAILABLE
-            return
+            noCommandAvailableList = [ commandEnum.NO_COMMAND_AVAILABLE, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+            return( noCommandAvailableList )
     
     serial_input_is_no_damn_good = True
     while( serial_input_is_no_damn_good ):        
@@ -784,11 +798,13 @@ def initialize_RPi_Stuff():
     global g_laptop_training_weights_file
     global g_pi_training_steerstats_file
     global g_pi_training_weights_file
+    global g_UserWantsToStopAutonomous
     
     g_ip_thread = 0
     g_Wants_To_See_Video = True
     g_Camera_Is_Recording = False
     g_Is_Autonomous = False
+    g_UserWantsToStopAutonomous = False
     g_Recorded_Data_Not_Saved = False
     g_No_Callback_Function_Running = True
     g_Current_Exception_Not_Finished = False
