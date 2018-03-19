@@ -54,7 +54,7 @@ SWITCH_shutdown_RPi = 6
 
 OUTPUT_to_relay = 13
 
-DEFAULT_AUTONOMOUS_THROTTLE = 1580
+DEFAULT_AUTONOMOUS_THROTTLE = 1560
 
 # -------- Switch constants ---------
 # switch position-UP connects GPIO pin to GROUND,
@@ -175,14 +175,16 @@ def imageprocessor(event):
             steer_command=pred[0][0]*g_steerstats[1]+g_steerstats[0]
             #    !!! must have one space after comma !!!
             dataline='dataline: {0}, {1}, {2}, {3}\n'.format( int(commandEnum.RUN_AUTONOMOUSLY ),int( steer_command ),int( DEFAULT_AUTONOMOUS_THROTTLE ),int(0) )
-            print(dataline)
 
-            try:
-                ser.write(dataline.encode('ascii'))
-                logging.debug( 'autonomous command: ' + str( dataline ))
+            #  This test is made because this thread may not know autonomous is turned off yet
+            if( g_Mode_Autonomous ):
+                try:
+                    ser.write(dataline.encode('ascii'))
+                    print(dataline)
+                    logging.debug( 'autonomous command: ' + str( dataline ))
 
-            except Exception as the_bad_news:
-                 handle_exception( the_bad_news )
+                except Exception as the_bad_news:
+                     handle_exception( the_bad_news )
 
 
 
@@ -795,8 +797,8 @@ def initialize_RPi_Stuff():
     g_camera.resolution=(128, 96) #final image size
     g_camera.framerate=10 #<---- framerate (fps) determines speed of data recording
 
-    g_steerstats=np.load('/home/pi/autonomous/services/steerstats.npz')['arr_0']
-
+    g_steerstats=np.load( g_pi_training_steerstats_file )['arr_0']
+    model.load_weights( g_pi_training_weights_file )
     model._make_predict_function()
     g_graph=tf.get_default_graph()
     g_image_data=np.zeros((36, 128, 3), dtype=np.uint8)
