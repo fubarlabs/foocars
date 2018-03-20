@@ -201,10 +201,9 @@ def stop_autonomous():
         if ( g_Wants_To_See_Video ):
             g_camera.stop_preview()
         g_camera.stop_recording()
-
+        g_Mode_Autonomous = False
         g_stop_event.set()
         g_ip_thread.join()                  # this moved here
-
         logging.debug( 'OK: autonomous complete' )
 
     except Exception as the_bad_news:
@@ -212,10 +211,8 @@ def stop_autonomous():
         logging.debug( 'NG: autonomous problem' )
 
     finally:
-        g_Recorded_Data_Not_Saved = True
         turn_OFF_LED( LED_autonomous )
         logging.debug( 'exiting autonomous\n' )
-        g_Mode_Autonomous = False
 
 # -------------------------------------------------
 def callback_switch_autonomous( channel ):
