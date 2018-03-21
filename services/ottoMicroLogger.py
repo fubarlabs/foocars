@@ -879,5 +879,10 @@ while ( True ):
                 if( g_User_Wants_To_Stop_Autonomous ):
                     logging.debug( 'switch wants to stop autonomous' )
                     stop_autonomous()
+                    dataline='dataline: {0}, {1}, {2}, {3}\n'.format( int( commandEnum.STOP_AUTONOMOUS ),int( 1500 ),int( 1500 ),int( 0 ))
+                    for i in range( 1, 5 ):
+                        ser.write(dataline.encode('ascii'))     # send it five times just for good measure
+                    print(dataline)
+                    logging.debug( 'autonomous command: ' + str( dataline ))
 
     LED_count = LED_count + 1
