@@ -120,6 +120,9 @@ g_image_data = None
 g_stop_event = None
 g_lock = None
 
+g_debug_steer_command = 1500
+g_debug_steer_change = 20
+
 #    **** fubarino not connected yet for debugging purposes ****
 #    Opens serial port to the arduino:
 try:
@@ -156,6 +159,8 @@ def imageprocessor(event):
     global g_graph
     global g_steerstats
     global g_ip_thread
+    global g_debug_steer_command
+    global g_debug_steer_change
 
     with g_graph.as_default():
         time.sleep(1)
@@ -174,7 +179,16 @@ def imageprocessor(event):
             end2=time.time()
             steer_command=pred[0][0]*g_steerstats[1]+g_steerstats[0]
             #    !!! must have one space after comma !!!
-            dataline='dataline: {0}, {1}, {2}, {3}\n'.format( int(commandEnum.RUN_AUTONOMOUSLY ),int( steer_command ),int( DEFAULT_AUTONOMOUS_THROTTLE ),int(0) )
+
+#            if( g_debug_steer_command > 1700 ):
+#                g_debug_steer_change = -20
+#            elif( g_debug_steer_command < 1300 ):
+#                g_debug_steer_change = 20
+
+#            g_debug_steer_command = g_debug_steer_command + g_debug_steer_change
+#            steer_command = g_debug_steer_command
+
+            dataline='{0}, {1}, {2}, {3}\n'.format( int(commandEnum.RUN_AUTONOMOUSLY ),int( steer_command ),int( DEFAULT_AUTONOMOUS_THROTTLE ),int(0) )
 
             #  This test is made because this thread may not know autonomous is turned off yet
             if( g_Mode_Autonomous ):
@@ -879,7 +893,7 @@ while ( True ):
                 if( g_User_Wants_To_Stop_Autonomous ):
                     logging.debug( 'switch wants to stop autonomous' )
                     stop_autonomous()
-                    dataline='dataline: {0}, {1}, {2}, {3}\n'.format( int( commandEnum.STOP_AUTONOMOUS ),int( 1500 ),int( 1500 ),int( 0 ))
+                    dataline='{0}, {1}, {2}, {3}\n'.format( int( commandEnum.STOP_AUTONOMOUS ),int( 1500 ),int( 1500 ),int( 0 ))
                     for i in range( 1, 5 ):
                         ser.write(dataline.encode('ascii'))     # send it five times just for good measure
                     print(dataline)
