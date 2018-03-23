@@ -53,7 +53,7 @@ steerSampleSTD=steer.std()
 np.savez("steerstats.npz", [steerSampleMean, steerSampleSTD])
 
 #defines image size:
-nrows=78
+nrows=36
 ncols=128
 
 #total number of image/output training pairs, calculated from number of non-zero steering values
