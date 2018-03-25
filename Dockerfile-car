@@ -38,6 +38,7 @@ RUN pio device list
 WORKDIR /autonomous
 RUN pip3 install -r requirements.txt
 
+# TODO no longer run as service but as a car script ottoLogger.py for example
 # Set up the raspberry pi services
 WORKDIR /usr/local/bin
 RUN ln -s /autonomous/services/ottoMicroLogger.py
