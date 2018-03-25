@@ -1,6 +1,7 @@
 #local ignores
 
 nntrain/
+data/
 
 
 # Byte-compiled / optimized / DLL files
