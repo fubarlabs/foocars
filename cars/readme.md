@@ -1,5 +1,8 @@
 # Cars: Details for the cars that use the Foocars Code
 
+## Template car
+Working reference car
+
 ## Fubar Cars
 
 OTTO
