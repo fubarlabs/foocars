@@ -288,7 +288,7 @@ class DataCollector(object):
         try:        #   reorganize the data collection folder
             not_done_renumbering_collected_folders = True
             maximum_folder_index = 9
-            path = '/home/pi/autonomous/data/collected_data'
+            path = '/home/pi/foocars/cars/data/collected_data'
             path_with_index = path + str( maximum_folder_index )     # does a folder exist with the maximum index?
             if( os.path.exists( path_with_index )):
                 shutil.rmtree( path_with_index, ignore_errors=True)    # get rid of the last folder (even if the files inside are not read only)
