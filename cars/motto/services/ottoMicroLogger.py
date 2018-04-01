@@ -26,6 +26,14 @@ logging.basicConfig(filename='/tmp/ottoMicroLogger.log',level=logging.DEBUG)
 logging.debug( '\n\n new session \n' )
 logging.debug( 'setting up model ')
 
+CAR_PATH = "/home/pi/foocars/cars/motto"
+REMOTE_USER = "ricklon"
+REMOTE_MACHINE = "impx.local"
+REMOTE_DATADIR = "/home/ricklon/foocars/training/data/motto/"
+logging.debug("Car path: %s ", CAR_PATH )
+logging.debug("REmote system: %s ", REMOTE_USER + REMOTE_MACHINE+ REMOTE_DATADIR)
+
+
 # -------- New Power On/Off functionality ---------
 
 # 1- User holds boot switch in ON position which energizes power relay coil ( power LED remains unlit )
@@ -45,9 +53,9 @@ LED_autonomous = 17
 LED_shutdown_RPi = 27
 LED_boot_RPi = 22
 
-SWITCH_collect_data = 10
+SWITCH_collect_data = 11
 SWITCH_save_to_laptop = 9
-SWITCH_read_from_laptop = 11
+SWITCH_read_from_laptop = 10
 SWITCH_autonomous = 5
 SWITCH_shutdown_RPi = 6
 # SWITCH_boot_RPi -> daughter board relay coil
@@ -102,14 +110,15 @@ g_No_Callback_Function_Running = True
 g_Current_Exception_Not_Finished = False
 
 #--------- saving collected data paths ----------
-g_pi_data_path = '/home/pi/autonomous/data/'
-g_laptop_data_path = 'jim@jim-XPS-13-9360.local:/home/jim/autonomous/'
+g_pi_data_path =  CAR_PATH + '/data/'
+
+g_laptop_data_path = REMOTE_USER + "@" +  REMOTE_MACHINE + ":" + REMOTE_DATADIR
 
 #--------- loading training data paths ----------
-g_laptop_training_steerstats_file = 'jim@jim-XPS-13-9360.local:/home/jim/autonomous/nnfixed/steerstats.npz'
-g_laptop_training_weights_file = 'jim@jim-XPS-13-9360.local:/home/jim/autonomous/nnfixed/weights.h5'
-g_pi_training_steerstats_file = '/home/pi/autonomous/services/steerstats.npz'
-g_pi_training_weights_file = '/home/pi/autonomous/services/weights.h5'
+g_laptop_training_steerstats_file = g_laptop_data_path +  '/model/steerstats.npz'
+g_laptop_training_weights_file = g_laptop_data_path + '/model/weights.h5'
+g_pi_training_steerstats_file = CAR_PATH + '/data/model/steerstats.npz'
+g_pi_training_weights_file = CAR_PATH + '/data/model/weights.h5'
 
 g_getter = None
 g_camera = None
