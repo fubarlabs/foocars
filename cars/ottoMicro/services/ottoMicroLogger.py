@@ -103,7 +103,7 @@ g_Current_Exception_Not_Finished = False
 
 #--------- saving collected data paths ----------
 g_pi_data_path = '/home/pi/foocars/cars/ottoMicro/data/'
-g_laptop_data_path = 'jim@jim-XPS-13-9360.local:/home/jim/foocars/cars/ottoMicro/data/'
+g_laptop_data_path = 'jim@jim-XPS-13-9360.local:/home/jim/Dropbox/foocars/cars/ottoMicro/data/'
 
 #--------- loading training data paths ----------
 g_laptop_training_steerstats_file = 'jim@jim-XPS-13-9360.local:/home/jim/Dropbox/foocars/cars/ottoMicro/data/steerstats.npz'
