@@ -1,0 +1,14 @@
+[Unit]
+Description=Data logging for ottoMicro car
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/ottoMicroLogger.py
+Restart=always
+StandardOutput=journal
+User=pi
+Group=pi
+
+[Install]
+WantedBy=multi-user.target
+Alias=ottoMicrologger.service
