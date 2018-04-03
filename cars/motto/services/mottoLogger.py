@@ -9,34 +9,12 @@ import threading
 import keras
 import tensorflow as tf
 from dropout_model import model
-
-
-LED_names={ "boot_RPi" : 22,
-  "shutdown_RPi" : 27,
-  "autonomous" : 17,
-  "collect_data" : 4,
-  "save_to_USBdrive" : 3,
-  "read_from_USBdrive" : 2,
-}
-
-
-switch_names={ "shutdown_RPi" : 6,
-  "autonomous" : 5,
-  "collect_data" : 11,
-  "save_to_USBdrive" : 9,
-  "read_from_USBdrive" : 10,
-}
+from defines import *
 
 time_format='%Y-%m-%d_%H-%M-%S'
 
 logging.basicConfig(filename='ottoLogger.log', level=logging.DEBUG)
 logging.debug('\n\n New Test Session {0}\n'.format(datetime.datetime.now().strftime(time_format)))
-
-SWITCH_ON=GPIO.LOW
-SWITCH_OFF=GPIO.HIGH
-
-LED_ON=GPIO.HIGH
-LED_OFF=GPIO.LOW
 
 class DataCollector(object):
   '''this object is passed to the camera.start_recording function, which will treat it as a 
@@ -136,7 +114,8 @@ def imageprocessor(event, serial_obj):
         steer_command=1000
 
       end=time.time()
-      if(end-start)<.2:
+      #THIS LIMITS AUTONOMOUS FRAMERATE TO 5FPS
+      if(end-start)<.2: 
         time.sleep(.2-(end-start))
       dataline='{0}, {1}, {2}, {3}\n'.format(1, int(steer_command), 1575, 0)
       print(dataline)
