@@ -33,7 +33,7 @@ class SerialMonitor:
       wb=self.writebuffer[:]
       self.buffer_lock.release()
       if wb!=[]: #if there is content in the write buffer
-        assert(len(wb==4))
+        assert(len(wb)==4)
         dataline='{0}, {1}, {2}, {3}\n'.format(wb[0], wb[1], wb[2], wb[3])
         self.serial_obj.write(dataline.encode('ascii'))
       n_read_items=0
@@ -44,7 +44,6 @@ class SerialMonitor:
           start=time.time()
           line_read=self.serial_obj.readline()
           stop=time.time()
-          print(stop-start)
           line_read=line_read.decode("utf-8")
           raw_serial_data=[float(i) for i in line_read.strip().split(',')]
           n_read_items=len(raw_serial_data)

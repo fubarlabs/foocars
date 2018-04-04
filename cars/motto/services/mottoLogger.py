@@ -10,6 +10,7 @@ import keras
 import tensorflow as tf
 from dropout_model import model
 from defines import *
+from serial_monitor import SerialMonitor
 
 time_format='%Y-%m-%d_%H-%M-%S'
 
@@ -20,7 +21,7 @@ class DataCollector(object):
   '''this object is passed to the camera.start_recording function, which will treat it as a 
       writable object, like a stream or a file'''
   def __init__(self, serial_obj, save_dir):
-    assert serial_obj.isOpen()==True
+    #assert serial_obj.isOpen()==True
     self.save_dir=save_dir
     self.ser=serial_obj
     self.num_frames=100
@@ -40,27 +41,22 @@ class DataCollector(object):
     #now we read from the serial port and format and save the data:
     try:
       start=time.time()
-      self.ser.flushInput()
-      datainput=self.ser.readline()
-      data=list(map(float,str(datainput,'ascii').split(','))) #formats line of data into array
-      while len(data)!=9:
-        datainput=self.ser.readline()
-        data=list(map(float,str(datainput,'ascii').split(','))) #formats line of data into array
+      data=self.ser.read()
       end=time.time()
       #print(end-start)
       print(data)
       #print("got cereal\n")
-
     except ValueError as err:
       print(err)
       return 
     #Note: the data from the IMU requires some processing which does not happen here:
     self.imgs[self.idx]=imdata
-    accelData=np.array([data[0], data[1], data[2]], dtype=np.float32)
-    gyroData=np.array([data[3], data[4], data[5]], )
-    datatime=np.array([int(data[6])], dtype=np.float32)
-    steer_command=int(data[7])
-    gas_command=int(data[8])
+    command=data[0]
+    accelData=np.array([data[1], data[2], data[3]], dtype=np.float32)
+    gyroData=np.array([data[4], data[5], data[6]], )
+    datatime=np.array([int(data[7])], dtype=np.float32)
+    steer_command=int(data[8])
+    gas_command=int(data[9])
     self.IMUdata[self.idx]=np.concatenate((accelData, gyroData, datatime))
     self.RCcommands[self.idx]=np.array([steer_command, gas_command])
     self.idx+=1
@@ -87,7 +83,6 @@ class DataCollector(object):
     self.imgs[:]=0
     self.IMUdata[:]=0
     self.RCcommands[:]=0
-
 
 def imageprocessor(event, serial_obj):
   global g_imagedata
@@ -117,14 +112,15 @@ def imageprocessor(event, serial_obj):
       #THIS LIMITS AUTONOMOUS FRAMERATE TO 5FPS
       if(end-start)<.2: 
         time.sleep(.2-(end-start))
-      dataline='{0}, {1}, {2}, {3}\n'.format(1, int(steer_command), 1575, 0)
+      dataline=[1, int(steer_command), 1575, 0]
+      #dataline='{0}, {1}, {2}, {3}\n'.format(1, int(steer_command), 1575, 0)
       print(dataline)
       try:
-        serial_obj.flushInput()
-        serial_obj.write(dataline.encode('ascii'))
+        serial_obj.write(dataline)
       except:
         print("some serial problem")
-
+    for i in range(0, 5): #this happens when event is set
+      serial_obj.write([commandEnum.STOP_AUTONOMOUS, 1500, 1500, 0])
 
 class DataGetter(object):
   def __init__(self):
@@ -143,7 +139,6 @@ class DataGetter(object):
 
   def flush(self):
     pass
-
 
 def callback_switch_shutdown_RPi(channel):
   if GPIO.input(switch_names["shutdown_RPi"])!=SWITCH_ON:
@@ -204,7 +199,6 @@ def callback_switch_collect_data(channel):
       logging.debug('read another low transition while not data collecting')
 callback_switch_collect_data.is_recording=False
 
-
 def callback_switch_save_to_USBdrive(channel):
   if GPIO.input(switch_names["save_to_USBdrive"])!=SWITCH_ON:
     return
@@ -228,19 +222,10 @@ def displayBinLEDCode(code):
   GPIO.output(LED_names["save_to_USBdrive"], (code>>1)&1)
   GPIO.output(LED_names["read_from_USBdrive"], code&1)
 
-
 def initialize_service():
   #initialize the serial port: if the first port fails, we try the other one
   global g_serial
-  g_serial=0
-  try:
-    g_serial=serial.Serial('/dev/ttyACM1')
-  except serial.SerialException:
-    try:
-      g_serial=serial.Serial('/dev/ttyACM0')
-    except serial.SerialException:
-      print('Cannot connect to serial port')
-
+  g_serial=SerialMonitor()
   #initialize the camera
   global g_camera
   g_camera=picamera.PiCamera()
@@ -248,7 +233,7 @@ def initialize_service():
   g_camera.framerate=10
   #initialize the data collector object
   global g_collector
-  g_collector=DataCollector(g_serial, "/home/pi/autonomous/data")
+  g_collector=DataCollector(g_serial, "/home/pi/foocars/cars/motto/data/collected")
   #initialize the image frame to be shared in autonomous mode
   global g_image_data
   g_image_data=np.zeros((36, 128, 3), dtype=np.uint8) 
@@ -264,12 +249,13 @@ def initialize_service():
   global g_graph
   g_graph=tf.get_default_graph()
   #model.load_weights('weights_2018-02-24_14-00-35_epoch_40.h5')
-  model.load_weights('weights_2018-03-05_20-05-39_epoch_20.h5')
+  model.load_weights('weights.h5')
   model._make_predict_function()
   global g_steerstats
   g_steerstats=np.load('steerstats.npz')['arr_0']
   global g_ip_thread
   g_ip_thread=0
+  g_serial.start_serial()
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
@@ -289,7 +275,6 @@ for j in range(0, 3):
     time.sleep(.05)
 displayBinLEDCode(0)
 
-
 for switch in switch_names.values():
   GPIO.setup(switch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
@@ -299,6 +284,16 @@ GPIO.add_event_detect(switch_names["collect_data"], GPIO.BOTH, callback=callback
 GPIO.add_event_detect(switch_names["save_to_USBdrive"], GPIO.FALLING, callback=callback_switch_save_to_USBdrive, bouncetime=50);
 GPIO.add_event_detect(switch_names["read_from_USBdrive"], GPIO.FALLING, callback=callback_switch_read_from_USBdrive, bouncetime=50);
 
-
-input("Press enter to stop")
+while(True):
+  if callback_switch_autonomous.is_auto==True:
+    command_list=g_serial.read()
+    if command_list[0]==commandEnum.STOP_AUTONOMOUS:
+      g_stop_event.set()
+      while callback_switch_autonomous.is_auto==True:
+        time.sleep(.5)
+        GPIO.output(LED_names["autonomous"], GPIO.HIGH)
+        time.sleep(.5)
+        GPIO.output(LED_names["autonomous"], GPIO.LOW)
+    
 GPIO.cleanup()
+g_serial.stop_serial()
