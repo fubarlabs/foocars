@@ -88,6 +88,7 @@ class DataCollector(object):
     self.imgs[:]=0
     self.IMUdata[:]=0
     self.RCcommands[:]=0
+    self.idx=0
 
 def imageprocessor(event, serial_obj):
   global g_imagedata
@@ -117,7 +118,7 @@ def imageprocessor(event, serial_obj):
       #THIS LIMITS AUTONOMOUS FRAMERATE TO 5FPS
       if(end-start)<.2: 
         time.sleep(.2-(end-start))
-      dataline=[1, int(steer_command), 1575, 0]
+      dataline=[commandEnum.RUN_AUTONOMOUSLY, int(steer_command), 1575, 0]
       print(dataline)
       try:
         serial_obj.write(dataline)
@@ -288,10 +289,17 @@ GPIO.add_event_detect(switch_names["autonomous"], GPIO.BOTH, callback=callback_s
 GPIO.add_event_detect(switch_names["collect_data"], GPIO.BOTH, callback=callback_switch_collect_data, bouncetime=50);
 GPIO.add_event_detect(switch_names["save_to_USBdrive"], GPIO.FALLING, callback=callback_switch_save_to_USBdrive, bouncetime=50);
 GPIO.add_event_detect(switch_names["read_from_USBdrive"], GPIO.FALLING, callback=callback_switch_read_from_USBdrive, bouncetime=50);
+
+printcount=0
 while(True):
   time.sleep(.01)
   if callback_switch_autonomous.is_auto==True:
+    printcount=printcount+1
+    #while we are in autonomous mode, we have to poll fubarino for stop signal
     command_list=g_serial.read()
+    if printcount==100:
+      print(command_list)
+      printcount=0
     if command_list[0]==commandEnum.STOP_AUTONOMOUS:
       g_stop_event.set()
       while callback_switch_autonomous.is_auto==True:
@@ -300,6 +308,5 @@ while(True):
         time.sleep(.5)
         GPIO.output(LED_names["autonomous"], GPIO.LOW)
     
-#input("Press enter to stop")
 GPIO.cleanup()
 g_serial.stop_serial()

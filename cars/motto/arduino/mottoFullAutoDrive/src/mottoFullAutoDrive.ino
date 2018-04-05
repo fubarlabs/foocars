@@ -11,6 +11,11 @@
 #define CMD_THR 2
 #define CMD_TIME 3
 
+enum carStateEnumeration{
+    STATE_AUTONOMOUS=0,
+    STATE_MANUAL=1,
+    STATE_TERM_AUTO=2
+};
 
 enum commandEnumeration{
     NOT_ACTUAL_COMMAND = 0,
@@ -43,6 +48,7 @@ int thr;        // throttle 1000-2000
 
 const int PIN_STR = 9;
 const int PIN_THR = 7;
+const int PIN_LED = 14;
 
 int gTotalNumberOfPassesForCommandDisplay = 10000;
 int gCountOfPassesForCommandDisplay = gTotalNumberOfPassesForCommandDisplay;
@@ -52,7 +58,7 @@ boolean gWantsLEDon;
 unsigned long gCenteredSteeringValue;
 unsigned long gCenteredThrottleValue;
 
-boolean gIsInAutonomousMode;
+int gcarState;
 int gTheOldRCcommand;
 int gTheOldPiCommand;
 
@@ -146,6 +152,7 @@ void setup() {
 
     pinMode(RC_INPUT_STR, INPUT);
     pinMode(RC_INPUT_THR, INPUT);
+    pinMode(PIN_LED, OUTPUT);
 
         //these lines set up the interrupt functions to trigger 
     setIntVector(_INPUT_CAPTURE_1_VECTOR, InputCaptureTHR_ISR);
@@ -165,7 +172,7 @@ void setup() {
     gCenteredThrottleValue = 1500;
     
     gTheOldRCcommand = NOT_ACTUAL_COMMAND;
-    gIsInAutonomousMode = false;     
+    gcarState = STATE_MANUAL;//start of in manual (rc control) mode
 }
 
 void sendSerialCommand( commandDataStruct *theDataPtr ){
@@ -255,6 +262,7 @@ void getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
     //}
 }
 
+
 void handleRCSignals( commandDataStruct *theDataPtr ) {
     
     unsigned long STR_VAL = pulseRead(RC_INPUT_STR-2); // Read pulse width of
@@ -268,12 +276,9 @@ void handleRCSignals( commandDataStruct *theDataPtr ) {
         }
         theDataPtr->command = RC_SIGNAL_WAS_LOST;
         return;
-    }else if(STR_VAL>2000 or STR_VAL<1000){
-        theDataPtr->command = STEERING_VALUE_OUT_OF_RANGE;
-        return;
     }
     // check for reverse ESC signal from RC while in autonomous mode (user wants to stop auto)
-    if ( gIsInAutonomousMode ) {    
+    if ( gcarState==STATE_AUTONOMOUS) {    
         if( THR_VAL > throttleThresholdToShutdownAuto ){     // signals increase with reverse throttle movement
             theDataPtr->command = RC_SIGNALED_STOP_AUTONOMOUS;
             return;
@@ -346,6 +351,7 @@ void loop() {
     getSerialCommandIfAvailable( &theCommandData );
             
     if( theCommandData.command == RUN_AUTONOMOUSLY ){
+        digitalWrite(PIN_LED, 1);
         ServoSTR.writeMicroseconds( theCommandData.str );
         ServoTHR.writeMicroseconds( theCommandData.thr );
         theCommandData.command = GOOD_PI_COMMAND_RECEIVED;
@@ -354,6 +360,7 @@ void loop() {
     }
     
     else if( theCommandData.command == STOP_AUTONOMOUS ){
+        digitalWrite(PIN_LED, 0);
         theCommandData.str = gCenteredSteeringValue;    //  center the steering
         theCommandData.thr = gCenteredThrottleValue;    //  turn off the motor
         theCommandData.command = STOPPED_AUTO_COMMAND_RECEIVED;
@@ -363,6 +370,7 @@ void loop() {
         gIsInAutonomousMode = false;
     }
     else if( theCommandData.command == GOOD_RC_SIGNALS_RECEIVED ){
+        digitalWrite(PIN_LED, 0);
 	if( gIsInAutonomousMode == false ){	
             sendSerialCommand( &theCommandData );
 	    //    If not in auto mode, send RC values to servo and ESC
@@ -371,6 +379,7 @@ void loop() {
 	}
     } 
     else{    // either no command or a bad command was received
+        digitalWrite(PIN_LED, 0);
         sendSerialCommand( &theCommandData );
     }
 
