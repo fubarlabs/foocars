@@ -43,7 +43,6 @@ class DataCollector(object):
       start=time.time()
       data=self.ser.read()
       end=time.time()
-      #print(end-start)
       print(data)
       #print("got cereal\n")
     except ValueError as err:
@@ -51,7 +50,7 @@ class DataCollector(object):
       return 
     #Note: the data from the IMU requires some processing which does not happen here:
     self.imgs[self.idx]=imdata
-    command=data[0]
+    #command=data[0]
     accelData=np.array([data[1], data[2], data[3]], dtype=np.float32)
     gyroData=np.array([data[4], data[5], data[6]], )
     datatime=np.array([int(data[7])], dtype=np.float32)
@@ -70,11 +69,17 @@ class DataCollector(object):
     '''this function is called every time the PiCamera stops recording'''
     start=time.time()
     np.savez(self.img_file, self.imgs)
+    #end=time.time()
+    #print(end-start)
+    #start=time.time()
     np.savez(self.IMUdata_file, self.IMUdata)
+    #end=time.time()
+    #print(end-start)
+    #start=time.time()
     np.savez(self.RCcommands_file, self.RCcommands)
     end=time.time()
-    print("files saved\n")
     print(end-start)
+    print("files saved\n")
     #this new image file name is for the next chunk of data, which starts recording now
     nowtime=datetime.datetime.now()
     self.img_file=self.save_dir+'/imgs_{0}'.format(nowtime.strftime(time_format))
@@ -113,13 +118,13 @@ def imageprocessor(event, serial_obj):
       if(end-start)<.2: 
         time.sleep(.2-(end-start))
       dataline=[1, int(steer_command), 1575, 0]
-      #dataline='{0}, {1}, {2}, {3}\n'.format(1, int(steer_command), 1575, 0)
       print(dataline)
       try:
         serial_obj.write(dataline)
       except:
         print("some serial problem")
     for i in range(0, 5): #this happens when event is set
+      time.sleep(.05)
       serial_obj.write([commandEnum.STOP_AUTONOMOUS, 1500, 1500, 0])
 
 class DataGetter(object):
@@ -283,8 +288,8 @@ GPIO.add_event_detect(switch_names["autonomous"], GPIO.BOTH, callback=callback_s
 GPIO.add_event_detect(switch_names["collect_data"], GPIO.BOTH, callback=callback_switch_collect_data, bouncetime=50);
 GPIO.add_event_detect(switch_names["save_to_USBdrive"], GPIO.FALLING, callback=callback_switch_save_to_USBdrive, bouncetime=50);
 GPIO.add_event_detect(switch_names["read_from_USBdrive"], GPIO.FALLING, callback=callback_switch_read_from_USBdrive, bouncetime=50);
-
 while(True):
+  time.sleep(.01)
   if callback_switch_autonomous.is_auto==True:
     command_list=g_serial.read()
     if command_list[0]==commandEnum.STOP_AUTONOMOUS:
@@ -295,5 +300,6 @@ while(True):
         time.sleep(.5)
         GPIO.output(LED_names["autonomous"], GPIO.LOW)
     
+#input("Press enter to stop")
 GPIO.cleanup()
 g_serial.stop_serial()
