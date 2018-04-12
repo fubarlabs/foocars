@@ -2,6 +2,8 @@
 
 nntrain/
 data/
+cars/*/data/
+*.pioenvs
 
 
 # Byte-compiled / optimized / DLL files
