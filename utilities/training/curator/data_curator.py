@@ -3,8 +3,9 @@ import sys
 import glob
 import numpy as np
 import scipy.misc
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 from actionclasses import deleteAction
 from actionclasses import tagAction
 from filehopper import filehopper
@@ -84,6 +85,7 @@ class ImagePlayer(QMainWindow):
         dockWidget=QWidget()
         dockWidget.setLayout(layout)
         list_dock_widget.setWidget(dockWidget)
+        self.file_list.load_selected_file.connect(SIGNAL("itemDoubleClicked(QListWidgetItem*)"))
         self.connect(self.file_list, SIGNAL("itemDoubleClicked(QListWidgetItem*)"), self.load_selected_file)
         self.connect(self.save_all_button, SIGNAL("clicked()"), self.toggle_save_all)
         self.connect(self.file_settings_button, SIGNAL("clicked()"), self.open_file_settings)
@@ -91,7 +93,7 @@ class ImagePlayer(QMainWindow):
         self.addDockWidget(Qt.LeftDockWidgetArea, list_dock_widget)
 #-------setup timer for video playback-----------
         self.timer=QTimer()
-        self.connect(self.timer, SIGNAL("timeout()"), self.next_img)
+        self.timer.timeout.connect(self.next_img)
         self.timer.setInterval(100)
         self.timer_intervals=[1000, 500, 200, 100, 50, 20]
 #-------Create MenuBar with Load/Save------------
@@ -109,41 +111,41 @@ class ImagePlayer(QMainWindow):
     def create_actions(self):
         #Create all the actions needed for video playback
         self.play_act=QAction(QIcon("play.png"), "Play", self)
-        self.connect(self.play_act, SIGNAL("triggered()"), self.play)
+        self.play_act.triggered.connect(self.play)
         self.pause_act=QAction(QIcon("pause.png"), "Pause", self)
-        self.connect(self.pause_act, SIGNAL("triggered()"), self.pause)
+        self.pause_act.triggered.connect(self.pause)
         self.next_frame_act=QAction(QIcon("rarrow.png"), "Forward", self)
-        self.connect(self.next_frame_act, SIGNAL("triggered()"), self.next_img)
+        self.next_frame_act.triggered.connect(self.next_img)
         self.prev_frame_act=QAction(QIcon("larrow.png"), "Back", self)
-        self.connect(self.prev_frame_act, SIGNAL("triggered()"), self.prev_img)
+        self.prev_frame_act.triggered.connect( self.prev_img)
         self.next_frame10x_act=QAction(QIcon("rarrows.png"), "Forward", self)
-        self.connect(self.next_frame10x_act, SIGNAL("triggered()"), self.next_img)
+        self.next_frame10x_act.triggered.connect(self.next_img)
         self.prev_frame10x_act=QAction(QIcon("larrows.png"), "Back", self)
-        self.connect(self.prev_frame10x_act, SIGNAL("triggered()"), self.prev_img)
+        self.prev_frame10x_act.triggered.connect(self.prev_img)
         self.speed_up_act=QAction(QIcon("uarrow.png"), "Speed Up", self)
-        self.connect(self.speed_up_act, SIGNAL("triggered()"), self.speed_up)
+        self.speed_up_act.triggered.connect( self.speed_up)
         self.speed_down_act=QAction(QIcon("darrow.png"), "Speed Down", self)
-        self.connect(self.speed_down_act, SIGNAL("triggered()"), self.speed_down)
+        self.speed_down_act.triggered.connect(self.speed_down)
         #Create all actions needed for editing
         self.delete_act=QAction(QIcon("close.png"), "Delete selection", self)
-        self.connect(self.delete_act, SIGNAL("triggered()"), self.deleteframes) 
+        self.delete_act.triggered.connect( self.deleteframes)
         self.tag_act=QAction(QIcon("flag.png"), "Tag selection", self)
-        self.connect(self.tag_act, SIGNAL("triggered()"), self.tagframes) #TODO
+        self.tag_act.triggered.connect(self.tagframes) #TODO
         self.lbracket_act=QAction(QIcon("lbracket.png"), "begin selection", self)
-        self.connect(self.lbracket_act, SIGNAL("triggered()"), self.bracketframes) 
+        self.lbracket_act.triggered.connect(self.bracketframes) 
         self.rbracket_act=QAction(QIcon("rbracket.png"), "end selection", self)
-        self.connect(self.rbracket_act, SIGNAL("triggered()"), self.bracketframes) 
+        self.rbracket_act.triggered.connect(self.bracketframes) 
         self.undo_act=QAction(QIcon("larrow.png"), "undo edit", self)
-        self.connect(self.undo_act, SIGNAL("triggered()"), self.undo) 
+        self.undo_act.triggered.connect( self.undo) 
         self.redo_act=QAction(QIcon("rarrow.png"), "redo edit", self)
-        self.connect(self.redo_act, SIGNAL("triggered()"), self.redo) 
+        self.redo_act.triggered.connect(self.redo) 
         #Create Actions for loading/saving
         self.open_act=QAction("Open Directory", self)
-        self.connect(self.open_act, SIGNAL("triggered()"), self.open_directory) 
+        self.open_act.triggered.connect(self.open_directory) 
         self.save_dir_act=QAction("Choose Save Directory", self)
-        self.connect(self.save_dir_act, SIGNAL("triggered()"), self.select_save_dir) #TODO
+        self.save_dir_act.triggered.connect(self.select_save_dir) #TODO
         self.save_act=QAction("Save File Changes", self)
-        self.connect(self.save_act, SIGNAL("triggered()"), self.save_files) #TODO
+        self.save_act.triggered.connect(self.save_files) #TODO
 
     def open_directory(self):
         self.loaddir=QFileDialog.getExistingDirectory(self)
