@@ -83,12 +83,12 @@ class ImagePlayer(QMainWindow):
         layout.addWidget(self.save_all_button)
         layout.addWidget(self.file_settings_button)
         dockWidget=QWidget()
+        dockWidget=QWidget()
         dockWidget.setLayout(layout)
         list_dock_widget.setWidget(dockWidget)
-        self.file_list.load_selected_file.connect(SIGNAL("itemDoubleClicked(QListWidgetItem*)"))
-        self.connect(self.file_list, SIGNAL("itemDoubleClicked(QListWidgetItem*)"), self.load_selected_file)
-        self.connect(self.save_all_button, SIGNAL("clicked()"), self.toggle_save_all)
-        self.connect(self.file_settings_button, SIGNAL("clicked()"), self.open_file_settings)
+        self.file_list.itemDoubleClicked.connect(self.load_selected_file)
+        self.save_all_button.clicked.connect(self.toggle_save_all)
+        self.file_settings_button.clicked.connect(self.open_file_settings)
         #add dock to main window
         self.addDockWidget(Qt.LeftDockWidgetArea, list_dock_widget)
 #-------setup timer for video playback-----------
@@ -185,7 +185,7 @@ class ImagePlayer(QMainWindow):
                 ('applied_stack', []), ('tag_dict', dict()), ('len', comm_data.shape[0]), 
                 ('save_name', os.path.basename(f1)), ('save_toggle', False)]) 
             self.file_list.addItem(f1)
-            self.file_list.item(idx).setBackgroundColor(QColor(255, 200, 200))
+            #self.file_list.item(idx).background().color(255, 200, 200)
             idx=idx+1
         #load in first file:
         self.n_files=len(self.img_files)
