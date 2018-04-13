@@ -1,4 +1,4 @@
-FROM resin/rpi-raspbian:jessie
+FROM ubuntu:latest
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
   apt-utils wget unzip build-essential cmake pkg-config \
@@ -15,12 +15,12 @@ WORKDIR foocars
 COPY . .
 
 # https://github.com/samjabrahams/tensorflow-on-raspberry-pi/releases
-RUN wget https://github.com/samjabrahams/tensorflow-on-raspberry-pi/releases/download/v1.1.0/tensorflow-1.1.0-cp34-cp34m-linux_armv7l.whl
+#RUN wget https://github.com/samjabrahams/tensorflow-on-raspberry-pi/releases/download/v1.1.0/tensorflow-1.1.0-cp34-cp34m-linux_armv7l.whl
 # RUN cp  tensorflow-1.1.0-cp34-cp34m-linux_armv7l.whl  tensorflow-1.1.0-cp35-cp35m-linux_armv7l.whl
+#
+#RUN pip3 install  tensorflow-1.1.0-cp34-cp34m-linux_armv7l.whl 
 
-RUN pip3 install  tensorflow-1.1.0-cp34-cp34m-linux_armv7l.whl 
-
-RUN pip3 install mock
+#RUN pip3 install mock
 
 
 # Enable command line Arduino via platformio
