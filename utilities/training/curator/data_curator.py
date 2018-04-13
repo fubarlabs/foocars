@@ -218,7 +218,7 @@ class ImagePlayer(QMainWindow):
             self.update_image(framenum)
 
     def load_data(self, filename):
-        np_images=(255*np.load(filename)['arr_0']).astype('uint8')
+        np_images=(np.load(filename)['arr_0'])
         big_np=[scipy.misc.imresize(i, 4.0, interp='nearest') for i in np_images]
         self.image_shape=big_np[0].shape
         raw_frames=[i.tobytes() for i in big_np]
@@ -335,10 +335,10 @@ class ImagePlayer(QMainWindow):
     def bracketframes(self):
         if self.sender()==self.lbracket_act:
             self.left_bracket=(self.current_filename, self.index)
-            self.lbracketframelabel.setText("{0}, frame {1}".format(self.current_filename, self.index))
+            self.lbracketframelabel.setText("{0}, frame {1}".format(os.path.basename(self.current_filename), self.index))
         elif self.sender()==self.rbracket_act:
             self.right_bracket=(self.current_filename, self.index)
-            self.rbracketframelabel.setText("{0}, frame {1}".format(self.current_filename, self.index))
+            self.rbracketframelabel.setText("{0}, frame {1}".format(os.path.basename(self.current_filename), self.index))
 
     def undo(self):
         if self.global_undo_stack!=[]: 

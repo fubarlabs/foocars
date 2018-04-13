@@ -53,6 +53,7 @@ steerSampleSTD=steer.std()
 np.savez("steerstats.npz", [steerSampleMean, steerSampleSTD])
 
 #defines image size:
+row_offset=20
 nrows=36
 ncols=128
 
@@ -70,7 +71,7 @@ for directory in args.directories:
     for imgfile in sorted(imgfiles):
         imdata=np.load(imgfile)['arr_0'].astype('float32')
         for image in imdata[0:data_lengths[i]-args.delay]: #note that we compensate for delay here
-            crop_image=image[0:nrows, :]
+            crop_image=image[row_offset:row_offset+nrows, :]
             #we have to normalize each image to zero mean, unit variance:
             image_mean=crop_image.mean()
             image_std=crop_image.std()
