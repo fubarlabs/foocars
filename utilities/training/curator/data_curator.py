@@ -3,9 +3,9 @@ import sys
 import glob
 import numpy as np
 import scipy.misc
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
 from actionclasses import deleteAction
 from actionclasses import tagAction
 from filehopper import filehopper
@@ -185,7 +185,7 @@ class ImagePlayer(QMainWindow):
                 ('applied_stack', []), ('tag_dict', dict()), ('len', comm_data.shape[0]), 
                 ('save_name', os.path.basename(f1)), ('save_toggle', False)]) 
             self.file_list.addItem(f1)
-            #self.file_list.item(idx).background().color(255, 200, 200)
+            self.file_list.item(idx).setBackground(QColor(255, 200, 200))
             idx=idx+1
         #load in first file:
         self.n_files=len(self.img_files)
@@ -230,7 +230,7 @@ class ImagePlayer(QMainWindow):
         idx=0
         for f in self.file_dict.keys():
             self.file_dict[f]['save_toggle']=True
-            self.file_list.item(idx).setBackgroundColor(QColor(200, 255, 200))
+            self.file_list.item(idx).setBackground(QColor(200, 255, 200))
             idx=idx+1
 
     def open_file_settings(self):
@@ -250,9 +250,9 @@ class ImagePlayer(QMainWindow):
                     if self.global_undo_stack[i]==[]:
                         self.global_undo_stack.pop(i)
             if self.file_dict[filename]['save_toggle']==True:
-                self.file_list.currentItem().setBackgroundColor(QColor(200, 255, 200))
+                self.file_list.currentItem().setBackground(QColor(200, 255, 200))
             else:
-                self.file_list.currentItem().setBackgroundColor(QColor(255, 200, 200))
+                self.file_list.currentItem().setBackground(QColor(255, 200, 200))
             if filename==self.current_filename:
                 self.hopper.setIndex(0) #TODO FIXME this will definitely cause an error eventually
                 self.update_image(0)
