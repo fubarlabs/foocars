@@ -140,7 +140,7 @@ def imageprocessor(event, serial_obj):
       end=time.time()
       if(end-start)<.2:
         time.sleep(.2-(end-start))
-      dataline='{0}, {1}, {2}, {3}\n'.format(1, int(steer_command), 1575, 0)
+      dataline='{0}, {1}, {2}, {3}\n'.format(1, int(steer_command), 1655, 0)
       print(dataline)
       try:
         serial_obj.flushInput()
@@ -287,7 +287,7 @@ def initialize_service():
   global g_graph
   g_graph=tf.get_default_graph()
   #model.load_weights('weights_2018-02-24_14-00-35_epoch_40.h5')
-  model.load_weights('weights_2018-04-05_04-25-09_epoch_16.h5')
+  model.load_weights('weights_2018-04-12_23-15-11_epoch_10.h5')
   model._make_predict_function()
   global g_steerstats
   g_steerstats=np.load('steerstats.npz')['arr_0']

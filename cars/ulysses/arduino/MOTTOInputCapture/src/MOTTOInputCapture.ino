@@ -11,6 +11,7 @@
 
 #define CLIP_THR_VAL_MAX 1605
 #define CLIP_THR_VAL_MIN 1305
+unsigned long thr_zero_val=1498;
 
 volatile uint16_t pulseHighTime[RC_INPUT_COUNT];
 volatile uint16_t pulseLowTime[RC_INPUT_COUNT];
@@ -22,7 +23,6 @@ unsigned long steer_history[20]; //Array to store 1/5 of a second of steer value
 
 int steer_next_ind; //index of next value to be written in steer_history
 
-unsigned long thr_zero_val=1498;
 
 
 //volatile bool staleData=0;
@@ -215,6 +215,7 @@ void loop()
       CLIP_THR_VAL=thr_zero_val;
     }
 */
+/*
   if(THR_VAL > CLIP_THR_VAL_MAX) {
     CLIP_THR_VAL = CLIP_THR_VAL_MAX;
   }
@@ -222,7 +223,15 @@ void loop()
     CLIP_THR_VAL = CLIP_THR_VAL_MIN;
   } else {
     CLIP_THR_VAL = THR_VAL;
-  }  
+    
+  } 
+*/
+
+  if ( THR_VAL > thr_zero_val) {
+    CLIP_THR_VAL = map(THR_VAL, thr_zero_val, 2000, thr_zero_val, CLIP_THR_VAL_MAX);
+  } else {
+    CLIP_THR_VAL = map(THR_VAL, thr_zero_val, 1000,  thr_zero_val, CLIP_THR_VAL_MIN);
+  } 
 
     ServoTHR.writeMicroseconds(CLIP_THR_VAL);
     printData(0, 0, 0, 0, 0, 0, millis(), FILT_STR_VAL, CLIP_THR_VAL);
