@@ -2,7 +2,7 @@
 
 import sys, os
 
-import subprocess  
+import subprocess
 from subprocess import call
 
 
@@ -13,10 +13,10 @@ from subprocess import call
 #   ssh-copy-id -i [path to rsa file] user@machine
 
 
-localPathWeights = '/home/jim/autonomous/services/weights.h5'
-localPathSteerstats = '/home/jim/autonomous/services/steerstats.npz'
+localPathWeights = '/home/jim/Dropbox/foocars/training/weights.h5'
+localPathSteerstats = '/home/jim//Dropbox/foocars/training/steerstats.npz'
 
-remotePath = 'pi@jimpi.local:/home/pi/autonomous/services/'
+remotePath = 'pi@jimpi.local:/home/pi/foocars/cars/ottoMicro/data/'
 
 command = 'scp -i ~/.ssh/id_rsa -r ' + localPathWeights + ' ' + remotePath
 call ( command, shell=True )
