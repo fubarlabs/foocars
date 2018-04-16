@@ -1,6 +1,5 @@
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
 
 class fileSettingsDialog(QDialog):
     
@@ -30,10 +29,10 @@ class fileSettingsDialog(QDialog):
         layout.addWidget(self.save_checkbox, 3, 2)
         layout.addWidget(self.buttonbox, 4, 2)
         self.setLayout(layout)
-        self.connect(self.buttonbox, SIGNAL("accepted()"), self, SLOT("accept()"))
-        self.connect(self.buttonbox, SIGNAL("rejected()"), self, SLOT("reject()"))
-        self.connect(self.undoButton, SIGNAL("clicked()"), self.undo)
-        self.connect(self.redoButton, SIGNAL("clicked()"), self.redo)
+        self.buttonbox.accepted.connect(self.accept)
+        self.buttonbox.rejected.connect(self.reject)
+        self.undoButton.clicked.connect(self.undo)
+        self.redoButton.clicked.connect(self.redo)
         self.num_undos=0
 
     def undo(self):
