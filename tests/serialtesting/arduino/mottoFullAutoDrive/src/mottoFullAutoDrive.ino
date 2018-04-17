@@ -3,7 +3,7 @@
 //#include <SoftPWMServo.h>
 #include <Servo.h>
 
-#define DEBUG_SERIAL 1
+#define DEBUG_SERIAL 0
 
 #define MAX_CMD_BUF 17 
 #define CMD_AUTO 0
@@ -64,10 +64,10 @@ int gTheOldRCcommand;
 int gTheOldPiCommand;
 
 //these values will be car specific
-const unsigned long minimumSteeringValue = 1000;
-const unsigned long maximumSteeringValue = 2000;
-const unsigned long minimumThrottleValue = 1000;
-const unsigned long maximumThrottleValue = 2000;
+const unsigned long minimumSteeringValue = 1100;
+const unsigned long maximumSteeringValue = 1700;
+const unsigned long minimumThrottleValue = 1250;
+const unsigned long maximumThrottleValue = 1650;
 const unsigned long throttleThresholdToShutdownAuto = 1600;
 
 Servo ServoSTR;
@@ -167,8 +167,8 @@ void setup() {
     clearIntFlag(_INPUT_CAPTURE_5_IRQ);
     setIntEnable(_INPUT_CAPTURE_5_IRQ);
     
-    ServoSTR.attach(PIN_STR);
-    ServoTHR.attach(PIN_THR);
+    //ServoSTR.attach(PIN_STR);
+    //ServoTHR.attach(PIN_THR);
     
     gCenteredSteeringValue = 1500;
     gCenteredThrottleValue = 1500;
@@ -208,7 +208,7 @@ void getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
                 
     //Serial.flush();
     if (Serial.available()) {        
-        Serial.println("Found serial command");
+        //Serial.println("Found serial command");
         byte size = Serial.readBytes(cmdBuf, MAX_CMD_BUF);
         
         if (DEBUG_SERIAL) {
@@ -228,8 +228,8 @@ void getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
             switch (cmd_cnt) {
             case CMD_AUTO:
                 theDataPtr->command = atoi(command);
-                Serial.print("debug command:    ");
-                Serial.println(theDataPtr->command);
+                //Serial.print("debug command:    ");
+                //Serial.println(theDataPtr->command);
                 break;
             case CMD_STR:
                 theDataPtr->str = atoi(command);    
@@ -288,7 +288,7 @@ void handleRCSignals( commandDataStruct *theDataPtr ) {
         }
     }
     // clip the RC signals to more car appropriate ones
-
+    /*
     if( STR_VAL > maximumSteeringValue )
         STR_VAL = maximumSteeringValue;
 
@@ -300,7 +300,7 @@ void handleRCSignals( commandDataStruct *theDataPtr ) {
 
     else if( THR_VAL < minimumThrottleValue )
         THR_VAL = minimumThrottleValue;
-
+   */
              
 
     // Create 16 bits values from 8 bits data
@@ -356,7 +356,7 @@ void loop() {
 	}
 	break;
     case STATE_AUTONOMOUS:
-        Serial.println("AUTONOMOUS MODE");
+        //Serial.println("AUTONOMOUS MODE");
         //autonomous state-- while in this state, we have to check for stop auto 
         //commands from serial or RC. The only things we check for are RUN_AUTONOMOUSLY
         //and STOP_AUTONOMOUS commands from the Pi, and RC_SIGNALED_STOP_AUTONOMOUS commands
@@ -366,8 +366,8 @@ void loop() {
             SerialOutputData.command=RC_SIGNALED_STOP_AUTONOMOUS;
             SerialOutputData.str = gCenteredSteeringValue;    //  center the steering
 	    SerialOutputData.thr = gCenteredThrottleValue;    //  turn off the motor
-	    ServoSTR.writeMicroseconds( SerialOutputData.str );
-	    ServoTHR.writeMicroseconds( SerialOutputData.thr );
+	    //ServoSTR.writeMicroseconds( SerialOutputData.str );
+	    //ServoTHR.writeMicroseconds( SerialOutputData.thr );
             transmitData=true;
             gcarState=STATE_TERM_AUTO;
 	}else if(SerialInputData.command==STOP_AUTONOMOUS){
@@ -377,15 +377,15 @@ void loop() {
             SerialOutputData.command=STOPPED_AUTO_COMMAND_RECEIVED; 
             SerialOutputData.str = gCenteredSteeringValue;    //  center the steering
 	    SerialOutputData.thr = gCenteredThrottleValue;    //  turn off the motor
-	    ServoSTR.writeMicroseconds( SerialOutputData.str );
-	    ServoTHR.writeMicroseconds( SerialOutputData.thr );
+	    //ServoSTR.writeMicroseconds( SerialOutputData.str );
+	    //ServoTHR.writeMicroseconds( SerialOutputData.thr );
             transmitData=true;
             gcarState=STATE_MANUAL;
         }else if(SerialInputData.command==RUN_AUTONOMOUSLY){
 	    digitalWrite(PIN_LED, HIGH);
             //we have a new autonomous command -- execute it
-            ServoSTR.writeMicroseconds( SerialInputData.str );
-	    ServoTHR.writeMicroseconds( SerialInputData.thr );
+            //ServoSTR.writeMicroseconds( SerialInputData.str );
+	    //ServoTHR.writeMicroseconds( SerialInputData.thr );
             SerialOutputData.str = SerialInputData.str;   //put received command in 
 	    SerialOutputData.thr = SerialInputData.thr;   //output to echo back
 	    SerialOutputData.command = GOOD_PI_COMMAND_RECEIVED; 
@@ -393,14 +393,14 @@ void loop() {
 	}
         break;
     case STATE_MANUAL:
-        Serial.println("MANUAL MODE");
+        //Serial.println("MANUAL MODE");
         //manual RC state -- while in this state, we send back data frames with the RC signals
         //we also observe for run_auto commands from the Pi and stop_auto commands from the Pi. 
         //Receiving the latter while we're in manual means the Pi missed the stopped_auto ack, 
         //so we should send another.
         if(SerialInputData.command==RUN_AUTONOMOUSLY){
-            ServoSTR.writeMicroseconds( SerialInputData.str );
-	    ServoTHR.writeMicroseconds( SerialInputData.thr );
+            //ServoSTR.writeMicroseconds( SerialInputData.str );
+	    //ServoTHR.writeMicroseconds( SerialInputData.thr );
             SerialOutputData.str = SerialInputData.str;   //put received command in 
 	    SerialOutputData.thr = SerialInputData.thr;   //output to echo back
 	    SerialOutputData.command = GOOD_PI_COMMAND_RECEIVED; 
@@ -414,26 +414,30 @@ void loop() {
             SerialOutputData.command=STOPPED_AUTO_COMMAND_RECEIVED; 
             SerialOutputData.str = RCInputData.str;   
 	    SerialOutputData.thr = RCInputData.thr;   
-	    ServoSTR.writeMicroseconds( SerialOutputData.str );
-	    ServoTHR.writeMicroseconds( SerialOutputData.thr );
+	    //ServoSTR.writeMicroseconds( SerialOutputData.str );
+	    //ServoTHR.writeMicroseconds( SerialOutputData.thr );
             transmitData=true;
 	}else if(RCInputData.command==GOOD_RC_SIGNALS_RECEIVED){
 	    digitalWrite(PIN_LED, LOW);
             //This is what we want to happen during manual mode.
             SerialOutputData.str = RCInputData.str;   
 	    SerialOutputData.thr = RCInputData.thr;   
-	    ServoSTR.writeMicroseconds( SerialOutputData.str );
-	    ServoTHR.writeMicroseconds( SerialOutputData.thr );
+	    //ServoSTR.writeMicroseconds( SerialOutputData.str );
+	    //ServoTHR.writeMicroseconds( SerialOutputData.thr );
             SerialOutputData.command=GOOD_RC_SIGNALS_RECEIVED;
             transmitData=true;
         }
         break;
     }
 
+    unsigned long STR_VAL = pulseRead(0); // Read pulse width of
+    unsigned long THR_VAL = pulseRead(1); // each channel
     if (transmitData==true){
        SerialOutputData.time=SerialInputData.time; //populate time field
        //in the future, the imu will work. The values to send back will
        // always be the ones recorded in RCInputData
+       SerialOutputData.str = STR_VAL; //put received command in 
+       SerialOutputData.thr = THR_VAL;//output to echo back
        SerialOutputData.ax=RCInputData.ax;
        SerialOutputData.ay=RCInputData.ay;
        SerialOutputData.az=RCInputData.az;

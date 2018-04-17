@@ -21,7 +21,7 @@ class DataCollector(object):
   '''this object is passed to the camera.start_recording function, which will treat it as a 
       writable object, like a stream or a file'''
   def __init__(self, serial_obj, save_dir):
-    #assert serial_obj.isOpen()==True
+    assert serial_obj.isOpen()==True
     self.save_dir=save_dir
     self.ser=serial_obj
     self.num_frames=100
@@ -39,15 +39,17 @@ class DataCollector(object):
     '''this is the function that is called every time the PiCamera has a new frame'''
     imdata=np.reshape(np.fromstring(s, dtype=np.uint8), (96, 128, 3), 'C')
     #now we read from the serial port and format and save the data:
-    try:
-      start=time.time()
-      data=self.ser.read()
-      end=time.time()
+
+    self.ser.flushInput()
+    n_read_items=0
+    while n_read_items!=10:
+      try:
+        datainput=self.ser.readline()
+        data=list(map(float, str(datainput, 'ascii').split(',')))
+        n_read_items=len(data)
+      except ValueError:
+        continue
       print(data)
-      #print("got cereal\n")
-    except ValueError as err:
-      print(err)
-      return 
     #Note: the data from the IMU requires some processing which does not happen here:
     self.imgs[self.idx]=imdata
     #command=data[0]
@@ -78,8 +80,8 @@ class DataCollector(object):
     #start=time.time()
     np.savez(self.RCcommands_file, self.RCcommands)
     end=time.time()
-    print(end-start)
-    print("files saved\n")
+    #print(end-start)
+    #print("files saved\n")
     #this new image file name is for the next chunk of data, which starts recording now
     nowtime=datetime.datetime.now()
     self.img_file=self.save_dir+'/imgs_{0}'.format(nowtime.strftime(time_format))
@@ -118,15 +120,13 @@ def imageprocessor(event, serial_obj):
       #THIS LIMITS AUTONOMOUS FRAMERATE TO 5FPS
       if(end-start)<.2: 
         time.sleep(.2-(end-start))
-      dataline=[commandEnum.RUN_AUTONOMOUSLY, int(steer_command), 1575, 0]
+      dataline='{0}, {1}, {2}, {3}\n'.format(commandEnum.RUN_AUTONOMOUSLY, int(steer_command), 1575, 0)
       print(dataline)
       try:
-        serial_obj.write(dataline)
+        serial_obj.write(dataline.encode('ascii'))
+        serial_obj.flush()
       except:
         print("some serial problem")
-    for i in range(0, 5): #this happens when event is set
-      time.sleep(.05)
-      serial_obj.write([commandEnum.STOP_AUTONOMOUS, 1500, 1500, 0])
 
 class DataGetter(object):
   def __init__(self):
@@ -174,11 +174,29 @@ def callback_switch_autonomous(channel):
   else:		#switch off
     if callback_switch_autonomous.is_auto==True:
       logging.debug('\n user toggled autonomous off {0}\n'.format(datetime.datetime.now().strftime(time_format)))
-      g_stop_event.set()
-      g_ip_thread.join()
+      if not g_stop_event.isSet(): #if the event isn't already set, then stop autonomous is triggered by the switch
+        g_stop_event.set() #stop autonomous thread
+	#g_serial.flushInput()
+        #dataline='{0}, {1}, {2}, {3}\n'.format(commandEnum.STOP_AUTONOMOUS, 1500, 1500, 0) #Send stop command to fubarino
+        #g_serial.write(dataline.encode('ascii'))
+        #g_serial.flush()
+        #n_read_items=0
+        #while n_read_items!=10:
+        #  try:
+        #    datainput=g_serial.readline()
+        #    data=list(map(float, str(datainput, 'ascii').split(',')))
+        #    n_read_items=len(data)
+        #  except ValueError:
+        #    continue
+        #while command_list[0]!=commandEnum.STOPPED_AUTO_COMMAND_RECIEVED: #continue sending stop commands until we get an ack
+        #  g_serial.write([commandEnum.STOP_AUTONOMOUS, 1500, 1500, 0])
+        #  time.sleep(.01)
+        #  command_list=g_serial.read()
+      g_ip_thread.join() #join the autonomous thread
       g_camera.stop_recording()
       callback_switch_autonomous.is_auto=False
       GPIO.output(LED_names["autonomous"], GPIO.LOW)
+      g_stop_event.clear() #clear stop event so we can reenter autonomous
     else:
       logging.debug('read another low transition while not autonomous')
 callback_switch_autonomous.is_auto=False
@@ -231,7 +249,13 @@ def displayBinLEDCode(code):
 def initialize_service():
   #initialize the serial port: if the first port fails, we try the other one
   global g_serial
-  g_serial=SerialMonitor()
+  try:
+    g_serial=serial.Serial('/dev/ttyACM1')
+  except serial.SerialException:
+    try:
+      g_serial=serial.Serial('/dev/ttyACM0')
+    except serial.SerialException:
+      logging.debug("error: cannot connect to serial port")
   #initialize the camera
   global g_camera
   g_camera=picamera.PiCamera()
@@ -261,7 +285,6 @@ def initialize_service():
   g_steerstats=np.load('steerstats.npz')['arr_0']
   global g_ip_thread
   g_ip_thread=0
-  g_serial.start_serial()
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
@@ -290,23 +313,67 @@ GPIO.add_event_detect(switch_names["collect_data"], GPIO.BOTH, callback=callback
 GPIO.add_event_detect(switch_names["save_to_USBdrive"], GPIO.FALLING, callback=callback_switch_save_to_USBdrive, bouncetime=50);
 GPIO.add_event_detect(switch_names["read_from_USBdrive"], GPIO.FALLING, callback=callback_switch_read_from_USBdrive, bouncetime=50);
 
+auto_mode=False 
 printcount=0
 while(True):
-  time.sleep(.01)
+  time.sleep(.001)
   if callback_switch_autonomous.is_auto==True:
+    auto_mode=True
     printcount=printcount+1
     #while we are in autonomous mode, we have to poll fubarino for stop signal
-    command_list=g_serial.read()
-    if printcount==100:
-      print(command_list)
+    g_serial.flushInput()
+    n_read_items=0
+    while n_read_items!=10:
+      try:
+        datainput=g_serial.readline()
+        data=list(map(float, str(datainput, 'ascii').split(',')))
+        n_read_items=len(data)
+      except ValueError:
+        continue
+
+    if printcount==10:
+      print(data)
       printcount=0
-    if command_list[0]==commandEnum.STOP_AUTONOMOUS:
-      g_stop_event.set()
-      while callback_switch_autonomous.is_auto==True:
+    if data[0]==commandEnum.RC_SIGNALED_STOP_AUTONOMOUS: #if we get a stop signal
+      g_stop_event.set() #stop the autonomous thread
+      for i in range(0, 5): #send ack 5 times
+        time.sleep(.01)
+        dataout='{0}, {1}, {2}, {3}\n'.format(commandEnum.STOPPED_AUTO_COMMAND_RECIEVED, 1500, 1500, 0)
+        g_serial.write(dataout.encode('ascii'))
+      while callback_switch_autonomous.is_auto==True: #blink the led until user turns off the switch
         time.sleep(.5)
         GPIO.output(LED_names["autonomous"], GPIO.HIGH)
         time.sleep(.5)
         GPIO.output(LED_names["autonomous"], GPIO.LOW)
+      auto_mode=False
+  if auto_mode==True and callback_switch_autonomous.is_auto==False:
+    dataout='{0}, {1}, {2}, {3}\n'.format(commandEnum.STOP_AUTONOMOUS, 1500, 1500, 0)
+    g_serial.write(dataout.encode('ascii'))
+    g_serial.flush()
+    g_serial.flushInput()
+    n_read_items=0
+    while n_read_items!=10:
+      try:
+        datainput=g_serial.readline()
+        data=list(map(float, str(datainput, 'ascii').split(',')))
+        n_read_items=len(data)
+      except ValueError:
+        continue
+    while data[0]!=commandEnum.STOPPED_AUTO_COMMAND_RECIEVED:
+      g_serial.write(dataout.encode('ascii'))
+      g_serial.flush()
+      g_serial.flushInput()
+      n_read_items=0
+      while n_read_items!=10:
+        try:
+          datainput=g_serial.readline()
+          data=list(map(float, str(datainput, 'ascii').split(',')))
+          n_read_items=len(data)
+        except ValueError:
+          continue
+    auto_mode=False
+
+
     
 GPIO.cleanup()
-g_serial.stop_serial()
+g_serial.close()
