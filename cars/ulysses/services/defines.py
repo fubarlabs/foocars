@@ -19,7 +19,7 @@ switch_names={
 }
 
 DATA_DIR = "/home/pi/foocars/cars/ulysses/data/"
-COLLECT_DIR = DATA_DIR + "collected/"
+COLLECT_DIR = DATA_DIR + "collected"
 WEIGHTS_DIR = DATA_DIR + "weights/"
 #WEIGHTS_FILE = WEIGHTS_DIR + "weights_2018-04-15_21-43-33_epoch_20.h5"
 WEIGHTS_FILE = WEIGHTS_DIR + "weights_2018-04-15_21-43-33_epoch_40.h5"
