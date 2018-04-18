@@ -10,6 +10,13 @@ import keras
 import tensorflow as tf
 from dropout_model import model
 
+DATA_DIR = "/home/pi/foocars/cars/ulysses/data/"
+COLLECT_DIR = DATA_DIR + "raw/"
+WEIGHTS_DIR = DATA_DIR + "weights/"
+#WEIGHTS_FILE = WEIGHTS_DIR + "weights_2018-04-15_21-43-33_epoch_20.h5"
+WEIGHTS_FILE = WEIGHTS_DIR + "weights_2018-04-15_21-43-33_epoch_40.h5"
+STEERSTATS_FILE = WEIGHTS_DIR + "steerstats.npz"
+THR_MAX = 1590
 
 LED_names={ "save_to" : 22,
   "collect_data" : 27,
@@ -140,7 +147,7 @@ def imageprocessor(event, serial_obj):
       end=time.time()
       if(end-start)<.2:
         time.sleep(.2-(end-start))
-      dataline='{0}, {1}, {2}, {3}\n'.format(1, int(steer_command), 1655, 0)
+      dataline='{0}, {1}, {2}, {3}\n'.format(1, int(steer_command), THR_MAX, 0)
       print(dataline)
       try:
         serial_obj.flushInput()
@@ -174,6 +181,7 @@ def callback_switch_shutdown_RPi(channel):
   GPIO.output(LED_names["shutdown_RPi"], LED_ON)
   time.sleep(1)
   GPIO.output(LED_names["shutdown_RPi"], LED_OFF)
+  print("shutdown pi")
 
 def callback_switch_autonomous(channel):
   global g_getter
@@ -235,6 +243,7 @@ def callback_switch_save_to(channel):
   GPIO.output(LED_names["save_to"], LED_ON)
   time.sleep(1)
   GPIO.output(LED_names["save_to"], LED_OFF)
+  print("save to")
 
 def callback_switch_read_from(channel):
   if GPIO.input(switch_names["read_from"])!=SWITCH_ON:
@@ -242,6 +251,7 @@ def callback_switch_read_from(channel):
   GPIO.output(LED_names["read_from"], LED_ON)
   time.sleep(1)
   GPIO.output(LED_names["read_from"], LED_OFF)
+  print("read from")
 
 #code is an int in range 0-63, consisting of binary on-off values for the leds. boot_RPi is MSB
 def displayBinLEDCode(code): 
@@ -271,7 +281,7 @@ def initialize_service():
   g_camera.framerate=10
   #initialize the data collector object
   global g_collector
-  g_collector=DataCollector(g_serial, "/home/pi/foocars/cars/ulysses/data")
+  g_collector=DataCollector(g_serial,  DATA_DIR)
   #initialize the image frame to be shared in autonomous mode
   global g_image_data
   g_image_data=np.zeros((36, 128, 3), dtype=np.uint8) 
@@ -287,10 +297,10 @@ def initialize_service():
   global g_graph
   g_graph=tf.get_default_graph()
   #model.load_weights('weights_2018-02-24_14-00-35_epoch_40.h5')
-  model.load_weights('weights_2018-04-12_23-15-11_epoch_10.h5')
+  model.load_weights(WEIGHTS_FILE)
   model._make_predict_function()
   global g_steerstats
-  g_steerstats=np.load('steerstats.npz')['arr_0']
+  g_steerstats=np.load(STEERSTATS_FILE)['arr_0']
   global g_ip_thread
   g_ip_thread=0
 
