@@ -10,7 +10,6 @@ import keras
 import tensorflow as tf
 from dropout_model import model
 from defines import *
-from serial_monitor import SerialMonitor
 
 time_format='%Y-%m-%d_%H-%M-%S'
 
