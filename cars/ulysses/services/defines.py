@@ -18,6 +18,7 @@ switch_names={
   "read_from_USBdrive" : 5,
 }
 
+FRAME_RATE = 40
 DATA_DIR = "/home/pi/foocars/cars/ulysses/data/"
 COLLECT_DIR = DATA_DIR + "collected"
 WEIGHTS_DIR = DATA_DIR + "weights/"

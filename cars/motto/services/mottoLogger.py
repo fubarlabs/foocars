@@ -116,7 +116,7 @@ def imageprocessor(event, serial_obj):
 
       end=time.time()
       print(end-start)
-      dataline='{0}, {1}, {2}, {3}\n'.format(commandEnum.RUN_AUTONOMOUSLY, int(steer_command), 1590, 0)
+      dataline='{0}, {1}, {2}, {3}\n'.format(commandEnum.RUN_AUTONOMOUSLY, int(steer_command), THR_MAX, 0)
       print(dataline)
       try:
         serial_obj.write(dataline.encode('ascii'))
@@ -240,10 +240,10 @@ def initialize_service():
   global g_camera
   g_camera=picamera.PiCamera()
   g_camera.resolution=(128, 96)
-  g_camera.framerate=40
+  g_camera.framerate=FRAME_RATE
   #initialize the data collector object
   global g_collector
-  g_collector=DataCollector(g_serial, "/home/pi/foocars/cars/motto/data/collected")
+  g_collector=DataCollector(g_serial, COLLECT_DIR)
   #initialize the image frame to be shared in autonomous mode
   global g_image_data
   g_image_data=np.zeros((36, 128, 3), dtype=np.uint8) 
@@ -259,10 +259,10 @@ def initialize_service():
   global g_graph
   g_graph=tf.get_default_graph()
   #model.load_weights('weights_2018-02-24_14-00-35_epoch_40.h5')
-  model.load_weights('weights.h5')
+  model.load_weights(WEIGHTS_FILE)
   model._make_predict_function()
   global g_steerstats
-  g_steerstats=np.load('steerstats.npz')['arr_0']
+  g_steerstats=np.load(STEERSTATS_FILE)['arr_0']
   global g_ip_thread
   g_ip_thread=0
 
