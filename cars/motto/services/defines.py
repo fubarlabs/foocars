@@ -16,6 +16,14 @@ switch_names={ "shutdown_RPi" : 6,
   "read_from_USBdrive" : 10,
 }
 
+FRAME_RATE = 40
+DATA_DIR = "/home/pi/foocars/cars/motto/data/"
+COLLECT_DIR = DATA_DIR + "collected"
+WEIGHTS_DIR = DATA_DIR + "weights/"
+WEIGHTS_FILE = WEIGHTS_DIR + "weights.h5"
+STEERSTATS_FILE = WEIGHTS_DIR + "steerstats.npz"
+THR_MAX = 1590
+
 
 SWITCH_ON=GPIO.LOW
 SWITCH_OFF=GPIO.HIGH
