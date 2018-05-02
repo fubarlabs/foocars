@@ -328,7 +328,7 @@ void loop() {
 // ------------------------- Handle RC Commands -------------------------------
     //we create three commandDataStructs, one each for RC and Serial input, and 
     //one for output
-    delay(100);
+    delay(10);
     commandDataStruct RCInputData, SerialInputData, SerialOutputData;
     RCInputData.command=NOT_ACTUAL_COMMAND;
     SerialInputData.command=NOT_ACTUAL_COMMAND;
