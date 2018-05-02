@@ -8,23 +8,33 @@ import numpy as np
 import threading
 import keras
 import tensorflow as tf
+import concurrent.futures
 from dropout_model import model
 from defines import *
-from serial_monitor import SerialMonitor
 
 time_format='%Y-%m-%d_%H-%M-%S'
 
 logging.basicConfig(filename='ottoLogger.log', level=logging.DEBUG)
 logging.debug('\n\n New Test Session {0}\n'.format(datetime.datetime.now().strftime(time_format)))
 
+def save_data(imgs, IMUdata, RCcommands, img_file, IMUdata_file, RCcommands_file):
+  start=time.time()
+  np.savez(img_file, imgs)
+  np.savez(IMUdata_file, IMUdata)
+  np.savez(RCcommands_file, RCcommands)
+  end=time.time()
+  print(end-start)
+
+
 class DataCollector(object):
   '''this object is passed to the camera.start_recording function, which will treat it as a 
       writable object, like a stream or a file'''
   def __init__(self, serial_obj, save_dir):
     assert serial_obj.isOpen()==True
+    self.executor=concurrent.futures.ThreadPoolExecutor(max_workers=5)
     self.save_dir=save_dir
     self.ser=serial_obj
-    self.num_frames=100
+    self.num_frames=200
     self.imgs=np.zeros((self.num_frames, 96, 128, 3), dtype=np.uint8) #we put the images in here
     self.IMUdata=np.zeros((self.num_frames, 7), dtype=np.float32) #we put the imu data in here
     self.RCcommands=np.zeros((self.num_frames, 2), dtype=np.float16) #we put the RC data in here
@@ -69,19 +79,7 @@ class DataCollector(object):
   
   def flush(self):
     '''this function is called every time the PiCamera stops recording'''
-    start=time.time()
-    np.savez(self.img_file, self.imgs)
-    #end=time.time()
-    #print(end-start)
-    #start=time.time()
-    np.savez(self.IMUdata_file, self.IMUdata)
-    #end=time.time()
-    #print(end-start)
-    #start=time.time()
-    np.savez(self.RCcommands_file, self.RCcommands)
-    end=time.time()
-    #print(end-start)
-    #print("files saved\n")
+    self.executor.submit(save_data, self.imgs, self.IMUdata, self.RCcommands, self.img_file, self.IMUdata_file, self.RCcommands_file)
     #this new image file name is for the next chunk of data, which starts recording now
     nowtime=datetime.datetime.now()
     self.img_file=self.save_dir+'/imgs_{0}'.format(nowtime.strftime(time_format))
@@ -117,10 +115,8 @@ def imageprocessor(event, serial_obj):
         steer_command=1000
 
       end=time.time()
-      #THIS LIMITS AUTONOMOUS FRAMERATE TO 5FPS
-      if(end-start)<.2: 
-        time.sleep(.2-(end-start))
-      dataline='{0}, {1}, {2}, {3}\n'.format(commandEnum.RUN_AUTONOMOUSLY, int(steer_command), 1575, 0)
+      print(end-start)
+      dataline='{0}, {1}, {2}, {3}\n'.format(commandEnum.RUN_AUTONOMOUSLY, int(steer_command), 1590, 0)
       print(dataline)
       try:
         serial_obj.write(dataline.encode('ascii'))
@@ -176,22 +172,6 @@ def callback_switch_autonomous(channel):
       logging.debug('\n user toggled autonomous off {0}\n'.format(datetime.datetime.now().strftime(time_format)))
       if not g_stop_event.isSet(): #if the event isn't already set, then stop autonomous is triggered by the switch
         g_stop_event.set() #stop autonomous thread
-	#g_serial.flushInput()
-        #dataline='{0}, {1}, {2}, {3}\n'.format(commandEnum.STOP_AUTONOMOUS, 1500, 1500, 0) #Send stop command to fubarino
-        #g_serial.write(dataline.encode('ascii'))
-        #g_serial.flush()
-        #n_read_items=0
-        #while n_read_items!=10:
-        #  try:
-        #    datainput=g_serial.readline()
-        #    data=list(map(float, str(datainput, 'ascii').split(',')))
-        #    n_read_items=len(data)
-        #  except ValueError:
-        #    continue
-        #while command_list[0]!=commandEnum.STOPPED_AUTO_COMMAND_RECIEVED: #continue sending stop commands until we get an ack
-        #  g_serial.write([commandEnum.STOP_AUTONOMOUS, 1500, 1500, 0])
-        #  time.sleep(.01)
-        #  command_list=g_serial.read()
       g_ip_thread.join() #join the autonomous thread
       g_camera.stop_recording()
       callback_switch_autonomous.is_auto=False
@@ -260,7 +240,7 @@ def initialize_service():
   global g_camera
   g_camera=picamera.PiCamera()
   g_camera.resolution=(128, 96)
-  g_camera.framerate=10
+  g_camera.framerate=40
   #initialize the data collector object
   global g_collector
   g_collector=DataCollector(g_serial, "/home/pi/foocars/cars/motto/data/collected")

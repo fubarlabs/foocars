@@ -50,7 +50,6 @@ int thr;        // throttle 1000-2000
 const int PIN_STR = 9;
 const int PIN_THR = 7;
 const int PIN_LED = 14;
-
 int gTotalNumberOfPassesForCommandDisplay = 10000;
 int gCountOfPassesForCommandDisplay = gTotalNumberOfPassesForCommandDisplay;
 
@@ -79,6 +78,18 @@ Servo ServoTHR;
 #define RC_INPUT_COUNT 2
 volatile uint16_t pulseHighTime[RC_INPUT_COUNT];
 volatile uint16_t pulseLowTime[RC_INPUT_COUNT];
+
+unsigned long steer_history[20];
+int steer_next_ind;
+unsigned long thr_zero_val=1500;
+
+unsigned long compAvg(unsigned long *data_array, int len){
+    unsigned long result=0;
+    for (int i=0; i<len; i++){
+        result+=data_array[i];
+    }
+    return (result/len);
+}
 
 //This function pulls the data being populated by the input capture interrupts.
 //it corrects for the timer restarting.
@@ -169,6 +180,11 @@ void setup() {
     
     ServoSTR.attach(PIN_STR);
     ServoTHR.attach(PIN_THR);
+    
+    for(int i=0; i<20; i++){
+        steer_history[i]=1500;
+    }
+    steer_next_ind=0;
     
     gCenteredSteeringValue = 1500;
     gCenteredThrottleValue = 1500;
@@ -301,7 +317,21 @@ void handleRCSignals( commandDataStruct *theDataPtr ) {
     else if( THR_VAL < minimumThrottleValue )
         THR_VAL = minimumThrottleValue;
 
-             
+    //----------------FILTERING/CLIPPING HERE-------------------
+    long thr_dif=long(THR_VAL)-long(thr_zero_val);
+    steer_history[steer_next_ind]=STR_VAL;
+    steer_next_ind=(steer_next_ind+1)%20;
+    unsigned long FILT_STR_VAL=compAvg(steer_history, 20);
+
+    unsigned long CLIP_THR_VAL;
+    if(thr_dif>50){
+        CLIP_THR_VAL=1575;
+    }else if (thr_dif<-50){
+        CLIP_THR_VAL=1400;
+    }else{
+        CLIP_THR_VAL=thr_zero_val;
+    }
+    //---------------------------------------------------------
 
     // Create 16 bits values from 8 bits data
     // Accelerometer
@@ -314,8 +344,8 @@ void handleRCSignals( commandDataStruct *theDataPtr ) {
     theDataPtr->gy=0;
     theDataPtr->gz=0;
     
-    theDataPtr->thr = (int) THR_VAL;
-    theDataPtr->str = (int) STR_VAL;
+    theDataPtr->thr = (int) CLIP_THR_VAL;
+    theDataPtr->str = (int) FILT_STR_VAL;
     theDataPtr->time = millis();
     theDataPtr->command = GOOD_RC_SIGNALS_RECEIVED;
 }
@@ -327,7 +357,7 @@ void loop() {
 // ------------------------- Handle RC Commands -------------------------------
     //we create three commandDataStructs, one each for RC and Serial input, and 
     //one for output
-    delay(100);
+    delay(10);
     commandDataStruct RCInputData, SerialInputData, SerialOutputData;
     RCInputData.command=NOT_ACTUAL_COMMAND;
     SerialInputData.command=NOT_ACTUAL_COMMAND;
