@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[dev-packages]
+
+[packages]
+argparse = "*"
+tqdm = "*"
+pyserial = "*"
+Pillow = "*"
+Keras = "*"
+"h5py" = "*"
+tensorflow = {path = "./tensorflow-1.1.0-cp35-cp35m-linux_armv7l.whl"}
+"rpi.gpio" = "*"
+picamera = "*"
+
+[requires]
+python_version = "3.5"
