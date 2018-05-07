@@ -8,9 +8,15 @@ import numpy as np
 import threading
 import keras
 import tensorflow as tf
+from keras.models import Sequential
+from keras.layers.core import Dense, Dropout, Activation, Flatten, Reshape
+from keras.optimizers import Adam, SGD
 import concurrent.futures
-from dropout_model import model
+from history_model import model
 from defines import *
+model.add(Dense(2+1, activation='linear', kernel_initializer='lecun_uniform'))
+model.compile(loss=['mse'], optimizer=SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True), metrics=['mse'])
+print(model.summary())
 
 time_format='%Y-%m-%d_%H-%M-%S'
 
@@ -108,15 +114,51 @@ def imageprocessor(event, serial_obj):
 
       pred=model.predict(np.expand_dims(tmpimg, axis=0))
       steer_command=pred[0][0]*g_steerstats[1]+g_steerstats[0]
+      future_command=pred[0][1]*g_steerstats[1]+g_steerstats[0]
 
       if steer_command>2000:
         steer_command=2000
       elif steer_command<1000:
         steer_command=1000
+      steer_bin=int((steer_command-1000)/(1000/9))
 
+      if future_command>2000:
+        future_command=2000
+      elif future_command<1000:
+        future_command=1000
+      future_bin=int((future_command-1000)/(1000/9))
+      
+      thr_value=THR_LOW
+      
+      if steer_bin==0 or steer_bin==8:
+        thr_value=THR_LOW
+      elif steer_bin==1 or steer_bin==7:  
+        thr_value=THR_MID3
+      elif steer_bin==2 or steer_bin==6:  
+        thr_value=THR_MID2
+      elif steer_bin==3 or steer_bin==5:  
+        if future_bin in [0, 8]:
+          thr_value=THR_MID2
+        else:
+          thr_value=THR_MID1
+      else:
+        if future_bin in [0, 8, 1, 7]:
+          thr_value=THR_MID2
+        elif future_bin in [2, 6]:
+          thr_value=THR_MID1
+        else:
+          thr_value=THR_HIGH
+      #if steer_command>1750 or steer_command<1250:
+      #  thr_value=THR_LOW
+      #elif steer_command>1650 or steer_command<1350:
+      #  thr_value=THR_MID1
+      #elif steer_command>1550 or steer_command<1450:
+      #  thr_value=THR_MID2
+      #else:
+      #  thr_value=THR_HIGH
       end=time.time()
       print(end-start)
-      dataline='{0}, {1}, {2}, {3}\n'.format(commandEnum.RUN_AUTONOMOUSLY, int(steer_command), THR_MAX, 0)
+      dataline='{0}, {1}, {2}, {3}\n'.format(commandEnum.RUN_AUTONOMOUSLY, int(steer_command), thr_value, 0)
       print(dataline)
       try:
         serial_obj.write(dataline.encode('ascii'))
