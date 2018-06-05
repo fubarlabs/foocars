@@ -94,8 +94,8 @@ class ImagePlayer(QMainWindow):
 #-------setup timer for video playback-----------
         self.timer=QTimer()
         self.timer.timeout.connect(self.next_img)
-        self.timer.setInterval(100)
-        self.timer_intervals=[1000, 500, 200, 100, 50, 20]
+        self.timer.setInterval(25)
+        self.timer_intervals=[250, 125, 50, 25, 12, 5]
 #-------Create MenuBar with Load/Save------------
         filemenu=self.menuBar().addMenu("File")
         filemenu.addAction(self.open_act)
