@@ -284,6 +284,9 @@ for j in range(0, 3):
     time.sleep(.05)
 displayBinLEDCode(0)
 
+# Leave an indicator that the PI is booted
+GPIO.output(LED_names["read_from_USBdrive"], LED_ON)
+
 for switch in switch_names.values():
   GPIO.setup(switch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
