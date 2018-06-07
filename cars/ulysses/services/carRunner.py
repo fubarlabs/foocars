@@ -79,7 +79,7 @@ class DataCollector(object):
   
   def flush(self):
     '''this function is called every time the PiCamera stops recording'''
-    self.executor.submit(save_data, self.imgs, self.IMUdata, self.RCcommands, self.img_file, self.IMUdata_file, self.RCcommands_file)
+    self.executor.submit(save_data, np.copy(self.imgs), np.copy(self.IMUdata), np.copy(self.RCcommands), self.img_file, self.IMUdata_file, self.RCcommands_file)
     #this new image file name is for the next chunk of data, which starts recording now
     nowtime=datetime.datetime.now()
     self.img_file=self.save_dir+'/imgs_{0}'.format(nowtime.strftime(time_format))
