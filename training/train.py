@@ -14,6 +14,8 @@ from keras.optimizers import Adam
 from keras.regularizers import l2, l1
 from keras.utils.np_utils import to_categorical
 from keras import backend as K
+# Import image crop window and other pre defined settings
+from defines import *
 
 #This code sets up the parser for command line arguments specifying parameters for training.
 parser=argparse.ArgumentParser()
@@ -53,9 +55,9 @@ steerSampleSTD=steer.std()
 np.savez("steerstats.npz", [steerSampleMean, steerSampleSTD])
 
 #defines image size:
-row_offset=20
-nrows=36
-ncols=128
+row_offset=ROW_OFFSET
+nrows=NROWS
+ncols=NCOLS
 
 #total number of image/output training pairs, calculated from number of non-zero steering values
 total_training_samples=sum(data_lengths) 

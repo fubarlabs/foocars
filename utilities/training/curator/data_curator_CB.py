@@ -87,6 +87,7 @@ class ImagePlayer(QMainWindow):
         dockWidget.setLayout(layout)
         list_dock_widget.setWidget(dockWidget)
         self.file_list.itemDoubleClicked.connect(self.load_selected_file)
+        self.file_list.itemChanged.connect(self.listItemDif)
         self.save_all_button.clicked.connect(self.toggle_save_all)
         self.file_settings_button.clicked.connect(self.open_file_settings)
         #add dock to main window
@@ -149,7 +150,8 @@ class ImagePlayer(QMainWindow):
 
     def open_directory(self):
         self.loaddir=QFileDialog.getExistingDirectory(self)
-        self.load_directory(self.loaddir)
+        if self.loaddir is not None:
+            self.load_directory(self.loaddir)
 
     def select_save_dir(self):
         self.savedir=QFileDialog.getExistingDirectory(self)
@@ -166,6 +168,13 @@ class ImagePlayer(QMainWindow):
                     save_imgs=img_data[save_indices, :, :, :]
                     np.savez(self.savedir+'/'+self.file_dict[img]['save_name'], save_imgs)
                     np.savez(self.savedir+'/'+(self.file_dict[img]['save_name']).replace('imgs', 'commands'), comm_data)
+
+    def listItemDif(self, item):
+        filename=item.text()
+        if item.checkState()==Qt.Checked:
+            self.file_dict[filename]['save_toggle']=True
+        else:
+            self.file_dict[filename]['save_toggle']=False
 
 
 
@@ -185,7 +194,7 @@ class ImagePlayer(QMainWindow):
                 ('applied_stack', []), ('tag_dict', dict()), ('len', comm_data.shape[0]), 
                 ('save_name', os.path.basename(f1)), ('save_toggle', False)]) 
             self.file_list.addItem(f1)
-            self.file_list.item(idx).setBackground(QColor(255, 200, 200))
+            self.file_list.item(idx).setCheckState(Qt.Unchecked)
             idx=idx+1
         #load in first file:
         self.n_files=len(self.img_files)
@@ -230,7 +239,7 @@ class ImagePlayer(QMainWindow):
         idx=0
         for f in self.file_dict.keys():
             self.file_dict[f]['save_toggle']=True
-            self.file_list.item(idx).setBackground(QColor(200, 255, 200))
+            self.file_list.item(idx).setCheckState(Qt.Checked)
             idx=idx+1
 
     def open_file_settings(self):
@@ -250,9 +259,12 @@ class ImagePlayer(QMainWindow):
                     if self.global_undo_stack[i]==[]:
                         self.global_undo_stack.pop(i)
             if self.file_dict[filename]['save_toggle']==True:
-                self.file_list.currentItem().setBackground(QColor(200, 255, 200))
+                #self.file_list.currentItem().setBackground(QColor(200, 255, 200))
+                self.file_list.currentItem().setCheckState(Qt.Checked)
+
             else:
-                self.file_list.currentItem().setBackground(QColor(255, 200, 200))
+                #self.file_list.currentItem().setBackground(QColor(255, 200, 200))
+                self.file_list.currentItem().setCheckState(Qt.Checked)
             if filename==self.current_filename:
                 self.hopper.setIndex(0) #TODO FIXME this will definitely cause an error eventually
                 self.update_image(0)

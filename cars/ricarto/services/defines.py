@@ -1,10 +1,10 @@
 import RPi.GPIO as GPIO
 
 LED_names={ 
-  "boot_RPi" : 2,
-  "shutdown_RPi" : 3,
+  "boot_RPi" : 3,
+  "shutdown_RPi" : 27,
   "autonomous" : 4,
-  "collect_data" : 27,
+  "collect_data" : 2,
   "save_to_USBdrive" : 22,
   "read_from_USBdrive" : 17,
 }
@@ -19,14 +19,14 @@ switch_names={
 }
 
 FRAME_RATE = 40
-DATA_DIR = "/home/pi/foocars/cars/ulysses/data/"
+DATA_DIR = "/home/pi/foocars/cars/ricarto/data/"
 COLLECT_DIR = DATA_DIR + "collected"
 WEIGHTS_DIR = DATA_DIR + "weights/"
 #WEIGHTS_FILE = WEIGHTS_DIR + "weights_2018-04-15_21-43-33_epoch_20.h5"
 #WEIGHTS_FILE = WEIGHTS_DIR + "weights_2018-04-15_21-43-33_epoch_40.h5"
-WEIGHTS_FILE = WEIGHTS_DIR + "weights.h5"
+WEIGHTS_FILE = WEIGHTS_DIR + "weights_2018-05-02_19-42-12_epoch_56.h5"
 STEERSTATS_FILE = WEIGHTS_DIR + "steerstats.npz"
-THR_MAX = 1580
+THR_MAX = 1604
 
 SWITCH_ON=GPIO.LOW
 SWITCH_OFF=GPIO.HIGH
