@@ -28,35 +28,35 @@ frame_in = Input(shape=(3, nrows, ncols), name='img_input')
 print("adding first convolutional layer")
 #5x5 convolutional layer with a stride of 2
 #model.add(BatchNormalization(input_shape=(nrows, ncols, 3)))
-model.add(Conv2D(24, (5, 5), input_shape=(nrows, ncols, 3), strides=(2, 2), activation='elu', padding='same', kernel_initializer='lecun_uniform'))
+model.add(Conv2D(10, (5, 5), input_shape=(nrows, ncols, 3), strides=(2, 2), activation='elu', padding='same', kernel_initializer='lecun_uniform'))
 #model.add(MaxPooling2D(pool_size=(2, 2), data_format="channels_last"))
 model.add(Dropout(dp))
 
 print("adding second convolutional layer")
 #5x5 convolutional layer with a stride of 2
 #model.add(BatchNormalization())
-model.add(Conv2D(32, (5, 5), strides=(2, 2), activation='elu', padding='same', kernel_initializer='lecun_uniform'))
+model.add(Conv2D(16, (5, 5), strides=(2, 2), activation='elu', padding='same', kernel_initializer='lecun_uniform'))
 #model.add(MaxPooling2D(pool_size=(2, 2), data_format="channels_last"))
 model.add(Dropout(dp))
 
 print("adding third convolutional layer")
 #5x5 convolutional layer with a stride of 2
 #model.add(BatchNormalization())
-model.add(Conv2D(40, (5, 5), strides=(2, 2), activation='elu', padding='same', kernel_initializer='lecun_uniform'))
+model.add(Conv2D(16, (5, 5), strides=(2, 2), activation='elu', padding='same', kernel_initializer='lecun_uniform'))
 #model.add(MaxPooling2D(pool_size=(2, 2), data_format="channels_last"))
 model.add(Dropout(dp))
 
 print("adding fourth convolutional layer")
 #3x3 convolutional layer with no stride 
 #model.add(BatchNormalization())
-model.add(Conv2D(48, (3, 3), strides=(2, 2), activation='elu', padding='same', kernel_initializer='lecun_uniform'))
+model.add(Conv2D(20, (3, 3), strides=(2, 2), activation='elu', padding='same', kernel_initializer='lecun_uniform'))
 #model.add(MaxPooling2D(pool_size=(2, 2), data_format="channels_last"))
 model.add(Dropout(dp))
 
 print("adding fifth convolutional layer")
 #3x3 convolutional layer with no stride 
 #model.add(BatchNormalization())
-model.add(Conv2D(48, (3, 3), strides=(2, 2), activation='elu', padding='same', kernel_initializer='lecun_uniform'))
+model.add(Conv2D(20, (3, 3), strides=(2, 2), activation='elu', padding='same', kernel_initializer='lecun_uniform'))
 #model.add(MaxPooling2D(pool_size=(2, 2), data_format="channels_last"))
 #model.add(BatchNormalization())
 model.add(Dropout(dp))
@@ -66,7 +66,7 @@ model.add(Flatten())
 
 print("adding fully connected layer")
 #fully connected layer
-model.add(Dense(100, activation='elu', kernel_initializer='lecun_uniform'))
+model.add(Dense(50, activation='elu', kernel_initializer='lecun_uniform'))
 model.add(Dropout(dp))
 
 print("adding output layer")

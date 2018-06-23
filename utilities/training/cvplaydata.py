@@ -7,8 +7,8 @@ import numpy as np
 
 #imagefiles=glob.glob(os.path.join('data', 'imgs_2017-09-14_22-2[2-5]*.npz'))
 #ctlfiles=glob.glob(os.path.join('data', 'commands_2017-09-14_22-2[2-5]*.npz'))
-imagefiles=glob.glob(os.path.join('/home/jim/Desktop/data_2018-01-20_12-38-39', 'imgs*.npz'))
-ctlfiles=glob.glob(os.path.join('/home/jim/Desktop/data_2018-01-20_12-38-39', 'commands*.npz'))
+imagefiles=glob.glob(os.path.join('/home/fubar/foocars/cars/motto/curatedData/data1', 'imgs*.npz'))
+ctlfiles=glob.glob(os.path.join('/home/fubar/foocars/cars/motto/curatedData/data1', 'commands*.npz'))
 print(len(imagefiles))
 
 speed=np.array([])
@@ -43,7 +43,7 @@ for imagefile, ctlfile in zip(sorted(imagefiles), sorted(ctlfiles)):
   steer=ctldata[:, 0]
   for im, steerval in zip(images, steer):
   #for im in images:
-    im=im[0:78, :]
+    im=im[20:56, :]
     image=cv2.resize(im, (0, 0), fx=5, fy=5, interpolation=cv2.INTER_NEAREST)
     r, g, b=cv2.split(image)
     newim=cv2.merge((b, g, r))

@@ -69,9 +69,3 @@ print("adding fully connected layer")
 model.add(Dense(100, activation='elu', kernel_initializer='lecun_uniform'))
 model.add(Dropout(dp))
 
-print("adding output layer")
-#fully connected layer to output node
-model.add(Dense(1, activation='linear', kernel_initializer='lecun_uniform'))
-
-model.compile(loss=['mse'], optimizer=SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True), metrics=['mse'])
-print(model.summary())

@@ -4,17 +4,6 @@ import numpy as np
 import glob
 import datetime
 import argparse
-
-import keras
-from keras.models import Sequential
-from keras.layers.core import Dense, Dropout, Activation, Flatten, Reshape
-from keras.layers import Embedding, Input, merge
-from keras.layers.convolutional import Conv2D, MaxPooling2D
-from keras.optimizers import Adam
-from keras.regularizers import l2, l1
-from keras.utils.np_utils import to_categorical
-from keras import backend as K
-
 #This code sets up the parser for command line arguments specifying parameters for training.
 parser=argparse.ArgumentParser()
 parser.add_argument('--weight_filename', action='store', default='weights', help='prefix for saved weight files')
@@ -35,16 +24,23 @@ time_format='%Y-%m-%d_%H-%M-%S'
 trainstart=datetime.datetime.now()
 time_string=trainstart.strftime(time_format)
 
-steer=np.array([]) #this is where we store the steering training data
+steer=np.zeros((0, args.delay+1)) #this is where we store the steering training data
 data_lengths=[] #this will hold the lengths of each file of steering data after zeros are trimmed.
 #this loops through the input directories, and then through the files in the directories to load in the steering data:
 for directory in args.directories:
     ctlfiles=glob.glob(os.path.join(directory, 'commands*.npz'))
     for ctlfile in sorted(ctlfiles):
+        #print(ctlfile)
         ctldata=np.load(ctlfile)['arr_0']
         data_to_append=np.trim_zeros(ctldata[:, 0], trim='b')
         data_lengths.append(len(data_to_append))
-        steer=np.concatenate((steer, data_to_append[args.delay:len(data_to_append)]), axis=0)#note that we compensate for delay here
+        gt=np.zeros((len(data_to_append)-args.delay, 0))
+        for n in range(0, args.delay+1):
+            #print(gt.shape)
+            delay_data=np.expand_dims(data_to_append[n:len(data_to_append)-(args.delay-n)], 1)
+            #print(delay_data.shape)
+            gt=np.concatenate((gt, delay_data), axis=1)
+        steer=np.concatenate((steer, gt), axis=0)
 
 #use these values to normalize target data before training
 steerSampleMean=steer.mean()
@@ -80,10 +76,26 @@ for directory in args.directories:
         i+=1#this increments for each file, and keeps track of where to get the number of data frames from data_lengths
 
 
+import keras
+from keras.models import Sequential
+from keras.layers.core import Dense, Dropout, Activation, Flatten, Reshape
+from keras.layers import Embedding, Input, merge
+from keras.layers.convolutional import Conv2D, MaxPooling2D
+from keras.optimizers import Adam, SGD
+from keras.regularizers import l2, l1
+from keras.utils.np_utils import to_categorical
+from keras import backend as K
+
+
 #this loads the predefined network architecture from dropout_model.py
-#from dropout_model import model
-from dropout_model import model
-print(model)
+from history_model import model
+print("adding output layer")
+#fully connected layer to output node
+model.add(Dense(args.delay+1, activation='linear', kernel_initializer='lecun_uniform'))
+
+model.compile(loss=['mse'], optimizer=SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True), metrics=['mse'])
+print(model.summary())
+
 num_epochs=args.epochs#number of epochs to train over
 save_epochs=args.save_frequency#number of epochs between weight file saves
 #if the user inputs a weight file for initial state, load it:
