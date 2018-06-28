@@ -6,7 +6,7 @@ from keras.layers.core import Dense, Dropout, Activation, Flatten, Reshape
 from keras.optimizers import Adam, SGD
 #from dropout_model import model
 from history_model import model
-model.add(Dense(5+1, activation='linear', kernel_initializer='lecun_uniform'))
+model.add(Dense(6+1, activation='linear', kernel_initializer='lecun_uniform'))
 model.compile(loss=['mse'], optimizer=SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True), metrics=['mse'])
 print(model.summary())
 
@@ -33,7 +33,7 @@ switch_names={
 FRAME_RATE = 40 #optimism
 DATA_DIR = "/home/pi/foocars/cars/otto/data/"
 COLLECT_DIR = DATA_DIR + "collected"
-WEIGHTS_DIR = DATA_DIR + "models/"
+WEIGHTS_DIR = DATA_DIR + "models/w1/"
 WEIGHTS_FILE = WEIGHTS_DIR + "weights.h5"
 STEERSTATS_FILE = WEIGHTS_DIR + "steerstats.npz"
 THR_MAX =1445

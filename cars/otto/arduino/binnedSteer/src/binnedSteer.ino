@@ -238,6 +238,19 @@ void handleRCSignals(commandDataStruct *theDataPtr){
     }
   }
 
+  if(STR_VAL<1200)
+     STR_VAL = 1310;
+  else if(STR_VAL<1400)
+     STR_VAL = 1400;
+  else if(STR_VAL<1600)
+     STR_VAL = 1480;
+  else if(STR_VAL<1800)
+     STR_VAL = 1560;
+  else 
+     STR_VAL = 1670;
+
+    
+/*
   if( STR_VAL > maximumSteeringValue )
       STR_VAL = maximumSteeringValue;
 
@@ -249,6 +262,7 @@ void handleRCSignals(commandDataStruct *theDataPtr){
 
   else if( THR_VAL < minimumThrottleValue )
       THR_VAL = minimumThrottleValue;
+*/
 //----------------FILTERING/CLIPPING HERE-------------------
   long thr_dif=long(THR_VAL)-long(thr_zero_val);
   steer_history[steer_next_ind]=STR_VAL;
