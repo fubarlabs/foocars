@@ -12,7 +12,7 @@ pyserial = "*"
 Pillow = "*"
 Keras = "*"
 "h5py" = "*"
-tensorflow = {path = "./tensorflow-1.8.0-cp35-none-linux_armv7l.whl"}
+tensorflow = "*"
 "rpi.gpio" = "*"
 picamera = "*"
 

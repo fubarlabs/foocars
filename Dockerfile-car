@@ -14,12 +14,9 @@ WORKDIR foocars
 
 COPY . .
 
-# https://github.com/samjabrahams/tensorflow-on-raspberry-pi/releases
-RUN wget https://github.com/samjabrahams/tensorflow-on-raspberry-pi/releases/download/v1.1.0/tensorflow-1.1.0-cp34-cp34m-linux_armv7l.whl
-# RUN cp  tensorflow-1.1.0-cp34-cp34m-linux_armv7l.whl  tensorflow-1.1.0-cp35-cp35m-linux_armv7l.whl
 
-RUN pip3 install  tensorflow-1.1.0-cp34-cp34m-linux_armv7l.whl 
-
+RUN pip3 install tensorflow
+RUN pip3 install pipenv
 RUN pip3 install mock
 
 
@@ -37,6 +34,7 @@ RUN pio device list
 
 WORKDIR /foocars
 RUN pip3 install -r requirements.txt
+
 
 # TODO no longer run as service but as a car script ottoLogger.py for example
 # Set up the raspberry pi services
