@@ -1,8 +1,6 @@
 #local ignores
 
 nntrain/
-data/
-cars/*/data/
 *.pioenvs
 
 
