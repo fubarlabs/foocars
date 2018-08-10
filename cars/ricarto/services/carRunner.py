@@ -6,10 +6,8 @@ import picamera
 import serial
 import numpy as np
 import threading
-
-import tensorflow as tf
 import keras
-
+import tensorflow as tf
 import concurrent.futures
 from dropout_model import model
 from defines import *
@@ -81,7 +79,7 @@ class DataCollector(object):
   
   def flush(self):
     '''this function is called every time the PiCamera stops recording'''
-    self.executor.submit(save_data, self.imgs, self.IMUdata, self.RCcommands, self.img_file, self.IMUdata_file, self.RCcommands_file)
+    self.executor.submit(save_data, np.copy(self.imgs), np.copy(self.IMUdata), np.copy(self.RCcommands), self.img_file, self.IMUdata_file, self.RCcommands_file)
     #this new image file name is for the next chunk of data, which starts recording now
     nowtime=datetime.datetime.now()
     self.img_file=self.save_dir+'/imgs_{0}'.format(nowtime.strftime(time_format))
@@ -147,9 +145,9 @@ class DataGetter(object):
 def callback_switch_shutdown_RPi(channel):
   if GPIO.input(switch_names["shutdown_RPi"])!=SWITCH_ON:
     return 
-  GPIO.output(LED_names["shutdown_RPi"], LED_OFF)
-  time.sleep(1)
   GPIO.output(LED_names["shutdown_RPi"], LED_ON)
+  time.sleep(1)
+  GPIO.output(LED_names["shutdown_RPi"], LED_OFF)
 
 def callback_switch_autonomous(channel):
   global g_getter
@@ -287,7 +285,7 @@ for j in range(0, 3):
 displayBinLEDCode(0)
 
 # Leave an indicator that the PI is booted
-GPIO.output(LED_names["shutdown_RPi"], LED_ON)
+GPIO.output(LED_names["read_from_USBdrive"], LED_ON)
 
 for switch in switch_names.values():
   GPIO.setup(switch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -360,6 +358,5 @@ while(True):
 
 
     
-GPIO.output(LED_names["boot_RPi"], GPIO.LOW)
 GPIO.cleanup()
 g_serial.close()
