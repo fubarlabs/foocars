@@ -6,8 +6,10 @@ import picamera
 import serial
 import numpy as np
 import threading
-import keras
+
 import tensorflow as tf
+import keras
+
 import concurrent.futures
 from dropout_model import model
 from defines import *

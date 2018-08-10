@@ -22,9 +22,7 @@ FRAME_RATE = 40
 DATA_DIR = "/home/pi/foocars/cars/ricarto/data/"
 COLLECT_DIR = DATA_DIR + "collected"
 WEIGHTS_DIR = DATA_DIR + "weights/"
-#WEIGHTS_FILE = WEIGHTS_DIR + "weights_2018-04-15_21-43-33_epoch_20.h5"
-#WEIGHTS_FILE = WEIGHTS_DIR + "weights_2018-04-15_21-43-33_epoch_40.h5"
-WEIGHTS_FILE = WEIGHTS_DIR + "weights_2018-05-02_19-42-12_epoch_56.h5"
+WEIGHTS_FILE = WEIGHTS_DIR + "weights-default.h5"
 STEERSTATS_FILE = WEIGHTS_DIR + "steerstats.npz"
 THR_MAX = 1604
 
