@@ -1,4 +1,15 @@
 import RPi.GPIO as GPIO
+import keras
+import tensorflow as tf
+from keras.models import Sequential
+from keras.layers.core import Dense, Dropout, Activation, Flatten, Reshape
+from keras.optimizers import Adam, SGD
+#from dropout_model import model
+from history_model import model
+model.add(Dense(100, activation='linear', kernel_initializer='lecun_uniform'))
+model.compile(loss=['mse'], optimizer=SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True), metrics=['mse'])
+print(model.summary())
+
 
 LED_names={ "boot_RPi" : 22,
   "shutdown_RPi" : 27,
@@ -19,10 +30,15 @@ switch_names={ "shutdown_RPi" : 6,
 FRAME_RATE = 40
 DATA_DIR = "/home/pi/foocars/cars/motto/data/"
 COLLECT_DIR = DATA_DIR + "collected"
-WEIGHTS_DIR = DATA_DIR + "weights/"
+WEIGHTS_DIR = DATA_DIR + "models/history/"
+print(WEIGHTS_DIR)
 WEIGHTS_FILE = WEIGHTS_DIR + "weights.h5"
 STEERSTATS_FILE = WEIGHTS_DIR + "steerstats.npz"
-THR_MAX = 1590
+THR_MAX =1445
+THR_HIGH=1310
+THR_MID=1375
+THR_LOW=1435
+
 
 
 SWITCH_ON=GPIO.LOW
