@@ -17,4 +17,4 @@ tensorflow = {path = "./tensorflow-1.8.0-cp35-none-linux_armv7l.whl"}
 picamera = "*"
 
 [requires]
-python_version = "3.5"
+python_version = "3.*"

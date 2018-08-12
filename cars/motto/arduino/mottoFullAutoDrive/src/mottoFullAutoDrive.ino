@@ -325,9 +325,10 @@ void handleRCSignals( commandDataStruct *theDataPtr ) {
 
     unsigned long CLIP_THR_VAL;
     if(thr_dif>50){
-        CLIP_THR_VAL=1575;
+        //CLIP_THR_VAL=1575;
+	CLIP_THR_VAL=1595;
     }else if (thr_dif<-50){
-        CLIP_THR_VAL=1400;
+        CLIP_THR_VAL=1350;
     }else{
         CLIP_THR_VAL=thr_zero_val;
     }
