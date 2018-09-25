@@ -1,2 +1,2 @@
-qt
+pyqt5
 scipy
