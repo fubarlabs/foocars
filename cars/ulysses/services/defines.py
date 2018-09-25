@@ -1,12 +1,9 @@
 import RPi.GPIO as GPIO
 
 LED_names={ 
-  "boot_RPi" : 2,
-  "shutdown_RPi" : 3,
-  "autonomous" : 4,
-  "collect_data" : 27,
-  "save_to_USBdrive" : 22,
-  "read_from_USBdrive" : 17,
+  "shutdown_RPi" : 4,
+  "autonomous" : 27,
+  "collect_data" : 2,
 }
 
 
@@ -14,8 +11,6 @@ switch_names={
   "shutdown_RPi" : 9,
   "autonomous" : 11,
   "collect_data" : 6,
-  "save_to_USBdrive" : 13,
-  "read_from_USBdrive" : 5,
 }
 
 FRAME_RATE = 40
@@ -53,3 +48,9 @@ commandEnum=enum(
   GOOD_RC_SIGNALS_RECIEVED=11)
 
 
+#code is an int in range 0-63, consisting of binary on-off values for the leds. boot_RPi is MSB
+def displayBinLEDCode(code): 
+  GPIO.output(LED_names["autonomous"], (code>>2)&1)
+  GPIO.output(LED_names["shutdown_RPi"], (code>>1)&1)
+  GPIO.output(LED_names["collect_data"], (code)&1)
+  

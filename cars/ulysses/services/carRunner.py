@@ -217,15 +217,6 @@ def callback_switch_read_from_USBdrive(channel):
   time.sleep(1)
   GPIO.output(LED_names["read_from_USBdrive"], LED_OFF)
 
-#code is an int in range 0-63, consisting of binary on-off values for the leds. boot_RPi is MSB
-def displayBinLEDCode(code): 
-  GPIO.output(LED_names["boot_RPi"], (code>>5)&1)
-  GPIO.output(LED_names["shutdown_RPi"], (code>>4)&1)
-  GPIO.output(LED_names["autonomous"], (code>>3)&1)
-  GPIO.output(LED_names["collect_data"], (code>>2)&1)
-  GPIO.output(LED_names["save_to_USBdrive"], (code>>1)&1)
-  GPIO.output(LED_names["read_from_USBdrive"], code&1)
-
 def initialize_service():
   #initialize the serial port: if the first port fails, we try the other one
   global g_serial
@@ -275,17 +266,19 @@ for led in LED_names.values():
 
 initialize_service()
 
+n_leds=len(LED_names)
+
 for j in range(0, 3):
-  for i in range(0, 6):
+  for i in range(0, n_leds):
     displayBinLEDCode(2**i)
     time.sleep(.05)
-  for i in range(0, 6):
-    displayBinLEDCode(2**(5-i))
+  for i in range(0, n_leds):
+    displayBinLEDCode(2**(n_leds-1-i))
     time.sleep(.05)
 displayBinLEDCode(0)
 
 # Leave an indicator that the PI is booted
-GPIO.output(LED_names["read_from_USBdrive"], LED_ON)
+GPIO.output(LED_names["shutdown_RPi"], LED_ON)
 
 for switch in switch_names.values():
   GPIO.setup(switch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -293,8 +286,6 @@ for switch in switch_names.values():
 GPIO.add_event_detect(switch_names["shutdown_RPi"], GPIO.FALLING, callback=callback_switch_shutdown_RPi, bouncetime=50);
 GPIO.add_event_detect(switch_names["autonomous"], GPIO.BOTH, callback=callback_switch_autonomous, bouncetime=200);
 GPIO.add_event_detect(switch_names["collect_data"], GPIO.BOTH, callback=callback_switch_collect_data, bouncetime=50);
-GPIO.add_event_detect(switch_names["save_to_USBdrive"], GPIO.FALLING, callback=callback_switch_save_to_USBdrive, bouncetime=50);
-GPIO.add_event_detect(switch_names["read_from_USBdrive"], GPIO.FALLING, callback=callback_switch_read_from_USBdrive, bouncetime=50);
 
 auto_mode=False 
 printcount=0
@@ -357,6 +348,7 @@ while(True):
     auto_mode=False
 
 
+GPIO.output(LED_names["shutdown_RPI"], GPIO.LOW)
     
 GPIO.cleanup()
 g_serial.close()
