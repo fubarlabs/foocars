@@ -39,7 +39,7 @@ Download Etcher from the link below. be sure to install the full version with De
 
 3.	Before running the installer, eject any external storage devices such as USB flash drives and backup hard disks. This makes it easier to identify the SD card. Then insert the SD card reader into the slot on your computer or into the reader.
 
-<img src="Pictures/Pic1.png" width="100" >
+<img src="pictures/pic1.png">
 
 ## References and Additional Resources.
 
