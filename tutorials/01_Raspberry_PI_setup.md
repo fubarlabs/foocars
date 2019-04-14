@@ -136,7 +136,7 @@ If you’re using a Mac, you can SSH into the Pi with Terminal. A good tutorial 
 
 Download and install PuTTY to your PC from here: https://www.putty.org
 
-<img src="pictures/pic9.png" width="500">
+<img src="pictures/pic9.png" width="700">
 
 Plug the power cable the Pi. A red and a green light will show, let it boot for about a minute.
 
