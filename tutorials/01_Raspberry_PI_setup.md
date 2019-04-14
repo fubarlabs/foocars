@@ -39,13 +39,13 @@ Download Etcher from the link below. be sure to install the full version with De
 
 3.	Before running the installer, eject any external storage devices such as USB flash drives and backup hard disks. This makes it easier to identify the SD card. Then insert the SD card reader into the slot on your computer or into the reader.
 
-<img src="pictures/pic1.png" width="200">
+<img src="pictures/pic1.png" width="300">
 
 4.	To write the OS image to the SD card, run Etcher and select the Zip file with the OS image. Click on “Flash” and the image will be now on our SD card. On windows 10 various pop ups many emerge, just ignore them and wait until it will say Flash Complete.
 
 Note that you don't need to extract the image or format the card prior to writing.
 
-<img src="pictures/pic2.png" width="200">
+<img src="pictures/pic2.png" width="500">
 
 ## References and Additional Resources.
 
