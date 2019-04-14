@@ -41,6 +41,12 @@ Download Etcher from the link below. be sure to install the full version with De
 
 <img src="pictures/pic1.png" width="200">
 
+4.	To write the OS image to the SD card, run Etcher and select the Zip file with the OS image. Click on “Flash” and the image will be now on our SD card. On windows 10 various pop ups many emerge, just ignore them and wait until it will say Flash Complete.
+
+Note that you don't need to extract the image or format the card prior to writing.
+
+<img src="pictures/pic2.png" width="200">
+
 ## References and Additional Resources.
 
 1.	How to setup the PI with keyboard and monitor:
