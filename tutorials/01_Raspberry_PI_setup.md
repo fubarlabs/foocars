@@ -60,7 +60,7 @@ The steps are as follows:
  
 2.	Open the boot folder and create a new blank notepad file and save it in the boot drive as “ssh” without any extension in the end. Creating “ssh” file in the boot partition will enable ssh access as soon as the Pi boots. This will enable to configure our Raspberry Pi Zero Remotely. When we boot the Raspberry Pi, it looks for the SSH file and since we created it, the Raspberry Pi will enable the SSH and then deletes the file.
 
-<img src="pictures/pic4.png" width="300">
+<img src="pictures/pic4.png" width="500">
 
 Do not eject the SD card yet as we need to configure the wifi connection.
 
@@ -93,7 +93,7 @@ psk=”your password”
 }
 </code></pre>
 
-<img src="pictures/pic7.png" width="300">
+<img src="pictures/pic7.png" width="500">
 
 
 Caution notes:
@@ -103,6 +103,58 @@ Caution notes:
 *	Use the 2 letter country abbreviation in CAPS (without this you will have no WiFi).
 *	Use a pure text editor, not a word processor, to edit the wpa_supplicant.conf file.
 *	Make sure that both files are in the main directory of the small FAT32 partition, not in any folder. 
+
+The Country Code should be set the ISO/IEC alpha2 code for the country in which you are using your Pi. 
+
+Common codes include :
+* GB (United Kingdom)
+*	FR (France)
+*	DE (Germany)
+*	US (United States)
+*	SE (Sweden)
+
+The rest of the country codes can be found here:
+
+https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements
+
+Lastly, safely eject the micro SD card from your PC and insert into the Pi. 
+
+Power up the Pi and once it has booted you should be connected to your WiFi network. If Raspbian finds an ssh file it will enable SSH and delete the file. If it finds a wpa_supplicant.conf file, it will move it to its correct location and connect to your wireless network.
+
+For the Raspberry Pi 3, you will need to flip it to see the card slot, as in the picture below.
+
+<img src="pictures/pic8.png" width="300">
+
+## Connect  to Wifi. 
+Since we don’t have access to the command prompt of the Raspberry Pi yet, we need a tool called PuTTY, which acts as a remote SSH Server (i.e. it’s an SSH client) so that we can access the Raspberry Pi’s command prompt from a remote computer. PuTTY establishes an SSH connection between the Raspberry Pi and another computer. It opens up a window that gives you access to the Raspberry Pi’s command prompt. 
+
+**Mac**
+
+If you’re using a Mac, you can SSH into the Pi with Terminal. A good tutorial on SSHing via Terminal can be found on [3] under the “References” section below.
+
+**Windows**
+
+Download and install PuTTY to your PC from here: https://www.putty.org
+
+<img src="pictures/pic9.png" width="500">
+
+Plug the power cable the Pi. A red and a green light will show, let it boot for about a minute.
+
+<img src="pictures/pic10.png" width="300">
+
+Or in Pi Zero:
+
+<img src="pictures/pic11.png" width="300">
+
+## Login over Wifi (no Ethernet cable)
+
+We know that the default hostname (the name of the machine) for a fresh Raspbian install is **raspberrypi**, so in the Host Name (or IP address) field enter **raspberrypi** (or raspberry.local). You usually need to add the .local if the Pi is directly connected to your PC via USB or Ethernet cable.
+
+This searches for machines on that name on the local network. Once a connection is established, you'll be prompted by PuTTY to accept the connection to the new machine. You should see a black terminal prompting for a login. 
+Enter the default **username: pi** and the default **password: raspberry**
+
+
+
 
 
 ## References and Additional Resources.
