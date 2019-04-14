@@ -47,6 +47,64 @@ Note that you don't need to extract the image or format the card prior to writin
 
 <img src="pictures/pic2.png" width="500">
 
+<img src="pictures/pic3.png" width="500">
+
+## Allowing for Remote Connectivity. 
+We now need to enable remote access to the PI. This will allow us to use PI’s command prompt remotely from own computer. The Raspberry Pi will act as a remote device: you can connect to it using a client on another machine. You only have access to the command line, not the full desktop environment. For a full remote desktop, we will later install VNC.
+
+For security reasons, SSH is no longer enabled by default. To enable it you need to place an empty filed named SSH (no extension) in the root of the boot disk.
+
+The steps are as follows:
+
+1.	After Etcher has finished flashing the drive, remove and reinsert the SD card so that your Windows or Mac PC can see the small FAT32 partition on the card (labeled "boot"). If you get a message telling you the card must be formatted, cancel it.
+ 
+2.	Open the boot folder and create a new blank notepad file and save it in the boot drive as “ssh” without any extension in the end. Creating “ssh” file in the boot partition will enable ssh access as soon as the Pi boots. This will enable to configure our Raspberry Pi Zero Remotely. When we boot the Raspberry Pi, it looks for the SSH file and since we created it, the Raspberry Pi will enable the SSH and then deletes the file.
+
+<img src="pictures/pic4.png" width="300">
+
+Do not eject the SD card yet as we need to configure the wifi connection.
+
+## Configuring the Wifi
+Next we will create a file that has the WIFI details. 
+
+1.	 On the boot drive of the SD card, create another file called: “wpa_supplicant.conf” 
+
+2.	Now we need to add our wifi details to the file. 
+If using Windows you need to make sure the text file uses Linux/Unix style line breaks. I use Notepad++ (it’s free!) and this is easy to do using “Edit” > “EOL Conversion” > “UNIX/OSX Format”. “UNIX” is then shown in the status bar.
+
+Edit the file like this:
+
+<img src="pictures/pic5.png" width="300">
+
+Copy the information on the Notepad++
+
+<img src="pictures/pic6.png" width="300">
+
+Open it and add the following details.  A list of configuration files for Raspbian Jesse, Raspbian Stretch and networks without passwords can be found in [4] on the “References” section below.
+
+<pre><code>
+country = your country id (in caps)
+update_config=1
+ctrl_interface=/var/run/wpa_supplicant
+network={
+scan_ssid=1
+ssid= “your network name”
+psk=”your password”
+}
+</code></pre>
+
+<img src="pictures/pic7.png" width="300">
+
+
+Caution notes:
+* Double check the SSID and password. 
+*	Both the SSID and password should be surrounded by quotes. 
+*	Don't put any spaces around the = in this file. 
+*	Use the 2 letter country abbreviation in CAPS (without this you will have no WiFi).
+*	Use a pure text editor, not a word processor, to edit the wpa_supplicant.conf file.
+*	Make sure that both files are in the main directory of the small FAT32 partition, not in any folder. 
+
+
 ## References and Additional Resources.
 
 1.	How to setup the PI with keyboard and monitor:
