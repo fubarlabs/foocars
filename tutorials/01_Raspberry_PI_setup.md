@@ -191,8 +191,107 @@ This searches for machines on that name on the local network. Once a connection 
 
 Enter the default **username: pi** and the default **password: raspberry**
 
+<img src="pictures/pic12.png" width="300">
+
+Click **Ok** if you get a security warning alert. It's not a problem.
+Enter **pi** as your username and **raspberry** as your password. You may want to change these later.
+
+<img src="pictures/pic13.png" width="300">
+
+## Enabling Remote Login and Connecting Over VNC
+Enter **sudo raspi-config** at the command prompt. 
+
+<img src="pictures/pic14.png" width="300">
+
+A configuration app opens.
+
+<img src="pictures/pic15.png" width="300">
+
+Select **Interfacing Options** (number 5 on the list)
+
+<img src="pictures/pic16.png" width="300">
+
+Select **VNC** (number 3 on the menu) 
+
+<img src="pictures/pic17.png" width="300">
+
+Select **Yes**
+
+<img src="pictures/pic18.png" width="300">
+
+Hit **Enter** to acknowledge the VNC server is enabled.
+
+<img src="pictures/pic19.png" width="300">
+
+Select **Finish**
+
+<img src="pictures/pic20.png" width="300">
+
+On your PC:
+
+1. Download, install and launch VNC Viewer from here: https://www.realvnc.com/en/connect/download/viewer/
+
+2. Select **New connection** from the File menu.
 
 
+<img src="pictures/pic21.png" width="300">
+
+3. Enter **raspberry.local** in the "VNC Server" field. If this does not work, try again with the name **raspberrypi** without .local.
+
+
+<img src="pictures/pic22.png" width="300">
+
+4. Click **Ok**.
+
+5. Double-click on the connection icon to connect.
+
+<img src="pictures/pic23.png" width="300">
+
+6. Click Ok if you are shown a security warning.
+
+7. Enter the Pi's username and password when prompted. 
+The defaults are: 
+
+> username: pi 
+> password: raspberry. 
+
+Click **Ok**
+
+<img src="pictures/pic24.png" width="300">
+
+Your Raspberry Pi desktop will then appear in a window on your main computer's desktop. 
+
+You'll be able to control everything from there.
+
+<img src="pictures/pic25.png" width="300">
+
+## Changing the Username and Password
+On the command line, execute following command to start the configuration tool:
+
+> sudo raspi –config
+
+<img src="pictures/pic26.png" width="300">
+
+It is highly recommended to change the default password to something different. This can be done using the “Change User Password” menu option.
+
+
+## Updating Raspbian
+To update Raspbian, you need to open the Terminal. Do this via the desktop menu, or by pressing **Ctrl + Alt + T**
+
+Updating your Raspbian installation is a two-step process:
+
+> sudo apt-get update
+> sudo apt-get upgrade
+
+The first of these commands (**sudo apt-get update**) makes a call to the **Advanced Packaging Tool (apt)** to update the package list, this is highly important as the install and upgrade commands only search the pre-grabbed package list and don’t make any attempts to update it themselves.
+
+The **update** command works this by searching the **/etc/apt/sources.list** file, and then polling all the websites in the list for all available packages creating a list of their download location and their current version. It utilizes the Advanced Packaging Tool(apt), but this time it uses it to check all currently installed packages against the package list, if there is a version miss-match for any it will attempt to update it by downloading the new version from the link in the list. The upgrade tool will never remove a package
+
+> sshpi@<new_hostname>.local
+
+Perform a final reboot, and you’re done
+
+> sudo reboot
 
 
 ## References and Additional Resources.
