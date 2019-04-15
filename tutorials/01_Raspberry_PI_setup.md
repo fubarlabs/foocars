@@ -1,4 +1,47 @@
 # How to Setup a Raspberry PI With No Keyboard, No Mouse and No Ethernet Cable
+
+# Table of contents
+1. [Introduction](#introduction)
+2. [Materials](#materials)
+3. [Burning the Operating System on the Mini SD Card ](#burningOS)
+4. [Allowing for Remote Connectivity (enabling SSH) ](#ssh)
+5. [Configuring the Wifi](#wifi)
+6. [Booting the Raspberry PI](#booting)
+7. [Connect  to  Wifi](#connectToWifi)
+8. [Login over Wifi](#loginToWifi)
+9. [Enabling Remote Login and Connecting Over VNC ](#remoteLogin)
+10. [Changing the Username and Password](#changingUserPWD)
+11. [Update and Upgrade the Software ](#update)
+12. [References and Additional Resources](#references)
+
+
+## Intoduction <a name="introduction"></a>
+
+## Materials <a name="materials"></a>
+
+
+## Burning the Operating System on the Mini SD Card <a name="burningOS"></a>
+
+
+## Allowing for Remote Connectivity (enabling SSH). <a name="ssh"></a>
+
+
+## Configuring the Wifi (add network info)  <a name="wifi"></a>
+
+## Booting the Raspberry PI <a name="booting"></a>
+
+## Connect  to  Wifi <a name="connectToWifi"></a>
+
+## Login over Wifi (no Ethernet cable) <a name="loginToWifi"></a>
+
+## Enabling Remote Login and Connecting Over VNC <a name="remoteLogin"></a>
+
+## Changing the Username and Password <a name="changingUserPWD"></a>
+
+## Update and Upgrade the Software <a name="update"></a>
+
+## References and Additional Resources.<a name="references"></a>
+
 ## Intro
 This tutorial explains how to setup a Raspberry PI using only command line (usually called “a headless setup”). The headless setup has the advantage that it can be done without needing a monitor and keyboard, as opposed to other types of setup. In a headless setup, the operating system (OS) is installed and configured entirely by command line.
 
