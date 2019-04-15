@@ -47,11 +47,29 @@ Download Etcher from the link below. be sure to install the full version with De
 
 Note that you don't need to extract the image or format the card prior to writing.
 
+**Click the “Select Image” button and choose the .zip file with Rasbpian**
+
+<img src="pictures/pic1.2.png" width="300">
+
+<img src="pictures/pic1.3.png" width="300">
+
+Click **Flash**
+
 <img src="pictures/pic2.png" width="500">
 
-<img src="pictures/pic3.png" width="500">
+<img src="pictures/pic3.png" width="300">
 
-## Allowing for Remote Connectivity. 
+Etcher will take a few minutes to install Raspbian on your microSD card. When it's done (at least in Windows) you'll see a number of alerts prompting you to format the card. Close these dialog boxes or hit cancel on them (otherwise, you will format over the OS).
+
+**Do not format the card again and ignore Window’s dialogue boxes.**
+<img src="pictures/pic3.1.png" width="300">
+
+If you are not setting up a headless Raspberry Pi, you can just pop the card in, connect your Pi to a monitor, keyboard, power source and pointing device and boot it up.
+
+If you have an Ethernet cable, you can plug your Raspberry Pi directly to a wired network and you should be able to access it by its name (raspberrypi or raspberrypi.local) without changing any other files.
+
+
+## Allowing for Remote Connectivity (enabling SSH).
 We now need to enable remote access to the PI. This will allow us to use PI’s command prompt remotely from own computer. The Raspberry Pi will act as a remote device: you can connect to it using a client on another machine. You only have access to the command line, not the full desktop environment. For a full remote desktop, we will later install VNC.
 
 For security reasons, SSH is no longer enabled by default. To enable it you need to place an empty filed named SSH (no extension) in the root of the boot disk.
