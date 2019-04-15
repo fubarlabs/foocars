@@ -49,19 +49,20 @@ Note that you don't need to extract the image or format the card prior to writin
 
 **Click the “Select Image” button and choose the .zip file with Rasbpian**
 
-<img src="pictures/pic1.2.png" width="300">
+<img src="pictures/pic1.2.png" width="500">
 
-<img src="pictures/pic1.3.png" width="300">
+<img src="pictures/pic1.3.png" width="500">
 
 Click **Flash**
 
 <img src="pictures/pic2.png" width="500">
 
-<img src="pictures/pic3.png" width="300">
+<img src="pictures/pic3.png" width="500">
 
 Etcher will take a few minutes to install Raspbian on your microSD card. When it's done (at least in Windows) you'll see a number of alerts prompting you to format the card. Close these dialog boxes or hit cancel on them (otherwise, you will format over the OS).
 
 **Do not format the card again and ignore Window’s dialogue boxes.**
+
 <img src="pictures/pic3.1.png" width="300">
 
 If you are not setting up a headless Raspberry Pi, you can just pop the card in, connect your Pi to a monitor, keyboard, power source and pointing device and boot it up.
@@ -70,9 +71,10 @@ If you have an Ethernet cable, you can plug your Raspberry Pi directly to a wire
 
 
 ## Allowing for Remote Connectivity (enabling SSH).
-We now need to enable remote access to the PI. This will allow us to use PI’s command prompt remotely from own computer. The Raspberry Pi will act as a remote device: you can connect to it using a client on another machine. You only have access to the command line, not the full desktop environment. For a full remote desktop, we will later install VNC.
+We now need to enable remote access to the PI. This will allow us to use PI’s commandprompt remotely from own computer. The Raspberry Pi will act as a remote device: you can connect to it using a client on another machine. You only have access to the command line, not the full desktop environment. For a full remote desktop, we will later install VNC.
 
-For security reasons, SSH is no longer enabled by default. To enable it you need to place an empty filed named SSH (no extension) in the root of the boot disk.
+Secure Shell (SSH) gives us a terminal into an operating system over a network and encrypts the traffic, giving us a level of security. For security reasons, SSH is no longer enabled by default. To enable it you need to place an empty filed named SSH (no extension) in the root of the boot disk.
+
 
 The steps are as follows:
 
@@ -80,7 +82,7 @@ The steps are as follows:
  
 2.	Open the boot folder and create a new blank notepad file and save it in the boot drive as “ssh” without any extension in the end. Creating “ssh” file in the boot partition will enable ssh access as soon as the Pi boots. This will enable to configure our Raspberry Pi Zero Remotely. When we boot the Raspberry Pi, it looks for the SSH file and since we created it, the Raspberry Pi will enable the SSH and then deletes the file.
 
-<img src="pictures/pic4.png" width="500">
+<img src="pictures/pic4.png" width="400">
 
 Do not eject the SD card yet as we need to configure the wifi connection.
 
@@ -104,6 +106,8 @@ Copy the information on the Notepad++
 
 Open it and add the following details.  A list of configuration files for Raspbian Jesse, Raspbian Stretch and networks without passwords can be found in [4] on the “References” section below.
 
+**For Raspbian Stretch:**
+
 <pre><code>
 country = your country id (in caps)
 update_config=1
@@ -117,6 +121,15 @@ psk=”your password”
 
 <img src="pictures/pic7.png" width="500">
 
+**For Raspbian Jessie:**
+
+<pre><code>
+network={
+ssid="YOUR_NETWORK_NAME"
+psk="YOUR_PASSWORD"
+key_mgmt=WPA-PSK
+}
+</code></pre>
 
 Caution notes:
 * Double check the SSID and password. 
@@ -139,6 +152,8 @@ The rest of the country codes can be found here:
 
 https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements
 
+## Booting the Raspberry PI
+
 Lastly, safely eject the micro SD card from your PC and insert into the Pi. 
 
 Power up the Pi and once it has booted you should be connected to your WiFi network. If Raspbian finds an ssh file it will enable SSH and delete the file. If it finds a wpa_supplicant.conf file, it will move it to its correct location and connect to your wireless network.
@@ -147,7 +162,7 @@ For the Raspberry Pi 3, you will need to flip it to see the card slot, as in the
 
 <img src="pictures/pic8.png" width="300">
 
-## Connect  to Wifi. 
+## Connect to Wifi. 
 Since we don’t have access to the command prompt of the Raspberry Pi yet, we need a tool called PuTTY, which acts as a remote SSH Server (i.e. it’s an SSH client) so that we can access the Raspberry Pi’s command prompt from a remote computer. PuTTY establishes an SSH connection between the Raspberry Pi and another computer. It opens up a window that gives you access to the Raspberry Pi’s command prompt. 
 
 **Mac**
@@ -173,6 +188,7 @@ Or in Pi Zero:
 We know that the default hostname (the name of the machine) for a fresh Raspbian install is **raspberrypi**, so in the Host Name (or IP address) field enter **raspberrypi** (or raspberry.local). You usually need to add the .local if the Pi is directly connected to your PC via USB or Ethernet cable.
 
 This searches for machines on that name on the local network. Once a connection is established, you'll be prompted by PuTTY to accept the connection to the new machine. You should see a black terminal prompting for a login. 
+
 Enter the default **username: pi** and the default **password: raspberry**
 
 
