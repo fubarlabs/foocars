@@ -234,7 +234,7 @@ On your PC:
 
 3. Enter **raspberry.local** in the "VNC Server" field. If this does not work, try again with the name **raspberrypi** without .local.
 
-<img src="pictures/pic21.png" width="500">
+<img src="pictures/pic21.png" width="300">
 
 4. Click **Ok**.
 
@@ -248,6 +248,7 @@ On your PC:
 The defaults are: 
 
 > username: pi 
+
 > password: raspberry. 
 
 Click **Ok**
@@ -276,6 +277,7 @@ To update Raspbian, you need to open the Terminal. Do this via the desktop menu,
 Updating your Raspbian installation is a two-step process:
 
 > sudo apt-get update
+
 > sudo apt-get upgrade
 
 The first of these commands (**sudo apt-get update**) makes a call to the **Advanced Packaging Tool (apt)** to update the package list, this is highly important as the install and upgrade commands only search the pre-grabbed package list and don’t make any attempts to update it themselves.
