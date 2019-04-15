@@ -39,6 +39,8 @@ Download Etcher from the link below. be sure to install the full version with De
 
 3.	Before running the installer, eject any external storage devices such as USB flash drives and backup hard disks. This makes it easier to identify the SD card. Then insert the SD card reader into the slot on your computer or into the reader.
 
+**Insert the card into the reader device** 
+
 <img src="pictures/pic1.png" width="300">
 
 4.	To write the OS image to the SD card, run Etcher and select the Zip file with the OS image. Click on “Flash” and the image will be now on our SD card. On windows 10 various pop ups many emerge, just ignore them and wait until it will say Flash Complete.
@@ -64,7 +66,9 @@ The steps are as follows:
 
 Do not eject the SD card yet as we need to configure the wifi connection.
 
-## Configuring the Wifi
+## Configuring the Wifi (add network info)
+In order to SSH into your Pi, you'll need to be connected to your local network. You can, of course, use Ethernet, but if you're using the Raspberry Pi 3, you've got WiFi built-in. So let's add our WiFi configuration to the Pi so it's available when we boot.
+
 Next we will create a file that has the WIFI details. 
 
 1.	 On the boot drive of the SD card, create another file called: “wpa_supplicant.conf” 
