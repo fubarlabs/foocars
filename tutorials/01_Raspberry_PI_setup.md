@@ -173,7 +173,7 @@ If you’re using a Mac, you can SSH into the Pi with Terminal. A good tutorial 
 
 Download and install PuTTY to your PC from here: https://www.putty.org
 
-<img src="pictures/pic9.png" width="700">
+<img src="pictures/pic9.png" width="500">
 
 Plug the power cable the Pi. A red and a green light will show, let it boot for about a minute.
 
@@ -196,36 +196,36 @@ Enter the default **username: pi** and the default **password: raspberry**
 Click **Ok** if you get a security warning alert. It's not a problem.
 Enter **pi** as your username and **raspberry** as your password. You may want to change these later.
 
-<img src="pictures/pic13.png" width="300">
+<img src="pictures/pic13.png" width="500">
 
 ## Enabling Remote Login and Connecting Over VNC
 Enter **sudo raspi-config** at the command prompt. 
 
-<img src="pictures/pic14.png" width="300">
+<img src="pictures/pic14.png" width="500">
 
 A configuration app opens.
 
-<img src="pictures/pic15.png" width="300">
+<img src="pictures/pic15.png" width="500">
 
 Select **Interfacing Options** (number 5 on the list)
 
-<img src="pictures/pic16.png" width="300">
+<img src="pictures/pic16.png" width="500">
 
 Select **VNC** (number 3 on the menu) 
 
-<img src="pictures/pic17.png" width="300">
+<img src="pictures/pic17.png" width="500">
 
 Select **Yes**
 
-<img src="pictures/pic18.png" width="300">
+<img src="pictures/pic18.png" width="500">
 
 Hit **Enter** to acknowledge the VNC server is enabled.
 
-<img src="pictures/pic19.png" width="300">
+<img src="pictures/pic19.png" width="500">
 
 Select **Finish**
 
-<img src="pictures/pic20.png" width="300">
+<img src="pictures/pic20.png" width="500">
 
 On your PC:
 
@@ -234,18 +234,18 @@ On your PC:
 2. Select **New connection** from the File menu.
 
 
-<img src="pictures/pic21.png" width="300">
+<img src="pictures/pic21.png" width="500">
 
 3. Enter **raspberry.local** in the "VNC Server" field. If this does not work, try again with the name **raspberrypi** without .local.
 
 
-<img src="pictures/pic22.png" width="300">
+<img src="pictures/pic22.png" width="500">
 
 4. Click **Ok**.
 
 5. Double-click on the connection icon to connect.
 
-<img src="pictures/pic23.png" width="300">
+<img src="pictures/pic23.png" width="500">
 
 6. Click Ok if you are shown a security warning.
 
@@ -257,20 +257,20 @@ The defaults are:
 
 Click **Ok**
 
-<img src="pictures/pic24.png" width="300">
+<img src="pictures/pic24.png" width="500">
 
 Your Raspberry Pi desktop will then appear in a window on your main computer's desktop. 
 
 You'll be able to control everything from there.
 
-<img src="pictures/pic25.png" width="300">
+<img src="pictures/pic25.png" width="500">
 
 ## Changing the Username and Password
 On the command line, execute following command to start the configuration tool:
 
 > sudo raspi –config
 
-<img src="pictures/pic26.png" width="300">
+<img src="pictures/pic26.png" width="500">
 
 It is highly recommended to change the default password to something different. This can be done using the “Change User Password” menu option.
 
