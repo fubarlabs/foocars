@@ -56,7 +56,7 @@ Download Etcher from the link below. be sure to install the full version with De
 
 **Insert the card into the reader device** 
 
-<img src="pictures/pic1.png" width="300">
+<img src="pictures/piSetup/pic1.png" width="300">
 
 4.	To write the OS image to the SD card, run Etcher and select the Zip file with the OS image. Click on “Flash” and the image will be now on our SD card. On windows 10 various pop ups many emerge, just ignore them and wait until it will say Flash Complete.
 
@@ -64,21 +64,21 @@ Note that you don't need to extract the image or format the card prior to writin
 
 **Click the “Select Image” button and choose the .zip file with Rasbpian**
 
-<img src="pictures/pic1.2.png" width="500">
+<img src="pictures/piSetup/pic1.2.png" width="500">
 
-<img src="pictures/pic1.3.png" width="500">
+<img src="pictures/piSetup/pic1.3.png" width="500">
 
 Click **Flash**
 
-<img src="pictures/pic2.png" width="500">
+<img src="pictures/piSetup/pic2.png" width="500">
 
-<img src="pictures/pic3.png" width="500">
+<img src="pictures/piSetup/pic3.png" width="500">
 
 Etcher will take a few minutes to install Raspbian on your microSD card. When it's done (at least in Windows) you'll see a number of alerts prompting you to format the card. Close these dialog boxes or hit cancel on them (otherwise, you will format over the OS).
 
 **Do not format the card again and ignore Window’s dialogue boxes.**
 
-<img src="pictures/pic3.1.png" width="300">
+<img src="pictures/piSetup/pic3.1.png" width="300">
 
 If you are not setting up a headless Raspberry Pi, you can just pop the card in, connect your Pi to a monitor, keyboard, power source and pointing device and boot it up.
 
@@ -97,7 +97,7 @@ The steps are as follows:
  
 2.	Open the boot folder and create a new blank notepad file and save it in the boot drive as “ssh” without any extension in the end. Creating “ssh” file in the boot partition will enable ssh access as soon as the Pi boots. This will enable to configure our Raspberry Pi Zero Remotely. When we boot the Raspberry Pi, it looks for the SSH file and since we created it, the Raspberry Pi will enable the SSH and then deletes the file.
 
-<img src="pictures/pic4.png" width="400">
+<img src="pictures/piSetup/pic4.png" width="400">
 
 Do not eject the SD card yet as we need to configure the wifi connection.
 
@@ -113,11 +113,11 @@ If using Windows you need to make sure the text file uses Linux/Unix style line 
 
 Edit the file like this:
 
-<img src="pictures/pic5.png" width="300">
+<img src="pictures/piSetup/pic5.png" width="300">
 
 Copy the information on the Notepad++
 
-<img src="pictures/pic6.png" width="300">
+<img src="pictures/piSetup/pic6.png" width="300">
 
 Open it and add the following details.  A list of configuration files for Raspbian Jesse, Raspbian Stretch and networks without passwords can be found in [4] on the “References” section below.
 
@@ -134,7 +134,7 @@ psk=”your password”
 }
 </code></pre>
 
-<img src="pictures/pic7.png" width="500">
+<img src="pictures/piSetup/pic7.png" width="500">
 
 **For Raspbian Jessie:**
 
@@ -175,7 +175,7 @@ Power up the Pi and once it has booted you should be connected to your WiFi netw
 
 For the Raspberry Pi 3, you will need to flip it to see the card slot, as in the picture below.
 
-<img src="pictures/pic8.png" width="300">
+<img src="pictures/piSetup/pic8.png" width="300">
 
 ## Connect to Wifi (no ehternet cable). <a name="connectToWifi"></a>
 Since we don’t have access to the command prompt of the Raspberry Pi yet, we need a tool called PuTTY, which acts as a remote SSH Server (i.e. it’s an SSH client) so that we can access the Raspberry Pi’s command prompt from a remote computer. PuTTY establishes an SSH connection between the Raspberry Pi and another computer. It opens up a window that gives you access to the Raspberry Pi’s command prompt. 
@@ -188,15 +188,15 @@ If you’re using a Mac, you can SSH into the Pi with Terminal. A good tutorial 
 
 Download and install PuTTY to your PC from here: https://www.putty.org
 
-<img src="pictures/pic9.png" width="500">
+<img src="pictures/piSetup/pic9.png" width="500">
 
 Plug the power cable the Pi. A red and a green light will show, let it boot for about a minute.
 
-<img src="pictures/pic10.png" width="300">
+<img src="pictures/piSetup/pic10.png" width="300">
 
 Or in Pi Zero:
 
-<img src="pictures/pic11.png" width="300">
+<img src="pictures/piSetup/pic11.png" width="300">
 
 
 ## Login To The Wifi <a name="loginToWifi"></a>
@@ -207,38 +207,38 @@ This searches for machines on that name on the local network. Once a connection 
 
 Enter the default **username: pi** and the default **password: raspberry**
 
-<img src="pictures/pic12.png" width="300">
+<img src="pictures/piSetup/pic12.png" width="300">
 
 Click **Ok** if you get a security warning alert. It's not a problem.
 Enter **pi** as your username and **raspberry** as your password. You may want to change these later.
 
-<img src="pictures/pic13.png" width="500">
+<img src="pictures/piSetup/pic13.png" width="500">
 
 ## Enabling Remote Login and Connecting Over VNC <a name="remoteLogin"></a>
 Enter **sudo raspi-config** at the command prompt. 
 
-<img src="pictures/pic14.png" width="500">
+<img src="pictures/piSetup/pic14.png" width="500">
 
 A configuration app opens.
 Select **Interfacing Options** (number 5 on the list)
 
-<img src="pictures/pic15.png" width="500">
+<img src="pictures/piSetup/pic15.png" width="500">
 
 Select **VNC** (number 3 on the menu) 
 
-<img src="pictures/pic16.png" width="500">
+<img src="pictures/piSetup/pic16.png" width="500">
 
 Select **Yes**
 
-<img src="pictures/pic17.png" width="500">
+<img src="pictures/piSetup/pic17.png" width="500">
 
 Hit **Enter** to acknowledge the VNC server is enabled.
 
-<img src="pictures/pic18.png" width="500">
+<img src="pictures/piSetup/pic18.png" width="500">
 
 Select **Finish**
 
-<img src="pictures/pic19.png" width="500">
+<img src="pictures/piSetup/pic19.png" width="500">
 
 On your PC:
 
@@ -246,17 +246,17 @@ On your PC:
 
 2. Select **New connection** from the File menu.
 
-<img src="pictures/pic20.png" width="500">
+<img src="pictures/piSetup/pic20.png" width="500">
 
 3. Enter **raspberry.local** in the "VNC Server" field. If this does not work, try again with the name **raspberrypi** without .local.
 
-<img src="pictures/pic21.png" width="300">
+<img src="pictures/piSetup/pic21.png" width="300">
 
 4. Click **Ok**.
 
 5. Double-click on the connection icon to connect.
 
-<img src="pictures/pic22.png" width="500">
+<img src="pictures/piSetup/pic22.png" width="500">
 
 6. Click Ok if you are shown a security warning.
 
@@ -269,20 +269,20 @@ The defaults are:
 
 Click **Ok**
 
-<img src="pictures/pic23.png" width="500">
+<img src="pictures/piSetup/pic23.png" width="500">
 
 Your Raspberry Pi desktop will then appear in a window on your main computer's desktop. 
 
 You'll be able to control everything from there.
 
-<img src="pictures/pic24.png" width="500">
+<img src="pictures/piSetup/pic24.png" width="500">
 
 ## Changing the Username and Password <a name="changingUserPWD"></a>
 On the command line, execute following command to start the configuration tool:
 
 > sudo raspi –config
 
-<img src="pictures/pic25.png" width="500">
+<img src="pictures/piSetup/pic25.png" width="500">
 
 It is highly recommended to change the default password to something different. This can be done using the “Change User Password” menu option.
 
@@ -301,7 +301,7 @@ The first of these commands (**sudo apt-get update**) makes a call to the **Adva
 The **update** command works this by searching the **/etc/apt/sources.list** file, and then polling all the websites in the list for all available packages creating a list of their download location and their current version. It utilizes the Advanced Packaging Tool(apt), but this time it uses it to check all currently installed packages against the package list, if there is a version miss-match for any it will attempt to update it by downloading the new version from the link in the list. The upgrade tool will never remove a package
 
 
-<img src="pictures/pic26.png" width="500">
+<img src="pictures/piSetup/pic26.png" width="500">
 
 > sshpi@<new_hostname>.local
 
