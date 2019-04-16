@@ -14,35 +14,7 @@
 11. [Update and Upgrade the Software ](#update)
 12. [References and Additional Resources](#references)
 
-
 ## Intoduction <a name="introduction"></a>
-
-## Materials <a name="materials"></a>
-
-
-## Burning the Operating System on the Mini SD Card <a name="burningOS"></a>
-
-
-## Allowing for Remote Connectivity (enabling SSH). <a name="ssh"></a>
-
-
-## Configuring the Wifi (add network info)  <a name="wifi"></a>
-
-## Booting the Raspberry PI <a name="booting"></a>
-
-## Connect  to  Wifi <a name="connectToWifi"></a>
-
-## Login over Wifi (no Ethernet cable) <a name="loginToWifi"></a>
-
-## Enabling Remote Login and Connecting Over VNC <a name="remoteLogin"></a>
-
-## Changing the Username and Password <a name="changingUserPWD"></a>
-
-## Update and Upgrade the Software <a name="update"></a>
-
-## References and Additional Resources.<a name="references"></a>
-
-## Intro
 This tutorial explains how to setup a Raspberry PI using only command line (usually called “a headless setup”). The headless setup has the advantage that it can be done without needing a monitor and keyboard, as opposed to other types of setup. In a headless setup, the operating system (OS) is installed and configured entirely by command line.
 
 The Raspberry PI runs under Linux, but comes out of the package without any operating system installed.  In this tutorial we show how to install Raspbian (a version of Debian Linux), which is the most common OS for the Raspberry Pi, and we will also show how to setup additional features.
@@ -56,7 +28,7 @@ Basically the steps required are as follows:
 
 We explain how to achieve these steps in more detail below.
 
-## Materials
+## Materials <a name="materials"></a>
 *	A Raspberry Pi with WiFi on-board 
 *	A micro SD card with SD adapter. We recommend at least 8GB of storage capacity.
 *	A power supply for your Pi.
@@ -65,7 +37,7 @@ We explain how to achieve these steps in more detail below.
 *	PuTTY, a free SSH program. If you're on OSx or Linux, you can already SSH from your terminal.
 
 
-## Burning the Operating System on the Mini SD Card
+## Burning the Operating System on the Mini SD Card <a name="burningOS"></a>
 Unless you have bought a bundle with the OS already installed on your PI, you will need to install it. We recommend using Raspbian as the OS. For this, you will need to download Raspbian’s image to your computer and from there to the PI using the mini SD card. Note that the OS cannot be copied directly to the SD card, it needs to be burned into the SD card with a proper software.
 
 Below we will provide the basic steps; additional information can be found on the link [2] under the “References” section below.
@@ -113,7 +85,7 @@ If you are not setting up a headless Raspberry Pi, you can just pop the card in,
 If you have an Ethernet cable, you can plug your Raspberry Pi directly to a wired network and you should be able to access it by its name (raspberrypi or raspberrypi.local) without changing any other files.
 
 
-## Allowing for Remote Connectivity (enabling SSH).
+## Allowing for Remote Connectivity (enabling SSH). <a name="ssh"></a>
 We now need to enable remote access to the PI. This will allow us to use PI’s commandprompt remotely from own computer. The Raspberry Pi will act as a remote device: you can connect to it using a client on another machine. You only have access to the command line, not the full desktop environment. For a full remote desktop, we will later install VNC.
 
 Secure Shell (SSH) gives us a terminal into an operating system over a network and encrypts the traffic, giving us a level of security. For security reasons, SSH is no longer enabled by default. To enable it you need to place an empty filed named SSH (no extension) in the root of the boot disk.
@@ -129,7 +101,7 @@ The steps are as follows:
 
 Do not eject the SD card yet as we need to configure the wifi connection.
 
-## Configuring the Wifi (add network info)
+## Configuring the Wifi (add network info)  <a name="wifi"></a>
 In order to SSH into your Pi, you'll need to be connected to your local network. You can, of course, use Ethernet, but if you're using the Raspberry Pi 3, you've got WiFi built-in. So let's add our WiFi configuration to the Pi so it's available when we boot.
 
 Next we will create a file that has the WIFI details. 
@@ -195,7 +167,7 @@ The rest of the country codes can be found here:
 
 https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements
 
-## Booting the Raspberry PI
+## Booting the Raspberry PI <a name="booting"></a>
 
 Lastly, safely eject the micro SD card from your PC and insert into the Pi. 
 
@@ -205,7 +177,7 @@ For the Raspberry Pi 3, you will need to flip it to see the card slot, as in the
 
 <img src="pictures/pic8.png" width="300">
 
-## Connect to Wifi. 
+## Connect to Wifi (no ehternet cable). <a name="connectToWifi"></a>
 Since we don’t have access to the command prompt of the Raspberry Pi yet, we need a tool called PuTTY, which acts as a remote SSH Server (i.e. it’s an SSH client) so that we can access the Raspberry Pi’s command prompt from a remote computer. PuTTY establishes an SSH connection between the Raspberry Pi and another computer. It opens up a window that gives you access to the Raspberry Pi’s command prompt. 
 
 **Mac**
@@ -226,7 +198,8 @@ Or in Pi Zero:
 
 <img src="pictures/pic11.png" width="300">
 
-## Login over Wifi (no Ethernet cable)
+
+## Login To The Wifi <a name="loginToWifi"></a>
 
 We know that the default hostname (the name of the machine) for a fresh Raspbian install is **raspberrypi**, so in the Host Name (or IP address) field enter **raspberrypi** (or raspberry.local). You usually need to add the .local if the Pi is directly connected to your PC via USB or Ethernet cable.
 
@@ -241,7 +214,7 @@ Enter **pi** as your username and **raspberry** as your password. You may want t
 
 <img src="pictures/pic13.png" width="500">
 
-## Enabling Remote Login and Connecting Over VNC
+## Enabling Remote Login and Connecting Over VNC <a name="remoteLogin"></a>
 Enter **sudo raspi-config** at the command prompt. 
 
 <img src="pictures/pic14.png" width="500">
@@ -304,7 +277,7 @@ You'll be able to control everything from there.
 
 <img src="pictures/pic24.png" width="500">
 
-## Changing the Username and Password
+## Changing the Username and Password <a name="changingUserPWD"></a>
 On the command line, execute following command to start the configuration tool:
 
 > sudo raspi –config
@@ -314,7 +287,7 @@ On the command line, execute following command to start the configuration tool:
 It is highly recommended to change the default password to something different. This can be done using the “Change User Password” menu option.
 
 
-## Updating Raspbian
+## Update and Upgrade the Software <a name="update"></a>
 To update Raspbian, you need to open the Terminal. Do this via the desktop menu, or by pressing **Ctrl + Alt + T**
 
 Updating your Raspbian installation is a two-step process:
@@ -337,7 +310,7 @@ Perform a final reboot, and you’re done
 > sudo reboot
 
 
-## References and Additional Resources.
+## References and Additional Resources.<a name="references"></a>
 
 1.	How to setup the PI with keyboard and monitor:
 
