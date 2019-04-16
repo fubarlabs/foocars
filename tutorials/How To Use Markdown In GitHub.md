@@ -1,18 +1,18 @@
 # **Markdown Files in GitHub**
 
 ## Table of contents
-1. [How to Create a Markdown File in GitHub](#HowToCreateAMarkdownFileInGitHub)
+1. [How To Create a Markdown File In GitHub](#HowToCreateAMarkdownFileInGitHub)
 
-2. [How to Create Folders in GitHub](#HowToCreateFoldersInGitHub)
+2. [How To Create Folders In GitHub](#HowToCreateFoldersInGitHub)
   
-3. [How to Upload Pictures Into a Folder](#HowToUploadPicturesIntoAFolder)
+3. [How To Upload Pictures Into a Folder](#HowToUploadPicturesIntoAFolder)
 
-4. [How to Add Pictures into Markdown Files Using Relative Paths](#HowToAddPicturesIntoMarkdownFilesUsingRelativePaths)
+4. [How To Add Pictures into Markdown Files Using Relative Paths](#HowToAddPicturesIntoMarkdownFilesUsingRelativePaths)
 
-5. [How to Resize Pictures](#HowToResizePictures)
+5. [How To Resize Pictures](#HowToResizePictures)
 
 
-## How to Create a Markdown File in GitHub <a name="HowToCreateAMarkdownFileInGitHub"></a>
+## How To Create a Markdown File In GitHub <a name="HowToCreateAMarkdownFileInGitHub"></a>
 
 Press “Create new file” on the right corner of your Github repo.
 
@@ -23,7 +23,7 @@ Now you can start editing it.
 
 To add pictures into Markdown files basically we will create a folder to store our pictures and then point to that folder from our file.
 
-## How to Create Folders in GitHub <a name="HowToCreateFoldersInGitHub"></a>
+## How To Create Folders In GitHub <a name="HowToCreateFoldersInGitHub"></a>
 
 https://stackoverflow.com/questions/18773598/creating-folders-inside-github-com-repo-without-using-git
 
@@ -41,7 +41,7 @@ More info:
 
 
 
-## How to Upload Pictures Into a Folder. <a name="HowToUploadPicturesIntoAFolder"></a>
+## How To Upload Pictures Into a Folder. <a name="HowToUploadPicturesIntoAFolder"></a>
 
 Steps:
 1.	Create an images folder in your GitHub repo (see section on how to create a subfolder)
@@ -54,7 +54,7 @@ Steps:
 The picture will appear on your folder:
 
 
-### How to Add Pictures into Markdown Files Using Relative Paths
+### How To Add Pictures into Markdown Files Using Relative Paths
 https://www.youtube.com/watch?v=hHbWF1Bvgf4
 
 https://www.youtube.com/watch?v=R6euByfGaN4
@@ -85,7 +85,7 @@ Note 2:
 If  you ever want to change the picture, just save the new picture with the same file name and delete the previous one. In this way, you won’t have to change the original markdown file, but only the picture file.
 
 
-## How to Resize Pictures
+## How To Resize Pictures
 Github’s markdown language won’t recognize size code, while some other markdown editors do. 
 
 The trick is to use HTML code to insert the picture and that will allow us to size the image.
