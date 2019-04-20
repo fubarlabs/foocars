@@ -83,9 +83,11 @@ Steps:
 2.	The markdown syntax to add a picture is as follows:
 
 In markdown language:
+
 ``` ![<alt text>] (<path>/<pictureName.extension>)```
 
 In html language:
+
 ``` <img src="imagesFolder/you-picture.png" width="100" >```
 
 Note 1:
