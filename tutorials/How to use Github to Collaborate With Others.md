@@ -14,7 +14,7 @@
 
 
 
-##Introduction <a name="intro"></a>
+## Introduction <a name="intro"></a>
 
 This guide explains how to contribute to a GIT project. The reader can find more information in the links [1] and [2] on the "References" section at the bottom of the tutorial.
 
@@ -32,7 +32,10 @@ https://git-scm.com/book/en/v2
 
 <img src="pictures/GitContrib/1.PNG" width="600">
 
+Another way to look at this is:
+
 <img src="pictures/GitContrib/image001.png" width="600">
+
 
 In summary, to contribute to other people’s projects, they must be uploaded to GITHUB, from there, you will make a copy in Github (“fork”) , download this copy to your local computer (“clone”) , make the changes and submit the changes for approval (“pull request”).
 
@@ -45,10 +48,16 @@ First note the difference between GIT and GITHUB.
  **GitHub** is an online service that allows you to host your Git repositories online and collaborate with others on them. You can use GitHub through their web portal as well as the GitHub desktop GUI and the Git Shell. An alternative to GitHub is GitLab.
 
 <img src="pictures/GitContrib/image002.png" width="600">
+
+Or alternatively:
+
 <img src="pictures/GitContrib/image003.png" width="600">
+
 <img src="pictures/GitContrib/image004.png" width="600">
 
+
 Some Terminology:
+
 <img src="pictures/GitContrib/image005.png" width="600">
 
 ---
@@ -66,7 +75,8 @@ A ***commit*** is a set of changes to the code. This is one of the most interest
 
 ---
 
-##Setup Git <a name="setup"></a> 
+## Setup Git <a name="setup"></a> 
+
 Steps:
 1.	Setup Git:
 https://help.github.com/en/articles/set-up-git
@@ -87,7 +97,7 @@ The first step is to copy the repository into a fork in GitHub's website, which 
  
 Forking a repository essentially copies that project to your online GitHub account. However, to work on that project on your local computer, you must clone the project.
 
-##Clone your fork in your local computer  <a name="clone"></a> 
+## Clone your fork in your local computer  <a name="clone"></a> 
 Forking a repo only copies it on your online GitHub account. To be able to work on the project, you will need to clone it to your local computer. 
 
 Cloning a project copies a Git repository with its version history, by its URL, to your local computer from GitHub. From there, you can make and commit changes of your own to that repository. Any changes you commit and then push to GitHub (see below) are saved for your copy of that project.
@@ -207,8 +217,8 @@ Before you can sync your fork with an upstream repository, you must configure a 
     >	$ git merge upstream/master
     > Updating a422352..5fdff0f
     > Fast-forward
-    >  README                    |    9 -------
-    >  README.md                 |    7 ++++++
+    >  README                   
+    >  README.md                 
     >  2 files changed, 7 insertions(+), 9 deletions(-)
     >  delete mode 100644 README
     >  create mode 100644 README.md
@@ -228,7 +238,7 @@ At last, you’re ready to propose changes into the main project.
 
 When you open a pull request, you’re proposing your changes and requesting that someone review and pull in your contribution and merge them into their branch. Pull requests show diffs, or differences, of the content from both branches. The changes, additions, and subtractions are shown in green and red.
 
-<img src="pictures/GitContrib/image010.png" width="600"> 
+<img src="pictures/GitContrib/image010.jpg" width="600"> 
 
 Head on over to the repository on GitHub.com where your project lives. For this example, it would be at:
 
