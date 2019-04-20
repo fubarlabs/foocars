@@ -2,7 +2,7 @@
 ## Table of Contents
 
 1. [Checking whether GIT is already installed](#checking)
-2. [Cloning a Repo from GitHub to your Pi](#cloning)
+2. [Cloning a Repo from GitHub to your PI](#cloning)
 2. [How to run code](#running)
 ## Checking whether GIT is already installed <a name="checking"></a>
 First we need to check whether GIT is installed on our PI.
@@ -16,7 +16,7 @@ or alternatively:
 ```git –version```
 
 
-<img src="pictures/GitPI/1.png" width="500">
+<img src="pictures/GitPI/1.PNG" width="600">
  
 
 Otherwise, we can install  git as follows:
@@ -31,7 +31,7 @@ You'll need to configure it with
 
 
 
-## Cloning a Repo from GitHub to your Pi <a name="cloning"></a>
+## Cloning a Repo from GitHub to your PI <a name="cloning"></a>
 
 We will download a copy of the Repository on our PI.  For this, first you might want to make a Fork (copy on your own GitHub of the original Repo) of the Repo and create your own Branch (playground area on your own Forked version). Both things should be done on GitHub’s website.
 
@@ -41,12 +41,12 @@ After we have the Fork or Branch we want, we need to copy the location of the Re
 To copy the address of a Repo:
 Go to your Forked Repo on GitHub and click on “Clone or download” 
 
-<img src="pictures/GitPI/2.png" width="500">
+<img src="pictures/GitPI/2.PNG" width="700">
 
  
 After clicking on the green button, the address of our Forked version of the original Repo will show. We will clone this Fork to our own local computer.
 
-<img src="pictures/GitPI/3.png" width="500">
+<img src="pictures/GitPI/3.PNG" width="700">
  
 
 Click on the arrow next to the URL to copy the address.
@@ -60,13 +60,13 @@ If you want to place it on your desktop:
 
 The cloning process will start
 
-<img src="pictures/GitPI/4.png" width="500">
+<img src="pictures/GitPI/4.PNG" width="600">
 
  
 
 The folder will appear on your Desktop:
 
-<img src="pictures/GitPI/5.png" width="500">
+<img src="pictures/GitPI/5.PNG" width="600">
 
  
 
