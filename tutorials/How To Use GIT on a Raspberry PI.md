@@ -5,8 +5,9 @@
 2. [Cloning a Repo from GitHub to your Pi](#cloning)
 2. [How to Run Code](#running)
 ## Checking whether GIT is already installed <a name="checking"></a>
-First we need to check whether GIT is installed on our PI
-Type:
+First we need to check whether GIT is installed on our PI.
+
+Type these commands after the command prompt and see if Git loads:
 
 ```git ```
 
@@ -14,7 +15,6 @@ or alternatively:
 
 ```git –version```
 
-after the command prompt and see if it loads:
 
 <img src="pictures/GitPI/1.png" width="500">
  
@@ -26,6 +26,7 @@ Otherwise, we can install  git as follows:
 You'll need to configure it with 
 
 ```git config --global user.name "Your Name"```
+
 ```git config --global user.email email@example.com```
 
 
@@ -54,6 +55,7 @@ On the Raspberry PI:
 If you want to place it on your desktop:
 
 ```cd Desktop```
+
 ```git clone <the Repo adress>```
 
 The cloning process will start
@@ -73,7 +75,9 @@ You can click on it to see its content.
 ## How to run code <a name="running"></a>
 Navigate to the directory where the code is: 
 ```cd Desktop```
+
 ```cd foocars```
+
 ```python monitor.py```
 
 or
