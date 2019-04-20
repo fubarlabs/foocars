@@ -7,10 +7,13 @@
 ## Checking whether GIT is already installed <a name="checking"></a>
 First we need to check whether GIT is installed on our PI
 Type:
->>  git 
+
+```git ```
 
 or alternatively:
->>  git –version
+
+```git –version```
+
 after the command prompt and see if it loads:
 
 <img src="pictures/GitPI/1.png" width="500">
@@ -18,11 +21,12 @@ after the command prompt and see if it loads:
 
 Otherwise, we can install  git as follows:
 
->> sudo apt-get install git
+```sudo apt-get install git```
 
 You'll need to configure it with 
->> git config --global user.name "Your Name"
-git config --global user.email email@example.com 
+
+```git config --global user.name "Your Name"```
+```git config --global user.email email@example.com```
 
 
 
@@ -48,8 +52,9 @@ Click on the arrow next to the URL to copy the address.
 On the Raspberry PI:
 
 If you want to place it on your desktop:
->> cd Desktop
-git clone <the Repo adress>
+
+```cd Desktop```
+```git clone <the Repo adress>```
 
 The cloning process will start
 
@@ -65,15 +70,15 @@ The folder will appear on your Desktop:
 
 You can click on it to see its content.
 
-## How to Run Code <a name="running"></a>
+## How to run code <a name="running"></a>
 Navigate to the directory where the code is: 
->> cd Desktop
->> cd foocars
->> python monitor.py
+```cd Desktop```
+```cd foocars```
+```python monitor.py```
 
-OR
+or
 
->> python3 monitor.py
+```python3 monitor.py```
 
 
 Reference:
