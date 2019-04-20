@@ -149,8 +149,9 @@ Tip: Syncing your fork only updates your local copy of the repository. To update
  When you fork a project in order to propose changes to the original repository, you can configure Git to pull changes from the original, or upstream, repository into the local clone of your fork. This will update your local repo with the latest changes in GitHub.
 
 #### Syncing your fork to the original repository via the browser
-Reference:
+References:
 https://stackoverflow.com/questions/20984802/how-can-i-keep-my-fork-in-sync-without-adding-a-separate-remote/21131381#21131381
+
 https://github.com/KirstieJane/STEMMRoleModels/wiki/Syncing-your-fork-to-the-original-repository-via-the-browser
 
 When you create a fork of a repository you only have the versions of the files that are in the repository at that time. So if there are any changes in the original repository you may find that your version (your fork) is out of sync. 
