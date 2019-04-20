@@ -51,6 +51,8 @@ More info:
 
 <img src="pictures/mkdGitHub/6.png" width="500">
 
+It will look like this:
+
 <img src="pictures/mkdGitHub/7.png" width="500">
 
 ## How To Upload Pictures Into a Folder. <a name="HowToUploadPicturesIntoAFolder"></a>
@@ -60,14 +62,14 @@ Steps:
 
 2.	Add your pictures to the dedicated folder created on GitHub. Click on “Upload files” on the right corner.
 
-<img src="pictures/mkdGitHub/8.png" width="500">
+<img src="pictures/mkdGitHub/8.png" width="600">
 
 3.	Drag your pictures or upload them into the website.
 
 4.	After uploading all your pictures. Click on “Commit” at the bottom.
 The picture will appear on your folder:
 
-<img src="pictures/mkdGitHub/9.png" width="550">
+<img src="pictures/mkdGitHub/9.png" width="600">
 
 
 ### How to add pictures into Markdown files using relative paths
@@ -89,6 +91,7 @@ In markdown language:
 In html language:
 
 ``` <img src="imagesFolder/you-picture.png" width="100" >```
+
 
 
 Note 1:
