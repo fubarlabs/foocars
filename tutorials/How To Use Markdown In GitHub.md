@@ -122,6 +122,8 @@ Then you can add width and height attributes
 ```<img src="imagesFolder/you-picture.png" width="100" >```
 
  -Only specify 1 attribute to maintain the aspect ratio
+ 
+ 
 
-Don't forget to commit your changes!!!
+#### Don't forget to commit your changes!!!
 
