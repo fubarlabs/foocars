@@ -3,7 +3,7 @@
 
 1. [Checking whether GIT is already installed](#checking)
 2. [Cloning a Repo from GitHub to your Pi](#cloning)
-2. [How to Run Code](#running)
+2. [How to run code](#running)
 ## Checking whether GIT is already installed <a name="checking"></a>
 First we need to check whether GIT is installed on our PI.
 
@@ -74,6 +74,7 @@ You can click on it to see its content.
 
 ## How to run code <a name="running"></a>
 Navigate to the directory where the code is: 
+
 ```cd Desktop```
 
 ```cd foocars```
