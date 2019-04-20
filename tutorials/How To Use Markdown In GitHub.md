@@ -54,7 +54,7 @@ Steps:
 The picture will appear on your folder:
 
 
-### How To Add Pictures into Markdown Files Using Relative Paths
+### How to add pictures into Markdown files using relative paths
 https://www.youtube.com/watch?v=hHbWF1Bvgf4
 
 https://www.youtube.com/watch?v=R6euByfGaN4
