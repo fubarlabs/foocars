@@ -47,16 +47,18 @@ First note the difference between GIT and GITHUB.
 
  **GitHub** is an online service that allows you to host your Git repositories online and collaborate with others on them. You can use GitHub through their web portal as well as the GitHub desktop GUI and the Git Shell. An alternative to GitHub is GitLab.
 
-<img src="pictures/GitContrib/image002.png" width="600">
+<img src="pictures/GitContrib/image002.png" width="400">
 
 Or alternatively:
 
-<img src="pictures/GitContrib/image003.png" width="600">
+<img src="pictures/GitContrib/image003.png" width="400">
 
-<img src="pictures/GitContrib/image004.png" width="600">
+or
+
+<img src="pictures/GitContrib/image004.png" width="400">
 
 
-Some Terminology:
+***Some terminology:***
 
 <img src="pictures/GitContrib/image005.png" width="600">
 
@@ -150,6 +152,7 @@ Tip: Syncing your fork only updates your local copy of the repository. To update
 
 #### Syncing your fork to the original repository via the browser
 References:
+
 https://stackoverflow.com/questions/20984802/how-can-i-keep-my-fork-in-sync-without-adding-a-separate-remote/21131381#21131381
 
 https://github.com/KirstieJane/STEMMRoleModels/wiki/Syncing-your-fork-to-the-original-repository-via-the-browser
