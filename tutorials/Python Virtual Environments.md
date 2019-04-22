@@ -4,9 +4,9 @@
 
 ## What is a Virtual Environment?
 
-A virtual environment is a tool that helps us to work in multiple python projects while keeping their packages and dependencies separate. Basically, it is a best practice tool that allows us to cut unwanted dependencies between projects by creating isolated python virtual environments for them. For example, by default, every project on your system will use these same directories to store and retrieve site packages. 
+A virtual environment is a tool that helps us to work in multiple python projects while keeping their packages and dependencies separate. Basically, it is a best practice tool that allows us to cut unwanted dependencies between projects by creating isolated python virtual environments for them.
 
-Say that we have two projects and they both rely on the same package, but with a different version. If we upgrade this package globally for all our projects, it can break some of them.
+For example, by default, every project on your system will use the same directories to store and retrieve site packages. Say that we have two projects and they both rely on the same package, but with a different version. If we upgrade this package globally for all our projects, it can break some of them.
 
 This is where virtual environments come into play. To solve this problem, we just need to create two separate virtual environments for both the projects.
 In an isolated environment, each project has only the dependencies and the packages that they need, with the specic versions that they need.
