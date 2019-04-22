@@ -66,7 +66,7 @@ If pip is not in your system
 
 Note that the command ```virtualenv virtualenv_name``` will create a folder in the current directory which will contain the Python executables, and a copy of the "pip" library. You can now use the “pip” manager to install necessary dependencies and packages inside this virtual environment and keep your packages from conflicting with other project dependencies.
 
-The name of the virtual environment (in this case, it was ```virtualenv_name```) can be anything; omitting the name will place the les in the current directory instead.
+The name of the virtual environment (in this case, it was ```virtualenv_name```) can be anything; omitting the name will place the files in the current directory instead.
 
 If you want to create a virtualenv for specific python version, type
 
@@ -76,7 +76,7 @@ or
 
 ```$ virtualenv -p /usr/bin/python2.7 virtualenv_name```
 
-6.To begin using the virtual environment, it needs to be     activated. When the environment is set up, a file called activate is created inside the bin folder in the environment. We set this file as the source and we are now inside the environment.
+6.To begin using the virtual environment, it needs to be     activated. When the environment is set up, a file called activate is created inside the bin folder in the environment. We set this file as the source and we are now inside the environment.
    
 ```$ source virtualenv_name/bin/activate```
 
