@@ -310,7 +310,9 @@ And directly type the new name of the branch. This will automatically create a n
 
 ## References <a name="references"></a> 
 [1] https://guides.github.com/activities/forking/
+
 [2] https://help.github.com/en/articles/fork-a-repo
+
 To create a GIT repo from scratch:
 https://medium.com/@abhishekj/an-intro-to-git-and-github-1a0e2c7e3a2f
 
