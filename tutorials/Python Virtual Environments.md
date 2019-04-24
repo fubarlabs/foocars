@@ -167,7 +167,7 @@ http://www.futurile.net/2013/10/03/virtualenv-and-virtualenvwrapper-for-python-d
 https://realpython.com/python-virtual-environments-a-primer/
 
 
-virtualenvwrapper provides a set of commands which makes working with virtual environments much more pleasant. It also places all your virtual environments in one place. It really helps when you have a lot of environments and have trouble remembering their names.
+**virtualenvwrapper** provides a set of commands which makes working with virtual environments much more pleasant. It also places all your virtual environments in one place. It really helps when you have a lot of environments and have trouble remembering their names.
 
 Further installation instructions and commands can be found here:
 
@@ -232,7 +232,11 @@ https://docs.python-guide.org/dev/virtualenvs/
 
 https://realpython.com/pipenv-guide/
 
-Pipenv is used to manage application dependencies. It automatically creates and manages a virtualenv for your projects, as well as adds/removes packages from your Pipfile as you install/uninstall packages. It also generates the ever-important Pipfile.lock, which is used to produce deterministic builds.
+**Pipenv** is used to manage application dependencies. It automatically creates and manages a virtualenv for your projects, as well as adds/removes packages from your Pipfile as you install/uninstall packages. 
+
+When two libraries your app uses have conflicting dependencies, your life can become hard. Pipenv wants to ease that pain by keeping track of a tree of your app's interdependencies in a file called Pipfile.lock. Pipfile.lock also verifies that the right versions of dependencies are used in production.
+
+Also, Pipenv is handy when multiple developers are working on a project.Because Pipenv auto-documents dependencies as you install them, if Jamie and Casey had been using Pipenv, the Pipfile would have been automatically updated and included in Casey's commit. Jamie and Casey would have saved time and shipped their product faster.
 
 You no longer need to use pip and virtualenv separately. They are handled together.
 
@@ -244,13 +248,16 @@ You no longer need to use pip and virtualenv separately. They are handled togeth
 
     Pipenv uses pip and virtualenv under the hood but simplifies their usage with a single command line interface.
     
-*  **Installing packages for your project**
+ **Installing packages for your project**
 
-    Pipenv manages dependencies on a per-project basis. To install packages, change into your project’s directory  and run:
+When you start a project with it, Pipenv will automatically create a virtual environment for that project if you aren't already using one. 
+
+Pipenv manages dependencies on a per-project basis. To install packages, change into your project’s directory  and run:
 
     ```$ cd myproject```
     ```$ pipenv install flask==0.12.1```
-    Pipenv will install the indicated version of the *flask* library and create a Pipfile for you in your project’s directory. The Pipfile is used to track which dependencies your project needs in case you need to re-install them, such as when you share your project with others.
+
+Pipenv will install the indicated version of the *flask* library and create a Pipfile for you in your project’s directory. The Pipfile is used to track which dependencies your project needs in case you need to re-install them, such as when you share your project with others.
 
 * Notice that we didn’t activate any virtual environments here, Pipenv takes care of virtual environments for us. 
 
@@ -258,7 +265,7 @@ You no longer need to use pip and virtualenv separately. They are handled togeth
 
 * **Using installed packages**
 
-    You can also run Python scripts with Pipenv. Create a main.py with your project, then you can run this script using pipenv run:
+You can also run Python scripts with Pipenv. Create a main.py with your project, then you can run this script using pipenv run:
 
     ```$ pipenv run python main.py```
 
@@ -266,12 +273,9 @@ You no longer need to use pip and virtualenv separately. They are handled togeth
 
     ```$ pipenv install --dev```
 
-    This installs all the dependencies needed for development, which includes both the regular dependencies and those you specified with the --dev argument during install.
+ This installs all the dependencies needed for development, which includes both the regular dependencies and those you specified with the --dev argument during install.
 
-    When an exact version isn’t specified in the Pipfile, the install command gives the opportunity for dependencies (and sub-dependencies) to update their versions.
-
-
-
+ When an exact version isn’t specified in the Pipfile, the install command gives the opportunity for dependencies (and sub-dependencies) to update their versions.
 
 
 ## Where can I learn more? <a name="learnMore"></a>
@@ -282,5 +286,3 @@ https://www.geeksforgeeks.org/python-virtual-environment/
 
 https://docs.python-guide.org/dev/virtualenvs/
 
-
->>>>>>> e01b0becf45fe8fd01a1bf5d0b9f66c9f56f9efd
