@@ -10,7 +10,8 @@
 7. [Sync](#sync)
 8. [Pull](#pull)
 9. [Branches](#branches)
-10. [References](#references)
+10.[Creating an Issue](#isusues)
+11. [References](#references)
 
 
 
@@ -307,6 +308,17 @@ And directly type the new name of the branch. This will automatically create a n
 •  Press Enter
 
 <img src="pictures/GitContrib/image014.png" width="600"> 
+
+## Creating an Issue <a name="issues"></a>  
+Reference:
+https://help.github.com/en/articles/creating-an-issue
+
+"Issues" are basically a list of enhancements needed to the project. By opening an issue, we aknowledge that a fix is needed. This also helps keeping track of the work done. Every time an enhancement is done, we can link the code to an existing issue and say which of the issues we are attempting to close. In this way, we know which code is fixing what.
+
+Issues are generated in the GitHub platform on the "Main " branch. 
+
+The above link has a detailed explanation on how to create issues.
+
 
 ## References <a name="references"></a> 
 [1] https://guides.github.com/activities/forking/
