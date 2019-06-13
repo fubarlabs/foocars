@@ -1,0 +1,186 @@
+EESchema Schematic File Version 4
+LIBS:Foocars-led-flipboard-cache
+EELAYER 26 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L Connector_Generic:Conn_02x20_Odd_Even J1
+U 1 1 5CFE8E03
+P 5550 2550
+F 0 "J1" H 5600 3667 50  0000 C CNN
+F 1 "Conn_02x20_Odd_Even" H 5600 3576 50  0000 C CNN
+F 2 "Connector_PinSocket_2.54mm:PinSocket_2x20_P2.54mm_Vertical" H 5550 2550 50  0001 C CNN
+F 3 "~" H 5550 2550 50  0001 C CNN
+	1    5550 2550
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D2
+U 1 1 5CFE9416
+P 4700 1750
+F 0 "D2" H 4691 1966 50  0000 C CNN
+F 1 "LED" H 4691 1875 50  0000 C CNN
+F 2 "LED_THT:LED_D5.0mm" H 4700 1750 50  0001 C CNN
+F 3 "~" H 4700 1750 50  0001 C CNN
+	1    4700 1750
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R2
+U 1 1 5CFE948D
+P 5100 1750
+F 0 "R2" V 4893 1750 50  0000 C CNN
+F 1 "R" V 4984 1750 50  0000 C CNN
+F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P5.08mm_Horizontal" V 5030 1750 50  0001 C CNN
+F 3 "~" H 5100 1750 50  0001 C CNN
+	1    5100 1750
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	4850 1750 4950 1750
+Wire Wire Line
+	5250 1750 5350 1750
+$Comp
+L Device:LED D1
+U 1 1 5CFE96AC
+P 4700 1950
+F 0 "D1" H 4691 2166 50  0000 C CNN
+F 1 "LED" H 4691 2075 50  0000 C CNN
+F 2 "LED_THT:LED_D5.0mm" H 4700 1950 50  0001 C CNN
+F 3 "~" H 4700 1950 50  0001 C CNN
+	1    4700 1950
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R1
+U 1 1 5CFE96B3
+P 5100 1950
+F 0 "R1" V 4893 1950 50  0000 C CNN
+F 1 "R" V 4984 1950 50  0000 C CNN
+F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P5.08mm_Horizontal" V 5030 1950 50  0001 C CNN
+F 3 "~" H 5100 1950 50  0001 C CNN
+	1    5100 1950
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	4850 1950 4950 1950
+Wire Wire Line
+	5250 1950 5350 1950
+$Comp
+L Device:LED D3
+U 1 1 5CFE9726
+P 4700 2250
+F 0 "D3" H 4691 2466 50  0000 C CNN
+F 1 "LED" H 4691 2375 50  0000 C CNN
+F 2 "LED_THT:LED_D5.0mm" H 4700 2250 50  0001 C CNN
+F 3 "~" H 4700 2250 50  0001 C CNN
+	1    4700 2250
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R3
+U 1 1 5CFE972D
+P 5100 2250
+F 0 "R3" V 4893 2250 50  0000 C CNN
+F 1 "R" V 4984 2250 50  0000 C CNN
+F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P5.08mm_Horizontal" V 5030 2250 50  0001 C CNN
+F 3 "~" H 5100 2250 50  0001 C CNN
+	1    5100 2250
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	4850 2250 4950 2250
+Wire Wire Line
+	5250 2250 5350 2250
+Wire Wire Line
+	4300 2250 4550 2250
+Wire Wire Line
+	4300 1950 4550 1950
+Connection ~ 4300 1950
+Wire Wire Line
+	4300 1950 4300 2250
+Wire Wire Line
+	4300 1750 4550 1750
+$Comp
+L Switch:SW_Push SW1
+U 1 1 5CFEA24A
+P 5000 2650
+F 0 "SW1" H 5000 2935 50  0000 C CNN
+F 1 "SW_Push" H 5000 2844 50  0000 C CNN
+F 2 "Button_Switch_THT:SW_PUSH_6mm" H 5000 2850 50  0001 C CNN
+F 3 "" H 5000 2850 50  0001 C CNN
+	1    5000 2650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5350 2650 5200 2650
+Wire Wire Line
+	4800 2650 4300 2650
+Wire Wire Line
+	4300 2650 4300 2250
+Connection ~ 4300 2250
+$Comp
+L Switch:SW_DIP_x01 SW2
+U 1 1 5CFEA8BF
+P 4900 2800
+F 0 "SW2" H 4900 3067 50  0000 C CNN
+F 1 "SW_DIP_x01" H 4900 2976 50  0000 C CNN
+F 2 "Button_Switch_THT:SW_DIP_SPSTx01_Piano_10.8x4.1mm_W7.62mm_P2.54mm" H 4900 2800 50  0001 C CNN
+F 3 "" H 4900 2800 50  0001 C CNN
+	1    4900 2800
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5350 2750 5200 2750
+Wire Wire Line
+	5200 2750 5200 2800
+Wire Wire Line
+	4600 2800 4300 2800
+Wire Wire Line
+	4300 2800 4300 2650
+Connection ~ 4300 2650
+$Comp
+L Switch:SW_DIP_x01 SW3
+U 1 1 5CFEAFC5
+P 4900 3050
+F 0 "SW3" H 4900 3317 50  0000 C CNN
+F 1 "SW_DIP_x01" H 4900 3226 50  0000 C CNN
+F 2 "Button_Switch_THT:SW_DIP_SPSTx01_Piano_10.8x4.1mm_W7.62mm_P2.54mm" H 4900 3050 50  0001 C CNN
+F 3 "" H 4900 3050 50  0001 C CNN
+	1    4900 3050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4600 3050 4300 3050
+Wire Wire Line
+	4300 3050 4300 2800
+Connection ~ 4300 2800
+Wire Wire Line
+	5250 3150 5250 3050
+Wire Wire Line
+	5250 3050 5200 3050
+Wire Wire Line
+	5250 3150 5350 3150
+Wire Wire Line
+	4300 1750 4300 1950
+Wire Wire Line
+	6000 1850 5850 1850
+Wire Wire Line
+	6000 1850 6000 1300
+Wire Wire Line
+	6000 1300 4300 1300
+Wire Wire Line
+	4300 1300 4300 1750
+Connection ~ 4300 1750
+$EndSCHEMATC
