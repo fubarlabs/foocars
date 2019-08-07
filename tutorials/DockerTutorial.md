@@ -43,10 +43,14 @@ The official site for Docker is https://www.docker.com/ The site has all informa
  The Matrix From Hell problem is the challenge of packaging any application, regardless of language/frameworks/dependencies, so that it can run on any cloud, regardless of operating systems/hardware/infrastructure.
 
  Docker solved for the matrix from hell by decoupling the application from the underlying operating system and hardware. It did this by packaging all dependencies inside Docker containers, including the OS. This makes Docker containers “portable,” i.e. they can run on any cloud or machine without the dreaded “it works on this machine” problems. 
+ 
+ Depiction of the problem:
 
-<img src="pics/MatrixFromHell1.PNG" width="600">
+<img src="pictures/docker/MatrixFromHell1.png" width="400">
 
-<img src="pics/MatrixFromHell2.PNG" width="600">
+Depiction of the solution:
+
+<img src="pictures/docker/MatrixFromHell2.png" width="400">
 
 *Example*
 
@@ -67,7 +71,7 @@ In this case, the developer will create a tomcat docker image ( A Docker Image i
 
 ### Containers <a name="containers"></a>
 
-<img src="pics/Containers.PNG" width="600">
+<img src="pictures/docker/Containers.PNG" width="400">
 
 Containers allow a developer to package up an application with all of the parts it needs, such as libraries and other dependencies, and ship it all out as one package. By doing so, thanks to the container, the developer can rest assured that the application will run on any other Linux machine regardless of any customized settings that machine might have that could differ from the machine used for writing and testing the code.
 
@@ -87,7 +91,7 @@ Additional layers can then be stacked on top of the base image layers, according
 ## Differences between Docker and Virtual Machines <a name="VMvsDocker"></a>
 In a way, Docker is a bit like a virtual machine. But unlike a virtual machine, rather than creating a whole virtual operating system, Docker allows applications to use the same Linux kernel as the system that they're running on and only requires applications be shipped with things not already running on the host computer. This gives a significant performance boost and reduces the size of the application.
 
-<img src="pics/Virtual-vs-Containers.PNG" width="600">
+<img src="pictures/docker/Virtual-vs-Containers.PNG" width="400">
 
 * Virtualization lets your operating systems (Windows or Linux) run simultaneously on a single hardware system. 
   
@@ -102,7 +106,7 @@ In a way, Docker is a bit like a virtual machine. But unlike a virtual machine, 
 ### Resources administration
 The following image explains how Virtual Machine and Docker Container utilizes the resources allocated to them.
 
-<img src="pics/Virtual-vs-Containers-resources.PNG" width="600">
+<img src="pictures/docker/Virtual-vs-Containers-resources.PNG" width="400">
 
 Consider a situation depicted in the above image.  I have a host system with 16 Gigabytes of RAM and I have to run 3 Virtual Machines on it. To run the Virtual Machines in parallel, I need to divide my RAM among the Virtual Machines. Suppose I allocate it in the following way:
 
@@ -136,15 +140,13 @@ So here Docker Container clearly wins over Virtual machine as I can efficiently 
 
 ### Booting time
 
-<img src="pics/Boot.PNG" width="600">
+<img src="pictures/docker/Boot.PNG" width="400">
 
 When it comes to start-up, Virtual Machine takes a lot of time to boot up because the guest operating system needs to start from scratch, which will then load all the binaries and libraries. This is time consuming and will prove very costly at times when quick startup of applications is needed. 
 
 In case of Docker Container, since the container runs on your host OS, you can save precious boot-up time. 
 
 Consider a situation where I want to install two different versions of Ruby on my system. If I use Virtual Machine, I will need to set up 2 different Virtual Machines to run the different versions. Each of these will have its own set of binaries and libraries while running on different guest operating systems. Whereas if I use Docker Container, even though I will be creating 2 different containers where each container will have its own set of binaries and libraries, I will be running them on my host operating system. Running them straight on my Host operating system makes my Docker Containers lightweight and faster.
-
-
 
 
 ## Docker Architecture and Definitions <a name="docker"></a>
@@ -163,8 +165,7 @@ Here's a quick explanation:
 ### Docker Components <a name="components"></a>
 Docker has the following components:
 
-<img src="pics/DockerComponents.PNG" width="600">
-
+<img src="pictures/docker/DockerComponents.PNG" width="400">
 
 * **Docker for Mac** − It allows one to run Docker containers on the Mac OS.
 
@@ -189,7 +190,7 @@ Docker Architecture includes:
 
 * **Docker Image** − Images are read-only templates that you build from a set of instructions written in your Dockerfile. Images define both what you want your packaged application and its dependencies to look like *and* what processes to run when it’s launched. These Read only templates are used for creating containers by using the run command. 
 
-<img src="pics/DockerImages.PNG" width="600">
+<img src="pictures/docker/DockerImages.PNG" width="400">
 
 
 * **Docker Registry** –  Docker Registry is where the Docker Images are stored. The Registry can be either a user’s local repository or a public repository like a Docker Hub allowing multiple users to collaborate in building an application. Even with multiple teams within the same organization can exchange or share containers by uploading them to the Docker Hub. Docker Hub is Docker’s very own cloud repository similar to GitHub.
@@ -224,7 +225,7 @@ Kubernetes is an open source system for managing clusters of containers. To do t
 
 * To install Docker on Windows follow this tutorial:
 
-https://www.tutorialspoint.com/docker/docker_installation.htm
+  https://www.tutorialspoint.com/docker/docker_installation.htm
 
 ### Working with the Docker Toolbox <a name="toolbox"></a>
 The first step is to launch the Docker Toolbox application from the shortcut created on the desktop at installation. 
@@ -250,25 +251,25 @@ https://www.tutorialspoint.com/docker/docker_instruction_commands.htm
 ### Managing Containers <a name="managingContainers"></a>
 The below links provide a tutorial on managing containers:
 
-Managing containers:
+* Managing containers:
 
-https://www.tutorialspoint.com/docker/docker_containers.htm
+  https://www.tutorialspoint.com/docker/docker_containers.htm
 
-Working with containers:
+* Working with containers:
 
-https://www.tutorialspoint.com/docker/docker_working_with_containers.htm
+  https://www.tutorialspoint.com/docker/docker_working_with_containers.htm
 
-Containers and hosts:
+* Containers and hosts:
 
-https://www.tutorialspoint.com/docker/docker_container_and_hosts.htm
+  https://www.tutorialspoint.com/docker/docker_container_and_hosts.htm
 
-Containers and shells:
+* Containers and shells:
 
-https://www.tutorialspoint.com/docker/docker_containers_and_shells.htm
+  https://www.tutorialspoint.com/docker/docker_containers_and_shells.htm
 
-Container linking:
+* Container linking:
 
-https://www.tutorialspoint.com/docker/docker_container_linking.htm
+  https://www.tutorialspoint.com/docker/docker_container_linking.htm
 
 
 ### Configuring Docker <a name="configuringDocker"></a>
