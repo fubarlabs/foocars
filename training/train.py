@@ -90,10 +90,13 @@ save_epochs=args.save_frequency#number of epochs between weight file saves
 if args.init_weights!="":
     model.load_weights(args.init_weights)
 
+hist = np.zeros([num_epochs]);
+
 for n in range(num_epochs):
     print("starting epoch {0}".format(n))
-    h=model.fit([training_images], [(steer-steerSampleMean)/steerSampleSTD], 
+    h = model.fit([training_images], [(steer-steerSampleMean)/steerSampleSTD], 
                 batch_size=25, epochs=1, verbose=1, validation_split=0.1, shuffle=True)
+    hist[n] = h.history['val_loss'][0]
 
     if n%save_epochs ==0 :
         savename='%s_%s_epoch_%d.h5'%(args.weight_filename, time_string, n)
@@ -102,3 +105,8 @@ for n in range(num_epochs):
 
 savename='%s_%s_complete.h5'%(args.weight_filename, time_string)
 model.save_weights(savename, overwrite=True)
+
+import matplotlib.pyplot as plt
+plt.plot(np.array(range(hist.shape[0])), hist)
+plt.savefig('training_hist.png')
+plt.show()

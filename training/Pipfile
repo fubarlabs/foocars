@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+ 
+
+[dev-packages]
+
+[packages]
+argparse = "*"
+tqdm = "*"
+Keras = "*"
+"h5py" = "*"
+scikit-image= "*"
+tensorflow = "*"
+
+[requires]
+python_version = "3.*"
