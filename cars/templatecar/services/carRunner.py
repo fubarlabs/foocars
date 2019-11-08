@@ -12,7 +12,7 @@ import concurrent.futures
 from dropout_model import model
 from defines import *
 
-time_format='%Y-%m-%d_%H-%M-%S'
+time_format= '%Y-%m-%d_%H-%M-%S'
 
 logging.basicConfig(filename='ottoLogger.log', level=logging.DEBUG)
 logging.debug('\n\n New Test Session {0}\n'.format(datetime.datetime.now().strftime(time_format)))
@@ -27,7 +27,7 @@ def save_data(imgs, IMUdata, RCcommands, img_file, IMUdata_file, RCcommands_file
 
 
 class DataCollector(object):
-  '''this object is passed to the camera.start_recording function, which will treat it as a 
+    '''this object is passed to the camera.start_recording function, which will treat it as a 
       writable object, like a stream or a file'''
   def __init__(self, serial_obj, save_dir):
     assert serial_obj.isOpen()==True
