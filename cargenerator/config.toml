@@ -31,6 +31,7 @@ kind="pi"
 
 [camera]
 camera = "pi"
+kind="pi"
 #camera = "opencv"
 FRAME_RATE = 40
 

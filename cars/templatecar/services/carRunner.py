@@ -219,12 +219,9 @@ def callback_switch_read_from_USBdrive(channel):
 
 #code is an int in range 0-63, consisting of binary on-off values for the leds. boot_RPi is MSB
 def displayBinLEDCode(code): 
-  GPIO.output(LED_names["boot_RPi"], (code>>5)&1)
-  GPIO.output(LED_names["shutdown_RPi"], (code>>4)&1)
-  GPIO.output(LED_names["autonomous"], (code>>3)&1)
-  GPIO.output(LED_names["collect_data"], (code>>2)&1)
-  GPIO.output(LED_names["save_to_USBdrive"], (code>>1)&1)
-  GPIO.output(LED_names["read_from_USBdrive"], code&1)
+  GPIO.output(LED_names["shutdown_RPi"], (code>>1)&1)
+  GPIO.output(LED_names["autonomous"], (code>>2)&1)
+  GPIO.output(LED_names["collect_data"], (code)&1)
 
 def initialize_service():
   #initialize the serial port: if the first port fails, we try the other one
