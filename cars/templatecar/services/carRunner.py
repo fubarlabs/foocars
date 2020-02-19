@@ -12,22 +12,22 @@ import concurrent.futures
 from dropout_model import model
 from defines import *
 
-time_format='%Y-%m-%d_%H-%M-%S'
+time_format= '%Y-%m-%d_%H-%M-%S'
 
 logging.basicConfig(filename='ottoLogger.log', level=logging.DEBUG)
 logging.debug('\n\n New Test Session {0}\n'.format(datetime.datetime.now().strftime(time_format)))
 
 def save_data(imgs, IMUdata, RCcommands, img_file, IMUdata_file, RCcommands_file):
-  start=time.time()
-  np.savez(img_file, imgs)
-  np.savez(IMUdata_file, IMUdata)
-  np.savez(RCcommands_file, RCcommands)
-  end=time.time()
-  print(end-start)
+    start=time.time()
+    np.savez(img_file, imgs)
+    np.savez(IMUdata_file, IMUdata)
+    np.savez(RCcommands_file, RCcommands)
+    end=time.time()
+    print(end-start)
 
 
 class DataCollector(object):
-  '''this object is passed to the camera.start_recording function, which will treat it as a 
+    '''this object is passed to the camera.start_recording function, which will treat it as a 
       writable object, like a stream or a file'''
   def __init__(self, serial_obj, save_dir):
     assert serial_obj.isOpen()==True
@@ -35,10 +35,10 @@ class DataCollector(object):
     self.save_dir=save_dir
     self.ser=serial_obj
     self.num_frames=200
-    self.imgs=np.zeros((self.num_frames, 96, 128, 3), dtype=np.uint8) #we put the images in here
-    self.IMUdata=np.zeros((self.num_frames, 7), dtype=np.float32) #we put the imu data in here
-    self.RCcommands=np.zeros((self.num_frames, 2), dtype=np.float16) #we put the RC data in here
-    self.idx=0 # this is the variable to keep track of number of frames per datafile
+    self.imgs=np.zeros((self.num_frames, 96, 128, 3), dtype=np.uint8)   # We put the images in here
+    self.IMUdata=np.zeros((self.num_frames, 7), dtype=np.float32)       # we put the imu data in here
+    self.RCcommands=np.zeros((self.num_frames, 2), dtype=np.float16)    # we put the RC data in here
+    self.idx=0                  # this is the variable to keep track of number of frames per datafile
     nowtime=datetime.datetime.now()
     self.currtime=time.time()
     self.img_file=self.save_dir+'/imgs_{0}'.format(nowtime.strftime(time_format))
@@ -287,11 +287,9 @@ GPIO.output(LED_names["shutdown_RPi"], LED_ON)
 for switch in switch_names.values():
   GPIO.setup(switch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-GPIO.add_event_detect(switch_names["shutdown_RPi"], GPIO.FALLING, callback=callback_switch_shutdown_RPi, bouncetime=50);
-GPIO.add_event_detect(switch_names["autonomous"], GPIO.BOTH, callback=callback_switch_autonomous, bouncetime=200);
-GPIO.add_event_detect(switch_names["collect_data"], GPIO.BOTH, callback=callback_switch_collect_data, bouncetime=50);
-GPIO.add_event_detect(switch_names["save_to_USBdrive"], GPIO.FALLING, callback=callback_switch_save_to_USBdrive, bouncetime=50);
-GPIO.add_event_detect(switch_names["read_from_USBdrive"], GPIO.FALLING, callback=callback_switch_read_from_USBdrive, bouncetime=50);
+GPIO.add_event_detect(switch_names["shutdown_RPi"], GPIO.FALLING, callback=callback_switch_shutdown_RPi, bouncetime=50)
+GPIO.add_event_detect(switch_names["autonomous"], GPIO.BOTH, callback=callback_switch_autonomous, bouncetime=200)
+GPIO.add_event_detect(switch_names["collect_data"], GPIO.BOTH, callback=callback_switch_collect_data, bouncetime=50)
 
 auto_mode=False 
 printcount=0
@@ -352,9 +350,6 @@ while(True):
         except ValueError:
           continue
     auto_mode=False
-
-
-    
 GPIO.output(LED_names["shutdown_RPi"], GPIO.LOW)
 GPIO.cleanup()
 g_serial.close()

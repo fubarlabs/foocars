@@ -2,7 +2,6 @@ import os
 import sys
 import glob
 import numpy as np
-import scipy.misc
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
@@ -10,6 +9,7 @@ from actionclasses import deleteAction
 from actionclasses import tagAction
 from filehopper import filehopper
 from filesettings import fileSettingsDialog
+from PIL import Image
 
 #Please don't read this code, it's terrible. I'll try to fix it later, I promise.
 # --Jenny
@@ -230,7 +230,7 @@ class ImagePlayer(QMainWindow):
 
     def load_data(self, filename):
         np_images=(np.load(filename)['arr_0'])
-        big_np=[scipy.misc.imresize(i, 4.0, interp='nearest') for i in np_images]
+        big_np=[np.array(Image.fromarray(i).resize((480,360)))for i in np_images]
         self.image_shape=big_np[0].shape
         raw_frames=[i.tobytes() for i in big_np]
         return raw_frames
