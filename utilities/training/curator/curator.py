@@ -2,7 +2,6 @@ import os
 import sys
 import glob
 import numpy as np
-import scipy.misc
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
