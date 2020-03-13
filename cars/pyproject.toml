@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "foocars"
+version = "0.1.0"
+description = "This package is to manage and version our autonomous cars project, FOOCARS!"
+authors = ["Rutgers Game Research and Immersive Design"]
+
+[tool.poetry.dependencies]
+python = "^3.5"
+pyserial = "3.4"
+tqdm = "4.43.0"
+tensorflow = "1.14.0"  #Actually required.
+keras = "2.3.1"
+pillow = "7.0.0"
+"rpi.gpio" = "0.7.0"
+picamera = "1.13"
+argparse = "1.4.0"
+opt_einsum = "^3.2.0" #may or may not be manually needed, keras needs it and so does tensorflow, maybe just the install order is whack?
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
