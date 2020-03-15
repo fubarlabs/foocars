@@ -2,7 +2,6 @@ import os
 import sys
 import glob
 import numpy as np
-import scipy.misc
 
 class deleteAction():
     def __init__(self, delstart, delstop, file_object):
