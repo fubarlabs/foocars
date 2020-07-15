@@ -26,12 +26,13 @@ Create your first Python script in PyCharm:
 
 •	Right click on the project’s title: 
 
-PIC1 HERE ================================================================
+
+<img src="pictures/pyCharm/1.png" width="400">
 
 •	Give a name to the file, then click OK.
 
 
-PIC2 HERE ================================================================================
+<img src="pictures/pyCharm/2.png" width="400">
 
 This step will generate a file which is named to **test.py**
 
@@ -46,7 +47,7 @@ https://www.jetbrains.com/help/pycharm/creating-virtual-environment.html
 The easiest way is to create a new project and set the environment from there
 •	Click on “File” – “Create New Project”
 
-PIC3 HERE =====================================================================================
+<img src="pictures/pyCharm/3.png" width="400">
 
 File-New Project – Existing interpreter – Select the Python interpreter corresponding to your project
 
@@ -60,9 +61,9 @@ https://docs.anaconda.com/anaconda/user-guide/tasks/integration/python-path/
 
   •	Now, select the interpreter. Use the option **“Existing interpreter”**. 
 
-PIC4 HERE =====================================================================================
+<img src="pictures/pyCharm/4.png" width="600">
 
-PIC5 HERE =====================================================================================
+<img src="pictures/pyCharm/5.png" width="600">
 
 Click OK, and then Create
 If you want to manage packages and versions for your environment, you can follow this tutorial:
@@ -71,7 +72,7 @@ https://www.jetbrains.com/help/pycharm/installing-uninstalling-and-upgrading-pac
 
 •	Now, VERY IMPORTANT: Wait for the “skeleton” to build
 
-PIC6 HERE =====================================================================================
+<img src="pictures/pyCharm/6.png" width="700">
 
 •	Lastly, specify the location of your project, where the files will be saved.
 •	Click on the **“Create“** button.
@@ -82,9 +83,9 @@ PIC6 HERE ======================================================================
 Once the new project is created and you have assigned a folder to it:
 ***File-Settings – Project – Project Interpreter***
 
-PIC7 HERE =====================================================================================
+<img src="pictures/pyCharm/7.png" width="650">
 
-PIC8 HERE =====================================================================================
+<img src="pictures/pyCharm/8.png" width="650">
 
 
 ## Loading Scripts <a name="Scripts"></a>
@@ -95,7 +96,7 @@ We will load and run a script called: “multiagent_figure_eight”.
 ### Option 1. Use PyCharm terminal <a name="Option1"></a>
 PyCharm has its own terminal where you could run your commands in command line:
 
-PIC9 HERE =====================================================================================
+<img src="pictures/pyCharm/9.png" width="700">
 
 
 ### Option 2. Load the scripts on the Configurations tool <a name="Option2"></a>
@@ -103,20 +104,20 @@ This option is the most convenient as it allows to run scripts with just one cli
 
 **Run – Edit-Configurations**
 
-PIC10 HERE =====================================================================================
+<img src="pictures/pyCharm/10.png" width="500">
 
 The general configuration is:
 
-PIC11 HERE =====================================================================================
+<img src="pictures/pyCharm/11.png" width="650">
 
 The below is the equivalent of the following command on the terminal:
      python train.py multiagent_figure_eight
      
-PIC12 HERE =====================================================================================     
+<img src="pictures/pyCharm/12.png" width="650">   
 
 To run the scripts select the configuration you want to run and hit the green “run” triangle
 
-PIC13 HERE =====================================================================================   
+<img src="pictures/pyCharm/13.png" width="650">
 
 ## Debugging a Script <a name="Debug"></a>
 
@@ -127,11 +128,11 @@ https://www.jetbrains.com/help/pycharm/part-1-debugging-python-code.html#
 Open the script you want to debug and place breakpoints
 **Run - Debug**
 
-PIC14 HERE =====================================================================================   
+<img src="pictures/pyCharm/14.png" width="650"> 
 
 Click on **“Python Console”** below to see the values of your variables
 
-PIC15 HERE =====================================================================================   
+<img src="pictures/pyCharm/15.png" width="900">
 
 
 ## Working with Git and PyCharm <a name="Git"></a>
@@ -148,7 +149,7 @@ Go to the VCS menu, then  – Import into Version Control  - then do these 2 ste
   1.	Create Git repository -  select the folder containing the project - done
   2.	Share project on Github – Add the Repo name 
 
-PIC16 HERE =====================================================================================  
+<img src="pictures/pyCharm/16.png" width="650">
 
 ### To add my GitHub repo
 Go to “Settings”
@@ -156,7 +157,7 @@ Either with ALT+CTRL +S
 Or File – Settings 
 Or Go to Settings here:
 
-PIC17 HERE =====================================================================================
+<img src="pictures/pyCharm/17.png" width="650">
 
 Find the Version Control tab on the left pane
 Click the **Add** button on the right. And add your GitHub repo and the Git configuration.
@@ -164,16 +165,16 @@ Click the **Add** button on the right. And add your GitHub repo and the Git conf
 ### Remote repo configuration
 File - Settings
 
-PIC18 HERE =====================================================================================
+<img src="pictures/pyCharm/18.png" width="650">
 
 Click on the refresh circle on the left, otherwise it won’t recognize the update. 
 
-PIC19 HERE =====================================================================================
+<img src="pictures/pyCharm/19.png" width="600">
 
 Under Version Control you will find Git and GitHub
 
+<img src="pictures/pyCharm/20.png" width="600">
 
-PIC20 HERE =====================================================================================
 
 ### Rebasing local Git or Remote Repo
 
@@ -186,7 +187,7 @@ https://www.jetbrains.com/help/pycharm/sync-with-a-remote-repository.html#update
 ### Commit to Remote GitHub Repo
 VSC – Git – Push –Force Push
 
-PIC21 HERE =====================================================================================
+<img src="pictures/pyCharm/21.png" width="650">
 
 ### Committing to Local Git
 
@@ -194,22 +195,22 @@ https://www.jetbrains.com/help/pycharm/commit-and-push-changes.html
 
 Right click on a file –Git – Commit
 
-PIC22 HERE =====================================================================================
+<img src="pictures/pyCharm/22.png" width="850">
 
 ### Managing versions
 After you have linked PyCharm to your Repo, you can manage the version control from the bottom panel (there is a same panel on the upper right)
 
 Click were it says “Git” and the box will expand
 
-PIC23 HERE =====================================================================================
+<img src="pictures/pyCharm/23.png" width="650">
 
 You can manage the remote and master Repos:
 
-PIC24 HERE =====================================================================================
+<img src="pictures/pyCharm/24.png" width="850">
 
 Or here:
 
-PIC25 HERE =====================================================================================
+<img src="pictures/pyCharm/25.png" width="700">
 
 ### Change the GitHub Repo
 
