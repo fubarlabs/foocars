@@ -3,7 +3,8 @@ import argparse
 import tqdm
 import os
 import sys
-from shutil import copytree
+from shutil import copytree, copyfile
+import glob
 
 
 
@@ -56,6 +57,25 @@ print(car["camera"]["kind"])
 
 
 copytree("./defaultcar/", OUTPUT_DIR)
+
+# get car Runner
+
+# cp ../cars/templatecar/serices.* OUTPUT_DIR/python/
+# copytree("../cars/templatecar/services/*", OUTPUT_DIR+"/services", ignore=["services"])
+
+for file in glob.glob("../cars/templatecar/services/*.py"):
+    print(f"source: {file}")
+    print(f"file: {os.path.basename(file)}")
+    print(f"dest: {OUTPUT_DIR}/services/")
+    copyfile(file, OUTPUT_DIR + "/services/" + os.path.basename(file))
+
+
+# get car service
+copyfile("../cars/car.service", OUTPUT_DIR + "/services/car.service")
+
+
+# get Arduino code
+copytree("../cars/templatecar/arduino/teensy-FullAutoDrive-port/", OUTPUT_DIR + "/arduino/teensy-FullAutoDrive-port/")
 
 outfile = open(OUTPUT_DIR + "/" + CONFIG, 'w')
 toml.dump(car, outfile)
