@@ -63,7 +63,7 @@ copytree("./defaultcar/", OUTPUT_DIR)
 # cp ../cars/templatecar/serices.* OUTPUT_DIR/python/
 # copytree("../cars/templatecar/services/*", OUTPUT_DIR+"/services", ignore=["services"])
 
-for file in glob.glob("../cars/templatecar/services/*.py"):
+for file in glob.glob("../cars/templatecar/services/*"):
     print(f"source: {file}")
     print(f"file: {os.path.basename(file)}")
     print(f"dest: {OUTPUT_DIR}/services/")
