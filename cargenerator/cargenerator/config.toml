@@ -1,6 +1,10 @@
 # only car meta and setting info in here
 Name ="templatecar"
 
+
+[src]
+default_car_dir="./defaultcar/"
+
 [car]
 type="RC"
 

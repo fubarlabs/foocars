@@ -1,0 +1,43 @@
+Name = "templatecar"
+
+[src]
+default_car_dir = "./defaultcar/"
+
+[car]
+type = "RC"
+
+[arduino]
+kind = "teensy"
+
+[computer]
+kind = "pi"
+
+[camera]
+camera = "pi"
+kind = "pi"
+FRAME_RATE = 40
+
+[carsettings]
+THR_MAX = 1580
+
+[data]
+DATA_DIR = "/home/pi/foocars/cars/ulysses/data/"
+COLLECT_DIR = "collected"
+WEIGHTS_DIR = "weights/"
+WEIGHTS_FILE = "weights.h5"
+STEERSTATS_FILE = "steerstats.npz"
+
+[hardware.switch_names]
+shutdown_RPi = 9
+autonomous = 11
+collect_data = 6
+save_to_USBdrive = 13
+read_from_USBdrive = 5
+
+[hardwae.LED_names]
+boot_RPi = 2
+shutdown_RPi = 3
+autonomous = 4
+collect_data = 27
+save_to_USBdrive = 22
+read_from_USBdrive = 17

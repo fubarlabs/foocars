@@ -1,0 +1,16 @@
+[Unit]
+Description=Data logging for Foocars
+
+[Service]
+Type=simple
+WorkingDirectory=/home/pi/foocars/cars/templatecar/
+ExecStart=/usr/bin/pipenv  run python3 /home/pi/foocars/cars/templatecar/services/carRunner.py
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
+Alias=car.service
+
