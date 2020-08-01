@@ -87,9 +87,12 @@ def main():
 
 
     while True:
-        message = input("Press enter to quit\n\n") # Run until someone presses enter
-        GPIO.cleanup() # Clean up
-        break
+        try:
+            message = input("Press enter to quit\n\n") # Run until someone presses enter
+            break
+        finally:
+            print("EXIT")
+            GPIO.cleanup() # Clean up
 
 
 if __name__ == "__main__":
