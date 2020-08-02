@@ -19,7 +19,7 @@ keras = "2.3.1"
 pytest = "^5.2"
 
 [tool.poetry.scripts]
-car_runner = "carservices.carRunner"
+car_runner = "carservices.carRunner:main"
 test_pihat = "carservices.pihattest:main"
 
 [build-system]
