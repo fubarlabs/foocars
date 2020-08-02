@@ -8,22 +8,6 @@ default_car_dir="./defaultcar/"
 [car]
 type="RC"
 
-[hardware]
-[hardwae.LED_names] 
-boot_RPi = 2
-shutdown_RPi = 3
-autonomous = 4
-collect_data = 27
-save_to_USBdrive = 22
-read_from_USBdrive = 17
-
-[hardware.switch_names]
-shutdown_RPi = 9
-autonomous = 11
-collect_data = 6
-save_to_USBdrive = 13
-read_from_USBdrive = 5
-
 # PIO compatible naming convention for boards
 # teensy, fubarino_sd, fubarino_mini
 [arduino]

@@ -5,6 +5,7 @@ import os
 import sys
 from shutil import copytree, copyfile
 import glob
+from importlib_resources import files, as_file
 
 
 
@@ -29,7 +30,10 @@ def generate_car():
     print(args)
 
     # load car configuration into memory
-    car = toml.load(args.config, _dict=dict)
+    #eml = files('email.tests.data').joinpath('message.eml').read_text()
+    toml_str = files('cargenerator').joinpath(args.config)
+    with as_file(toml_str) as toml_file:
+        car = toml.load(toml_file, _dict=dict)
 
     #check args and apply
     if args.name != '':
@@ -56,8 +60,9 @@ def generate_car():
     print(car["arduino"]["kind"])
     print(car["camera"]["kind"])
 
-
-    copytree(car["src"]["default_car_dir"], OUTPUT_DIR)
+    default_template = files('cargenerator').joinpath(car["src"]["default_car_dir"]) 
+    
+    copytree(default_template, OUTPUT_DIR)
 
     # get car Runner
 
