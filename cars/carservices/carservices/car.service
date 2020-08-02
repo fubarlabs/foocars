@@ -3,8 +3,8 @@ Description=Data logging for Foocars
 
 [Service]
 Type=simple
-WorkingDirectory=/home/pi/foocars/cars/templatecar/
-ExecStart=/usr/bin/pipenv  run python3 /home/pi/foocars/cars/templatecar/services/carRunner.py
+WorkingDirectory=/home/pi/foocars/cars/carservices/
+ExecStart=poetry  run car_runner
 StandardOutput=inherit
 StandardError=inherit
 Restart=always
