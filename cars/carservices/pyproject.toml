@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "carservices"
+version = "0.1.0"
+description = ""
+authors = ["ricklon <rick.rickanderson@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+argparse = "^1.4.0"
+tqdm = "^4.48.0"
+pyserial = "^3.4"
+Pillow = "^7.2.0"
+picamera = "^1.13"
+"rpi.gpio" = "^0.7.0"
+tensorflow = {url = "https://github.com/PINTO0309/Tensorflow-bin/raw/master/tensorflow-1.15.0-cp37-cp37m-linux_armv7l.whl"}
+keras = "2.3.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[tool.poetry.scripts]
+car_runner = "carservices.carRunner:main"
+test_pihat = "carservices.pihattest:main"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
