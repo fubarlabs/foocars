@@ -12,25 +12,8 @@ Autonmous Vehicle Project at Fubar Labs for the Autonomous Powerwheels Racing co
 
 ### Car Code
 
-Prepare your PI
 
-```
-
-```
-Get TensorFlow for PI 
-```
-
-```
-Install Tensorflow for Python 
-```
-```
-Install the Python libraries (poetry):
-
-```
-```
-Set up the raspberry pi services
-```
-```
+## Pepare the RC Car and Arduino
 
 ### Note for Arduino
 Code is installed from the Raspberry PI using PLatform IO
@@ -52,29 +35,61 @@ cd ./cars/templatecar/arduino/teensy-FullAutoDrive-port
 pio run -t upload
 ```
 
-### Data Collection Code
-Data collection is done as a Raspberry PI service. The folder services contains:
+## Prepare your PI
 
-### Training code
+```
+git clone https://github.com/fubarlabs/foocars
+```
+Install system packages
+```
+
+```
+Install poetry
+```
+sudo pip3 install poetry
+```
+
+Install platformio
+```
+sudo pip3 install platformio
+```
+
+Use poetry to create the generate the car
+```
+cd ~/foocars/cargenerate
+poetry install
+poety run generate_car
+```
+
+Use poetry to create the car code and service
+```
+cd ~/foocars/cars/carservices
+poetry install
+```
+
+Test the PI Hat
+```
+poetry run test_pihat
+```
+
+Test the Car Runner
+```
+poetry run car_runner
+```
+
+Verify the leds and switches are working.
+
+Set up the raspberry pi services
+```
+cd /etc/systemd/system/
+sudo ln -s ~/foocars/cars/carservices/carservices/car.service 
+sudo systemctl start car
+tail -f /var/log/syslog
+```
+Verify the car serice is running the car runner
 
 
-## More documentation at the wiki
+## Training code
 
-[Autonomous Project Documenatation](https://github.com/fubarlabs/autonomous/wiki)
 
-## Code details
-
-Simple model in `basic_model.py`.  Currently linear with mean squared error loss (summed over outputs?)
-
-## Inputs
-
-* Webcam image
-* Current Accel
-* Current Speed
-
-## Outputs
-
-* Steering Wheel angle
-
-# Data sources
 
