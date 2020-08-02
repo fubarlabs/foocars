@@ -9,15 +9,8 @@ import threading
 import keras
 import tensorflow as tf
 import concurrent.futures
-from dropout_model import model
-from defines import *
-
-time_format = '%Y-%m-%d_%H-%M-%S'
-
-logging.basicConfig(filename='ottoLogger.log', level=logging.DEBUG)
-logging.debug('\n\n New Test Session {0}\n'.format(datetime.datetime.now().strftime(time_format)))
-
-DEBUG = False
+from .dropout_model import model
+from .defines import *
 
 def save_data(imgs, IMUdata, RCcommands, img_file, IMUdata_file, RCcommands_file):
     start = time.time()
@@ -268,81 +261,78 @@ def initialize_service():
     global g_ip_thread
     g_ip_thread=0
 
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
+def main():
+    
+    time_format = '%Y-%m-%d_%H-%M-%S'
 
-for led in LED_names.values():
-    GPIO.setup(led, GPIO.OUT)
-    GPIO.output(led, LED_OFF)
+    logging.basicConfig(filename='ottoLogger.log', level=logging.DEBUG)
+    logging.debug('\n\n New Test Session {0}\n'.format(datetime.datetime.now().strftime(time_format)))
 
-initialize_service()
+    DEBUG = False
 
-for j in range(0, 3):
-    for i in range(0, 6):
-        displayBinLEDCode(2**i)
-        time.sleep(.05)
-    for i in range(0, 6):
-        displayBinLEDCode(2**(5-i))
-        time.sleep(.05)
-displayBinLEDCode(0)
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setwarnings(False)
 
-# Leave an indicator that the PI is booted
-GPIO.output(LED_names["boot_RPi"], LED_ON)
+    for led in LED_names.values():
+        GPIO.setup(led, GPIO.OUT)
+        GPIO.output(led, LED_OFF)
 
-for switch in switch_names.values():
-    GPIO.setup(switch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    initialize_service()
 
-GPIO.add_event_detect(switch_names["diagnostic"], GPIO.FALLING, callback=callback_switch_diagnostic, bouncetime=50)
-GPIO.add_event_detect(switch_names["autonomous"], GPIO.BOTH, callback=callback_switch_autonomous, bouncetime=200)
-GPIO.add_event_detect(switch_names["collect_data"], GPIO.BOTH, callback=callback_switch_collect_data, bouncetime=50)
+    for j in range(0, 3):
+        for i in range(0, 6):
+            displayBinLEDCode(2**i)
+            time.sleep(.05)
+        for i in range(0, 6):
+            displayBinLEDCode(2**(5-i))
+            time.sleep(.05)
+    displayBinLEDCode(0)
 
-auto_mode=False 
-printcount=0
-while(True):
-    time.sleep(.001)
-    if callback_switch_autonomous.is_auto==True:
-        auto_mode=True
-        printcount=printcount+1
-        #while we are in autonomous mode, we have to poll fubarino for stop signal
-        g_serial.flushInput()
-        n_read_items=0
-        while n_read_items!=10:
-            try:
-                datainput=g_serial.readline()
-                data=list(map(float, str(datainput, 'ascii').split(',')))
-                n_read_items=len(data)
-            except ValueError:
-                continue
+    # Leave an indicator that the PI is booted
+    GPIO.output(LED_names["boot_RPi"], LED_ON)
 
-        if printcount==10:
-            print(data)
-            printcount=0
-        if data[0]==commandEnum.RC_SIGNALED_STOP_AUTONOMOUS: #if we get a stop signal
-            g_stop_event.set() #stop the autonomous thread
-            for i in range(0, 5): #send ack 5 times
-                time.sleep(.01)
-                dataout='{0}, {1}, {2}, {3}\n'.format(commandEnum.STOPPED_AUTO_COMMAND_RECIEVED, 1500, 1500, 0)
-                g_serial.write(dataout.encode('ascii'))
-            while callback_switch_autonomous.is_auto==True: #blink the led until user turns off the switch
-                time.sleep(.5)
-                GPIO.output(LED_names["autonomous"], GPIO.HIGH)
-                time.sleep(.5)
-                GPIO.output(LED_names["autonomous"], GPIO.LOW)
-            auto_mode=False
-    if auto_mode==True and callback_switch_autonomous.is_auto==False:
-        dataout='{0}, {1}, {2}, {3}\n'.format(commandEnum.STOP_AUTONOMOUS, 1500, 1500, 0)
-        g_serial.write(dataout.encode('ascii'))
-        g_serial.flush()
-        g_serial.flushInput()
-        n_read_items=0
-        while n_read_items!=10:
-            try:
-                datainput=g_serial.readline()
-                data=list(map(float, str(datainput, 'ascii').split(',')))
-                n_read_items=len(data)
-            except ValueError:
-                continue
-        while data[0]!=commandEnum.STOPPED_AUTO_COMMAND_RECIEVED:
+    for switch in switch_names.values():
+        GPIO.setup(switch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+    GPIO.add_event_detect(switch_names["diagnostic"], GPIO.FALLING, callback=callback_switch_diagnostic, bouncetime=50)
+    GPIO.add_event_detect(switch_names["autonomous"], GPIO.BOTH, callback=callback_switch_autonomous, bouncetime=200)
+    GPIO.add_event_detect(switch_names["collect_data"], GPIO.BOTH, callback=callback_switch_collect_data, bouncetime=50)
+
+    auto_mode=False 
+    printcount=0
+    while(True):
+        time.sleep(.001)
+        if callback_switch_autonomous.is_auto==True:
+            auto_mode=True
+            printcount=printcount+1
+            #while we are in autonomous mode, we have to poll fubarino for stop signal
+            g_serial.flushInput()
+            n_read_items=0
+            while n_read_items!=10:
+                try:
+                    datainput=g_serial.readline()
+                    data=list(map(float, str(datainput, 'ascii').split(',')))
+                    n_read_items=len(data)
+                except ValueError:
+                    continue
+
+            if printcount==10:
+                print(data)
+                printcount=0
+            if data[0]==commandEnum.RC_SIGNALED_STOP_AUTONOMOUS: #if we get a stop signal
+                g_stop_event.set() #stop the autonomous thread
+                for i in range(0, 5): #send ack 5 times
+                    time.sleep(.01)
+                    dataout='{0}, {1}, {2}, {3}\n'.format(commandEnum.STOPPED_AUTO_COMMAND_RECIEVED, 1500, 1500, 0)
+                    g_serial.write(dataout.encode('ascii'))
+                while callback_switch_autonomous.is_auto==True: #blink the led until user turns off the switch
+                    time.sleep(.5)
+                    GPIO.output(LED_names["autonomous"], GPIO.HIGH)
+                    time.sleep(.5)
+                    GPIO.output(LED_names["autonomous"], GPIO.LOW)
+                auto_mode=False
+        if auto_mode==True and callback_switch_autonomous.is_auto==False:
+            dataout='{0}, {1}, {2}, {3}\n'.format(commandEnum.STOP_AUTONOMOUS, 1500, 1500, 0)
             g_serial.write(dataout.encode('ascii'))
             g_serial.flush()
             g_serial.flushInput()
@@ -354,8 +344,22 @@ while(True):
                     n_read_items=len(data)
                 except ValueError:
                     continue
-        auto_mode=False
-GPIO.output(LED_names["boot_RPi"], GPIO.LOW)
-GPIO.cleanup()
-g_serial.close()
+            while data[0]!=commandEnum.STOPPED_AUTO_COMMAND_RECIEVED:
+                g_serial.write(dataout.encode('ascii'))
+                g_serial.flush()
+                g_serial.flushInput()
+                n_read_items=0
+                while n_read_items!=10:
+                    try:
+                        datainput=g_serial.readline()
+                        data=list(map(float, str(datainput, 'ascii').split(',')))
+                        n_read_items=len(data)
+                    except ValueError:
+                        continue
+            auto_mode=False
+    GPIO.output(LED_names["boot_RPi"], GPIO.LOW)
+    GPIO.cleanup()
+    g_serial.close()
 
+if __name__ == "__main__":
+    main()
