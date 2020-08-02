@@ -1,5 +1,5 @@
 import RPi.GPIO as GPIO
-from defines import *
+from .defines import *
 from time import sleep
 
 
