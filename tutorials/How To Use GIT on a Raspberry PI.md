@@ -72,22 +72,19 @@ The folder will appear on your Desktop:
 
 You can click on it to see its content.
 
-## How to run code <a name="running"></a>
+## Explore the Project Code <a name="running"></a>
 Navigate to the directory where the code is: 
 
 ```cd Desktop```
 
 ```cd foocars```
 
-```python monitor.py```
+## Update your code
+To fetch the latest code updates do a git pull.
 
-or
+`git pull`
 
-```python3 monitor.py```
-
-
-Reference:
-https://www.raspberrypi.org/forums/viewtopic.php?t=159990
+This fetches and udpates to the latest code from the remote respository.
 
 
 
