@@ -45,7 +45,7 @@ def generate_car():
     print("Config File: ",CONFIG)
 
     if args.output_dir != '':
-            OUTPUT_DIR = args.output_dir
+            OUTPUT_DIR = args.output_dir + NAME
     else:
             OUTPUT_DIR = NAME
     print("OUTPUT_DIR: ", OUTPUT_DIR)
