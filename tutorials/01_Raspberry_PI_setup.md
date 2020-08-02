@@ -121,30 +121,34 @@ Copy the information on the Notepad++
 
 Open it and add the following details.  A list of configuration files for Raspbian Jesse, Raspbian Stretch and networks without passwords can be found in [4] on the “References” section below.
 
-**For Raspbian Stretch:**
+**For Raspbian Stretch/Buster:**
 
 <pre><code>
-country = your country id (in caps)
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1
-ctrl_interface=/var/run/wpa_supplicant
+country=<Insert 2 letter ISO 3166-1 country code here>
+
 network={
-scan_ssid=1
-ssid= “your network name”
-psk=”your password”
+ ssid="<Name of your wireless LAN>"
+ psk="<Password for your wireless LAN>"
+}
+</code></pre>
+
+** example without <>
+<pre><code>
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+country=US
+
+network={
+ ssid="My Network"
+ psk="My Pass"
 }
 </code></pre>
 
 <img src="pictures/piSetup/pic7.png" width="500">
 
-**For Raspbian Jessie:**
 
-<pre><code>
-network={
-ssid="YOUR_NETWORK_NAME"
-psk="YOUR_PASSWORD"
-key_mgmt=WPA-PSK
-}
-</code></pre>
 
 Caution notes:
 * Double check the SSID and password. 
