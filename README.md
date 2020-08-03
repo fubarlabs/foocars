@@ -37,13 +37,16 @@ pio run -t upload
 
 ## Prepare your PI
 
+Obtain the car code by cloning the project
 ```
 git clone https://github.com/fubarlabs/foocars
 ```
+
 Install system packages
 ```
-
+sudo apt-get install -y libhdf5-dev libc-ares-dev libeigen3-dev gcc gfortran python-dev libgfortran5                                   libatlas3-base libatlas-base-dev libopenblas-dev libopenblas-base libblas-dev
 ```
+
 Install poetry
 ```
 sudo pip3 install poetry
@@ -58,7 +61,7 @@ Use poetry to create the generate the car
 ```
 cd ~/foocars/cargenerate
 poetry install
-poety run generate_car
+poety run generate_car --name yourhostname --output_dir /home/pi/foocars/cars/
 ```
 
 Use poetry to create the car code and service
@@ -91,5 +94,24 @@ Verify the car serice is running the car runner
 
 ## Training code
 
+Find a system with a good gpu. It was slow but worked on a Raspberry PI 4.
+```
+cd ~/foocars/training
+
+poetry install
+poetry shell
+```
+The training command:
+```
+Using TensorFlow backend.
+usage: train.py [-h] [--weight_filename WEIGHT_FILENAME]
+                [--init_weights INIT_WEIGHTS] [--delay DELAY]
+                [--epochs EPOCHS] [--save_frequency SAVE_FREQUENCY]
+                directories [directories ...]
+```
+Run the training:
+```
+python train.py --epochs 100 --save_frequency 2 ../cars/youcar/data/collected
+```
 
 
