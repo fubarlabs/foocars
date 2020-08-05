@@ -61,7 +61,7 @@ Use poetry to create the generate the car
 ```
 cd ~/foocars/cargenerator
 poetry install
-poety run generate_car --name yourhostname --output_dir /home/pi/foocars/cars/
+poety run generatecar --name yourhostname --output_dir /home/pi/foocars/cars/
 ```
 
 Use poetry to create the car code and service
