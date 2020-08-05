@@ -59,7 +59,7 @@ sudo pip3 install platformio
 
 Use poetry to create the generate the car
 ```
-cd ~/foocars/cargenerate
+cd ~/foocars/cargenerator
 poetry install
 poety run generate_car --name yourhostname --output_dir /home/pi/foocars/cars/
 ```
