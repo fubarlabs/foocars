@@ -44,7 +44,7 @@ git clone https://github.com/fubarlabs/foocars
 
 Install system packages
 ```
-sudo apt-get install -y libhdf5-dev libc-ares-dev libeigen3-dev gcc gfortran python-dev libgfortran5                                   libatlas3-base libatlas-base-dev libopenblas-dev libopenblas-base libblas-dev
+sudo apt-get install -y libhdf5-dev libc-ares-dev libeigen3-dev gcc gfortran python-dev libgfortran5                                   libatlas3-base libatlas-base-dev libopenblas-dev libopenblas-base libblas-dev libatlas-base-dev
 ```
 
 Install poetry
