@@ -7,6 +7,7 @@ import serial
 import numpy as np
 import threading
 import keras
+from keras import backend as K
 import tensorflow as tf
 import concurrent.futures
 from .dropout_model import model
@@ -99,35 +100,37 @@ def imageprocessor(event, serial_obj):
     global g_graph
     global g_lock
     global g_steerstats
-    
-    with g_graph.as_default():
-        time.sleep(1)
-        while not event.is_set():
-            g_lock.acquire()
-            tmpimg=np.copy(g_imageData)
-            g_lock.release()
-            immean=tmpimg.mean()
-            imvar=tmpimg.std()
-            start=time.time()
+   
 
-            pred=model.predict(np.expand_dims(tmpimg, axis=0))
-            steer_command=pred[0][0]*g_steerstats[1]+g_steerstats[0]
+    with g_session.as_default():
+        with g_graph.as_default():
+            time.sleep(1)
+            while not event.is_set():
+                g_lock.acquire()
+                tmpimg=np.copy(g_imageData)
+                g_lock.release()
+                immean=tmpimg.mean()
+                imvar=tmpimg.std()
+                start=time.time()
 
-            if steer_command>2000:
-                steer_command=2000
-            elif steer_command<1000:
-                steer_command=1000
+                pred=model.predict(np.expand_dims(tmpimg, axis=0))
+                steer_command=pred[0][0]*g_steerstats[1]+g_steerstats[0]
 
-            end=time.time()
-            print(end-start)
-            dataline='{0}, {1}, {2}, {3}\n'.format(commandEnum.RUN_AUTONOMOUSLY, int(steer_command), THR_MAX, 0)
-            if DEBUG:
-                print(dataline)
-            try:
-                serial_obj.write(dataline.encode('ascii'))
-                serial_obj.flush()
-            except:
-                print("some serial problem")
+                if steer_command>2000:
+                    steer_command=2000
+                elif steer_command<1000:
+                    steer_command=1000
+
+                end=time.time()
+                print(end-start)
+                dataline='{0}, {1}, {2}, {3}\n'.format(commandEnum.RUN_AUTONOMOUSLY, int(steer_command), THR_MAX, 0)
+                if DEBUG:
+                    print(dataline)
+                try:
+                    serial_obj.write(dataline.encode('ascii'))
+                    serial_obj.flush()
+                except:
+                    print("some serial problem")
 
 class DataGetter(object):
     def __init__(self):
@@ -258,6 +261,10 @@ def initialize_service():
     global g_getter
     g_getter=DataGetter()
     #this stuff sets up the network
+    global g_session
+    g_session =  tf.compat.v1.Session()
+    K.set_session(g_session)
+    
     global g_graph
     g_graph = tf.compat.v1.get_default_graph()
     #model.load_weights('weights_2018-02-24_14-00-35_epoch_40.h5')
