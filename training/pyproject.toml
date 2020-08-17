@@ -5,7 +5,7 @@ description = "Training for the Foocars"
 authors = ["ricklon <rick.rickanderson@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.6"
 argparse = "^1.4.0"
 tqdm = "^4.48.0"
 tensorflow = {url = "https://github.com/PINTO0309/Tensorflow-bin/raw/master/tensorflow-1.15.0-cp37-cp37m-linux_armv7l.whl"}
