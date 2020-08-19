@@ -10,9 +10,14 @@ from actionclasses import tagAction
 from filehopper import filehopper
 from filesettings import fileSettingsDialog
 from PIL import Image
+import toml
 
-#Please don't read this code, it's terrible. I'll try to fix it later, I promise.
-# --Jenny
+
+
+
+defaults  = toml.load("config.toml", _dict=dict)
+print(defaults["export_dir"])
+print(defaults["src_dir"])
 
 #datadir="test_data"
 
@@ -107,7 +112,8 @@ class ImagePlayer(QMainWindow):
         filemenu.addAction(self.save_dir_act)
         filemenu.addAction(self.save_act)
 #-------Load data, initial image, start----------
-        self.savedir=None
+        self.savedir = defaults["export_dir"]
+        self.src_dir = defaults["src_dir"]
         #self.load_directory()
         #self.update_image(0)
         self.setWindowTitle("Data Curator")
@@ -152,13 +158,16 @@ class ImagePlayer(QMainWindow):
         self.save_act=QAction("Save File Changes", self)
         self.save_act.triggered.connect(self.save_files) #TODO
 
+    # choose a source directory. normally "collected"
     def open_directory(self):
-        self.loaddir=QFileDialog.getExistingDirectory(self)
+        self.loaddir=QFileDialog.getExistingDirectory(self, "open a folder", self.src_dir)
         if self.loaddir is not None:
             self.load_directory(self.loaddir)
 
+    # chose an export directory
     def select_save_dir(self):
-        self.savedir=QFileDialog.getExistingDirectory(self)
+        self.savedir=QFileDialog.getExistingDirectory(self, "select save folder", self.savedir)
+
 
     def save_files(self):
         if self.savedir is None:
