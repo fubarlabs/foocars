@@ -14,12 +14,9 @@ import toml
 
 
 
+toml_file = "config.toml"
+defaults  = toml.load(toml_file, _dict=dict)
 
-defaults  = toml.load("config.toml", _dict=dict)
-print(defaults["export_dir"])
-print(defaults["src_dir"])
-
-#datadir="test_data"
 
 class ImagePlayer(QMainWindow):
 
@@ -152,22 +149,27 @@ class ImagePlayer(QMainWindow):
         self.redo_act.triggered.connect(self.redo) 
         #Create Actions for loading/saving
         self.open_act=QAction("Open Directory", self)
-        self.open_act.triggered.connect(self.open_directory) 
+        self.open_act.triggered.connect(self.open_source_directory) 
         self.save_dir_act=QAction("Choose Save Directory", self)
-        self.save_dir_act.triggered.connect(self.select_save_dir) #TODO
+        self.save_dir_act.triggered.connect(self.select_export_dir)
         self.save_act=QAction("Save File Changes", self)
-        self.save_act.triggered.connect(self.save_files) #TODO
+        self.save_act.triggered.connect(self.save_files) 
 
     # choose a source directory. normally "collected"
-    def open_directory(self):
+    def open_source_directory(self):
         self.loaddir=QFileDialog.getExistingDirectory(self, "open a folder", self.src_dir)
+        defaults["src_dir"] = self.loaddir
+        with open(toml_file, mode="w") as f:
+            toml.dump(defaults, f)
         if self.loaddir is not None:
             self.load_directory(self.loaddir)
 
     # chose an export directory
-    def select_save_dir(self):
+    def select_export_dir(self):
         self.savedir=QFileDialog.getExistingDirectory(self, "select save folder", self.savedir)
-
+        defaults["export_dir"]=self.savedir
+        with open(toml_file, mode="w") as f:
+            toml.dump(defaults, f)
 
     def save_files(self):
         if self.savedir is None:
