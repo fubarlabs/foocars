@@ -4,10 +4,10 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
-Title ""
-Date ""
-Rev ""
-Comp ""
+Title "Foocars Microcontroller Hat"
+Date "2020-08-21"
+Rev "1"
+Comp "Rutgers University Games Research & Immersive Design + Rutgers Makerspace"
 Comment1 ""
 Comment2 ""
 Comment3 ""
@@ -25,28 +25,6 @@ F 3 "~" H 5250 2800 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L Connector_Generic:Conn_02x03_Counter_Clockwise J4
-U 1 1 5D13893A
-P 6400 2700
-F 0 "J4" H 6450 3017 50  0000 C CNN
-F 1 "PWM_Output" H 6450 2926 50  0000 C CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Horizontal" H 6400 2700 50  0001 C CNN
-F 3 "~" H 6400 2700 50  0001 C CNN
-	1    6400 2700
-	1    0    0    -1  
-$EndComp
-$Comp
-L Connector_Generic:Conn_02x03_Counter_Clockwise J3
-U 1 1 5D13BA5A
-P 6400 2000
-F 0 "J3" H 6450 2317 50  0000 C CNN
-F 1 "PWM_Input" H 6450 2226 50  0000 C CNN
-F 2 "Connector_PinSocket_2.54mm:PinSocket_2x03_P2.54mm_Horizontal" H 6400 2000 50  0001 C CNN
-F 3 "~" H 6400 2000 50  0001 C CNN
-	1    6400 2000
-	1    0    0    -1  
-$EndComp
-$Comp
 L Connector_Generic_MountingPin:Conn_01x14_MountingPin J1
 U 1 1 5D123A95
 P 5250 2000
@@ -57,50 +35,6 @@ F 3 "~" H 5250 2000 50  0001 C CNN
 	1    5250 2000
 	0    1    1    0   
 $EndComp
-Wire Wire Line
-	5050 2600 5050 2500
-Wire Wire Line
-	6200 2100 6200 2200
-Wire Wire Line
-	6200 2200 6450 2200
-Wire Wire Line
-	6700 2200 6700 2100
-Wire Wire Line
-	6200 2800 6200 2900
-Wire Wire Line
-	6200 2900 6450 2900
-Wire Wire Line
-	6700 2900 6700 2800
-Wire Wire Line
-	6700 2000 6850 2000
-Wire Wire Line
-	6850 2000 6850 1600
-Wire Wire Line
-	5050 1600 5050 1800
-Wire Wire Line
-	6750 1650 6750 1900
-Wire Wire Line
-	6750 1900 6700 1900
-Wire Wire Line
-	5150 1650 5150 1800
-Wire Wire Line
-	6700 2600 6800 2600
-Wire Wire Line
-	6800 2600 6800 2500
-Wire Wire Line
-	6850 2450 6850 2700
-Wire Wire Line
-	6850 2700 6700 2700
-Wire Wire Line
-	4950 2450 4950 2600
-Wire Wire Line
-	6450 2200 6450 2900
-Connection ~ 6450 2200
-Wire Wire Line
-	6450 2200 6700 2200
-Connection ~ 6450 2900
-Wire Wire Line
-	6450 2900 6700 2900
 $Comp
 L Connector_Generic:Conn_01x01 J5
 U 1 1 5D24D8A7
@@ -151,8 +85,6 @@ Text Label 4550 2500 1    50   ~ 0
 USB_Side
 Text GLabel 4550 2600 0    50   Input ~ 0
 GND
-Text GLabel 6200 1950 0    50   Input ~ 0
-GND
 Text GLabel 4650 1350 0    50   Input ~ 0
 GND
 Wire Wire Line
@@ -161,26 +93,10 @@ Wire Wire Line
 	5300 1800 5300 2150
 Wire Wire Line
 	5350 1800 5400 1800
-Wire Wire Line
-	6200 2600 6200 2700
-Wire Wire Line
-	6200 1900 6200 2000
-Text GLabel 6200 2650 0    50   Input ~ 0
-GND
-Wire Wire Line
-	5050 1600 6850 1600
-Wire Wire Line
-	5150 1650 6750 1650
-Wire Wire Line
-	4950 2450 6850 2450
-Wire Wire Line
-	5050 2500 6800 2500
 Text GLabel 5300 2150 0    50   Input ~ 0
 SCL0
-Text GLabel 5400 2200 0    50   Input ~ 0
+Text GLabel 5400 2250 0    50   Input ~ 0
 SDA0
-Wire Wire Line
-	5400 1800 5400 2200
 Text GLabel 8250 1350 0    50   Input ~ 0
 SCL0
 Text GLabel 8650 1350 0    50   Input ~ 0
@@ -340,12 +256,12 @@ encoder in (quadrature)\n
 $Comp
 L Mechanical:MountingHole H2
 U 1 1 5F4B0E4F
-P 8250 3750
-F 0 "H2" H 8350 3796 50  0000 L CNN
-F 1 "MountingHole" H 8350 3705 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.5mm_Pad" H 8250 3750 50  0001 C CNN
-F 3 "~" H 8250 3750 50  0001 C CNN
-	1    8250 3750
+P 8200 3750
+F 0 "H2" H 8300 3796 50  0000 L CNN
+F 1 "MountingHole" H 8300 3705 50  0000 L CNN
+F 2 "MountingHole:MountingHole_2.5mm_Pad" H 8200 3750 50  0001 C CNN
+F 3 "~" H 8200 3750 50  0001 C CNN
+	1    8200 3750
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -359,4 +275,107 @@ F 3 "~" H 8200 4200 50  0001 C CNN
 	1    8200 4200
 	1    0    0    -1  
 $EndComp
+$Comp
+L Connector_Generic:Conn_01x06 J4
+U 1 1 5F470182
+P 7100 2750
+F 0 "J4" H 7018 2225 50  0000 C CNN
+F 1 "Input" H 7018 2316 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Horizontal" H 7100 2750 50  0001 C CNN
+F 3 "~" H 7100 2750 50  0001 C CNN
+	1    7100 2750
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	7300 2950 7300 2850
+Text GLabel 7300 2900 2    50   Input ~ 0
+GND
+Wire Wire Line
+	7300 2750 7300 2650
+Text GLabel 7300 2700 2    50   Input ~ 0
+VMOTORCONTROL
+$Comp
+L Connector_Generic:Conn_01x06 J3
+U 1 1 5F483E45
+P 7100 1950
+F 0 "J3" H 7018 1425 50  0000 C CNN
+F 1 "Output" H 7018 1516 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Horizontal" H 7100 1950 50  0001 C CNN
+F 3 "~" H 7100 1950 50  0001 C CNN
+	1    7100 1950
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	7300 2150 7300 2050
+Text GLabel 7300 2100 2    50   Input ~ 0
+GND
+Wire Wire Line
+	7300 1950 7300 1850
+Text GLabel 7300 1900 2    50   Input ~ 0
+VMOTORCONTROL
+Wire Wire Line
+	7300 2400 7300 2450
+Wire Wire Line
+	5050 2400 5050 2600
+Wire Wire Line
+	7300 2550 7300 2500
+Wire Wire Line
+	4950 2500 4950 2600
+Wire Wire Line
+	7300 1750 7300 1700
+Wire Wire Line
+	5050 1800 5050 1700
+Wire Wire Line
+	5150 1600 5150 1800
+Wire Wire Line
+	7300 1600 7300 1650
+Wire Wire Line
+	5400 1800 5400 2250
+$Comp
+L Connector_Generic:Conn_01x06 D1
+U 1 1 5F4C91A1
+P 6150 2100
+F 0 "D1" H 5650 1950 50  0000 C CNN
+F 1 "TVS Suppression" H 5600 2050 50  0000 C CNN
+F 2 "Package_TO_SOT_SMD:SOT-23-6_Handsoldering" H 6150 2100 50  0001 C CNN
+F 3 "https://www.digikey.com/product-detail/en/comchip-technology/CPDT6-5V4-HF/641-1086-1-ND/1121208" H 6150 2100 50  0001 C CNN
+	1    6150 2100
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	5050 2400 6350 2400
+Wire Wire Line
+	4950 2500 6400 2500
+Wire Wire Line
+	5050 1700 6350 1700
+Text GLabel 6350 2200 2    50   Input ~ 0
+GND
+Text GLabel 6350 1900 2    50   Input ~ 0
+GND
+Wire Wire Line
+	6350 1800 6350 1700
+Connection ~ 6350 1700
+Wire Wire Line
+	6350 1700 7300 1700
+Wire Wire Line
+	5150 1600 6400 1600
+Wire Wire Line
+	6400 1600 6400 2000
+Wire Wire Line
+	6400 2000 6350 2000
+Connection ~ 6400 1600
+Wire Wire Line
+	6400 1600 7300 1600
+Wire Wire Line
+	6350 2100 6400 2100
+Wire Wire Line
+	6400 2100 6400 2500
+Connection ~ 6400 2500
+Wire Wire Line
+	6400 2500 7300 2500
+Wire Wire Line
+	6350 2300 6350 2400
+Connection ~ 6350 2400
+Wire Wire Line
+	6350 2400 7300 2400
 $EndSCHEMATC
