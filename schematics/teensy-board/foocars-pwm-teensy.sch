@@ -36,14 +36,14 @@ F 3 "~" H 5250 2000 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L Connector_Generic:Conn_01x01 J5
+L Connector_Generic:Conn_01x02 J5
 U 1 1 5D24D8A7
-P 6400 1350
-F 0 "J5" H 6479 1392 50  0000 L CNN
-F 1 "BattMon" H 6479 1301 50  0000 L CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical" H 6400 1350 50  0001 C CNN
-F 3 "~" H 6400 1350 50  0001 C CNN
-	1    6400 1350
+P 6400 1250
+F 0 "J5" H 6479 1292 50  0000 L CNN
+F 1 "BattMon" H 6479 1201 50  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 6400 1250 50  0001 C CNN
+F 3 "~" H 6400 1250 50  0001 C CNN
+	1    6400 1250
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -69,8 +69,6 @@ F 3 "~" H 5200 1350 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 Wire Wire Line
-	5050 1350 4650 1350
-Wire Wire Line
 	5350 1350 5650 1350
 Wire Wire Line
 	5650 1800 5650 1350
@@ -84,8 +82,6 @@ teensy_3.2
 Text Label 4550 2500 1    50   ~ 0
 USB_Side
 Text GLabel 4550 2600 0    50   Input ~ 0
-GND
-Text GLabel 4650 1350 0    50   Input ~ 0
 GND
 Wire Wire Line
 	5250 1800 5300 1800
@@ -228,9 +224,9 @@ Wire Wire Line
 	8500 2450 8500 2550
 Text GLabel 4750 1800 1    50   Input ~ 0
 3v3
-Text GLabel 8600 2550 2    50   Input ~ 0
-3v3
 Text GLabel 8300 2550 0    50   Input ~ 0
+3v3
+Text GLabel 8600 2550 2    50   Input ~ 0
 GND
 Text Label 8250 2450 0    50   ~ 0
 SCL
@@ -247,9 +243,9 @@ F 3 "~" H 5300 3350 50  0001 C CNN
 	1    5300 3350
 	0    1    1    0   
 $EndComp
-Text GLabel 5100 3150 0    50   Input ~ 0
-GND
 Text GLabel 5400 3150 2    50   Input ~ 0
+GND
+Text GLabel 5100 3150 0    50   Input ~ 0
 3v3
 Text Notes 4950 3550 0    50   ~ 0
 encoder in (quadrature)\n
@@ -378,4 +374,17 @@ Wire Wire Line
 Connection ~ 6350 2400
 Wire Wire Line
 	6350 2400 7300 2400
+Wire Wire Line
+	4650 1350 4900 1350
+Wire Wire Line
+	4650 1350 4650 1800
+Wire Wire Line
+	4900 1350 4900 1000
+Wire Wire Line
+	4900 1000 6200 1000
+Wire Wire Line
+	6200 1000 6200 1250
+Connection ~ 4900 1350
+Wire Wire Line
+	4900 1350 5050 1350
 $EndSCHEMATC
