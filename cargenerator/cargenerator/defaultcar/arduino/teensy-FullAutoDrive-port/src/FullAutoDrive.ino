@@ -11,11 +11,11 @@
 
 // Pin Defines
 
-const int PIN_STR = 4;
-const int PIN_THR = 3;
+const int PIN_STR = 20;
+const int PIN_THR = 21;
 //These lines are for the input capture for pwm read off RC
-#define RC_INPUT_STR 20
-#define RC_INPUT_THR 21
+#define RC_INPUT_STR 4
+#define RC_INPUT_THR 3
 
 int chan_a_start, chan_a; 	//Used to keep track of the timing of the edges of Channel A and B.
 int chan_b_start, chan_b;
