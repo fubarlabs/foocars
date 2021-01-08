@@ -82,7 +82,7 @@ Servo ServoTHR;
 void setup() {
     
     Serial.begin(115200);
-    while(!Serial); //Block until ready.
+    delay(1000);
     Serial.println( "Starting up..." );
     
     pinMode(RC_INPUT_STR, INPUT);
