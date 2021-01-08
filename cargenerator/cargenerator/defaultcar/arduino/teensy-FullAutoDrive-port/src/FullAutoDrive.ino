@@ -11,8 +11,8 @@
 
 // Pin Defines
 
-const int PIN_STR = 3;
-const int PIN_THR = 4;
+const int PIN_STR = 4;
+const int PIN_THR = 3;
 //These lines are for the input capture for pwm read off RC
 #define RC_INPUT_STR 20
 #define RC_INPUT_THR 21
