@@ -82,6 +82,8 @@ Servo ServoTHR;
 void setup() {
     
     Serial.begin(115200);
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, HIGH);
     delay(1000);
     Serial.println( "Starting up..." );
     
