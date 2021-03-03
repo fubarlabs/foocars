@@ -10,11 +10,12 @@ argparse = "^1.4.0"
 tqdm = "^4.48.0"
 pyserial = "^3.4"
 Pillow = "^7.2.0"
-picamera = "^1.13"
 "rpi.gpio" = "^0.7.0"
-tensorflow = {url = "https://github.com/PINTO0309/Tensorflow-bin/raw/master/tensorflow-1.15.0-cp37-cp37m-linux_armv7l.whl"}
 keras = "2.3.1"
 scipy = {url = "https://www.piwheels.org/simple/scipy/scipy-1.5.1-cp37-cp37m-linux_armv7l.whl#sha256=a03df78474a6fefd3322b9fe44fe1e38b26cb2737c2bba0f96233cc02dde04a9"}
+picamera = {url = "https://www.piwheels.org/simple/picamera/picamera-1.13-py3-none-any.whl#sha256=122e792bb944973cdf2e810a8cbfc405d5c154083943ef75a5cc9f57ee4058f5"}
+tensorflow = {path = "../../tensorflow-1.15.0-cp37-cp37m-linux_armv7l.whl"}
+h5py = "<3.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
