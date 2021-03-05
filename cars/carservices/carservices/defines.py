@@ -1,17 +1,17 @@
 import RPi.GPIO as GPIO
 import socket
 LED_names={ 
-  "boot_RPi" : 2,
+  "boot_RPi" : 4,
   "shutdown_RPi" : 3,
   "autonomous" : 27,
-  "collect_data" : 4
+  "collect_data" : 2 
 }
 
 
 switch_names={ 
   "diagnostic" : 9,
-  "autonomous" : 11,
-  "collect_data" : 6,
+  "autonomous" : 6,
+  "collect_data" : 11,
 }
 
 FRAME_RATE = 40
