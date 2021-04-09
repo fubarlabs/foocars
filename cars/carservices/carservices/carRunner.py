@@ -6,8 +6,6 @@ import picamera
 import serial
 import numpy as np
 import threading
-import keras
-from keras import backend as K
 import tensorflow as tf
 import concurrent.futures
 from .dropout_model import model
@@ -262,14 +260,11 @@ def initialize_service():
     g_getter=DataGetter()
     #this stuff sets up the network
     global g_session
-    g_session =  tf.compat.v1.Session()
-    K.set_session(g_session)
     
     global g_graph
     g_graph = tf.compat.v1.get_default_graph()
     #model.load_weights('weights_2018-02-24_14-00-35_epoch_40.h5')
     model.load_weights(WEIGHTS_FILE)
-    model._make_predict_function()
     global g_steerstats
     g_steerstats=np.load(STEERSTATS_FILE)['arr_0']
     global g_ip_thread
