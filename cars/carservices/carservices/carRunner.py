@@ -99,36 +99,33 @@ def imageprocessor(event, serial_obj):
     global g_lock
     global g_steerstats
    
+    time.sleep(1)
+    while not event.is_set():
+        g_lock.acquire()
+        tmpimg=np.copy(g_imageData)
+        g_lock.release()
+        immean=tmpimg.mean()
+        imvar=tmpimg.std()
+        start=time.time()
 
-    with g_session.as_default():
-        with g_graph.as_default():
-            time.sleep(1)
-            while not event.is_set():
-                g_lock.acquire()
-                tmpimg=np.copy(g_imageData)
-                g_lock.release()
-                immean=tmpimg.mean()
-                imvar=tmpimg.std()
-                start=time.time()
+        pred=model.predict(np.expand_dims(tmpimg, axis=0))
+        steer_command=pred[0][0]*g_steerstats[1]+g_steerstats[0]
 
-                pred=model.predict(np.expand_dims(tmpimg, axis=0))
-                steer_command=pred[0][0]*g_steerstats[1]+g_steerstats[0]
+        if steer_command>2000:
+            steer_command=2000
+        elif steer_command<1000:
+            steer_command=1000
 
-                if steer_command>2000:
-                    steer_command=2000
-                elif steer_command<1000:
-                    steer_command=1000
-
-                end=time.time()
-                print(end-start)
-                dataline='{0}, {1}, {2}, {3}\n'.format(commandEnum.RUN_AUTONOMOUSLY, int(steer_command), THR_MAX, 0)
-                if DEBUG:
-                    print(dataline)
-                try:
-                    serial_obj.write(dataline.encode('ascii'))
-                    serial_obj.flush()
-                except:
-                    print("some serial problem")
+        end=time.time()
+        print(end-start)
+        dataline='{0}, {1}, {2}, {3}\n'.format(commandEnum.RUN_AUTONOMOUSLY, int(steer_command), THR_MAX, 0)
+        if DEBUG:
+            print(dataline)
+        try:
+            serial_obj.write(dataline.encode('ascii'))
+            serial_obj.flush()
+        except:
+            print("some serial problem")
 
 class DataGetter(object):
     def __init__(self):
@@ -166,6 +163,7 @@ def callback_switch_autonomous(channel):
         if callback_switch_autonomous.is_auto==True:
             logging.debug('read another high transition while in autonomous')
         else:
+            print("Autonomous: On")
             logging.debug('\n user toggled autonomous on {0}\n'.format(datetime.datetime.now().strftime(time_format)))
             g_camera.start_recording(g_getter, format='rgb')
             g_ip_thread=threading.Thread(target=imageprocessor, args=[g_stop_event, g_serial])
@@ -175,6 +173,7 @@ def callback_switch_autonomous(channel):
             GPIO.output(LED_names["autonomous"], GPIO.HIGH)
     else:        #switch off
         if callback_switch_autonomous.is_auto==True:
+            print("Autonomous: Off")
             logging.debug('\n user toggled autonomous off {0}\n'.format(datetime.datetime.now().strftime(time_format)))
             if not g_stop_event.isSet(): #if the event isn't already set, then stop autonomous is triggered by the switch
                 g_stop_event.set() #stop autonomous thread
@@ -195,12 +194,14 @@ def callback_switch_collect_data(channel):
         if callback_switch_collect_data.is_recording==True:
             logging.debug('read another high transition while already recording\n')
         else:
+            print("Data Collection: On")
             logging.debug('\n user toggled collect data on {0}\n'.format(datetime.datetime.now().strftime(time_format)))
             callback_switch_collect_data.is_recording=True
             g_camera.start_recording(g_collector, format='rgb')
             GPIO.output(LED_names["collect_data"], LED_ON)
     else:
         if callback_switch_collect_data.is_recording==True:
+            print("Data Collection: Off")
             logging.debug('\n user toggled collect data off {0}\n'.format(datetime.datetime.now().strftime(time_format)))
             g_camera.stop_recording()
             callback_switch_collect_data.is_recording=False
@@ -258,17 +259,14 @@ def initialize_service():
     #this is the object the camera writes to in autonomous mode
     global g_getter
     g_getter=DataGetter()
+
     #this stuff sets up the network
-    global g_session
-    
-    global g_graph
-    g_graph = tf.compat.v1.get_default_graph()
-    #model.load_weights('weights_2018-02-24_14-00-35_epoch_40.h5')
     model.load_weights(WEIGHTS_FILE)
     global g_steerstats
     g_steerstats=np.load(STEERSTATS_FILE)['arr_0']
     global g_ip_thread
     g_ip_thread=0
+    print("Car Ready!")
 
 def main():
     try:
