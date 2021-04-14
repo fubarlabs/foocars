@@ -4,6 +4,13 @@ version = "0.1.0"
 description = ""
 authors = ["ricklon <rick.rickanderson@gmail.com>"]
 
+
+[[tool.poetry.source]]
+name = "piwheels"
+url = "https://www.piwheels.org/simple"
+secondary = true
+
+
 [tool.poetry.dependencies]
 python = "^3.7"
 argparse = "^1.4.0"
