@@ -1,2 +1,0 @@
- poetry add argparse tqdm pyserial Pillow Keras h
-                                                                                                    │5py rpi.gpio picamera                     
