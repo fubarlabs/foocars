@@ -100,7 +100,6 @@ def imageprocessor(event, serial_obj):
     global g_graph
     global g_lock
     global g_steerstats
-   
 
     with g_session.as_default():
         with g_graph.as_default():
@@ -150,23 +149,26 @@ class DataGetter(object):
     def flush(self):
         pass
 
-def callback_switch_diagnostic(channel):
-    if GPIO.input(switch_names["diagnostic"])!=SWITCH_ON:
-        return 
-    GPIO.output(LED_names["boot_RPi"], LED_OFF)
-    time.sleep(1)
-    GPIO.output(LED_names["boot_RPi"], LED_ON)
+#def callback_switch_diagnostic(channel):
+#    if GPIO.input(switch_names["diagnostic"])!=SWITCH_ON:
+#        return 
+#    GPIO.output(LED_names["boot_RPi"], LED_OFF)
+#    time.sleep(1)
+#    GPIO.output(LED_names["boot_RPi"], LED_ON)
 
 def callback_thr_steps(channel):
-    if GPIO.input(switch_names["diagnostic"])!=SWITCH_ON:
+    global THR_POS
+    global THR_CURRENT
+    
+    if GPIO.input(switch_names["thr_step"])!=SWITCH_ON:
         return 
     GPIO.output(LED_names["boot_RPi"], LED_OFF)
-    if THR_POS > len(THR_STEPS):
-        THR_POS = 0
-    else:
+    if  THR_POS < len(THR_STEPS)  :
+        THR_CURRENT = THR_STEPS[THR_POS]
+        print(f'THR_CURRENT: {THR_STEPS[THR_POS]}')
         THR_POS = THR_POS + 1
-    THR_CURRENT = THR_STEPS[THR_POS]
-    print(f'THR_CURRENT: {THR_STEPS[THR_POS]}')
+    else:
+        THR_POS = 0
     time.sleep(.5)
     GPIO.output(LED_names["boot_RPi"], LED_ON)
 
@@ -316,7 +318,7 @@ def main():
         for switch in switch_names.values():
             GPIO.setup(switch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-        GPIO.add_event_detect(switch_names["diagnostic"], GPIO.FALLING, callback=callback_switch_diagnostic, bouncetime=50)
+        GPIO.add_event_detect(switch_names["thr_step"], GPIO.FALLING, callback=callback_thr_steps, bouncetime=50)
         GPIO.add_event_detect(switch_names["autonomous"], GPIO.BOTH, callback=callback_switch_autonomous, bouncetime=200)
         GPIO.add_event_detect(switch_names["collect_data"], GPIO.BOTH, callback=callback_switch_collect_data, bouncetime=50)
 
