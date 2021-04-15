@@ -9,7 +9,7 @@ LED_names={
 
 
 switch_names={ 
-  "diagnostic" : 9,
+  "thr_step" : 9,
   "autonomous" : 6,
   "collect_data" : 11,
 }
@@ -21,6 +21,8 @@ WEIGHTS_DIR = DATA_DIR + "weights/"
 WEIGHTS_FILE = WEIGHTS_DIR + "weights.h5"
 STEERSTATS_FILE = WEIGHTS_DIR + "steerstats.npz"
 THR_MAX = 1580
+THR_STEPS = [1500, 1540, 1560, 1580, 1600, 1620]
+THR_CURRENT = THR_STEPS[0]
 
 SWITCH_ON=GPIO.LOW
 SWITCH_OFF=GPIO.HIGH

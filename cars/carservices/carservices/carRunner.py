@@ -123,7 +123,7 @@ def imageprocessor(event, serial_obj):
 
                 end=time.time()
                 print(end-start)
-                dataline='{0}, {1}, {2}, {3}\n'.format(commandEnum.RUN_AUTONOMOUSLY, int(steer_command), THR_MAX, 0)
+                dataline='{0}, {1}, {2}, {3}\n'.format(commandEnum.RUN_AUTONOMOUSLY, int(steer_command), THR_CURRENT, 0)
                 if DEBUG:
                     print(dataline)
                 try:
@@ -156,6 +156,20 @@ def callback_switch_diagnostic(channel):
     GPIO.output(LED_names["boot_RPi"], LED_OFF)
     time.sleep(1)
     GPIO.output(LED_names["boot_RPi"], LED_ON)
+
+def callback_thr_steps(channel):
+    if GPIO.input(switch_names["diagnostic"])!=SWITCH_ON:
+        return 
+    GPIO.output(LED_names["boot_RPi"], LED_OFF)
+    if THR_POS > len(THR_STEPS):
+        THR_POS = 0
+    else:
+        THR_POS = THR_POS + 1
+    THR_CURRENT = THR_STEPS[THR_POS]
+    print(f'THR_CURRENT: {THR_STEPS[THR_POS]}')
+    time.sleep(.5)
+    GPIO.output(LED_names["boot_RPi"], LED_ON)
+
 
 def callback_switch_autonomous(channel):
     global g_getter
