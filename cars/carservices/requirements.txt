@@ -39,11 +39,6 @@ opt-einsum==3.3.0; python_version >= "3.5" \
     --hash=sha256:4bc9e4d74e86c29c4df1efaee9700d6fef10c0b925602bcf04ef96910c6cbfd9
 picamera==1.13 \
     --hash=sha256:122e792bb944973cdf2e810a8cbfc405d5c154083943ef75a5cc9f57ee4058f5
-pillow==7.2.0; python_version >= "3.5" \
-    --hash=sha256:39b8830992872e00605ec6eb0d83efad488553f10d79066b8b47c8be38e126b3 \
-    --hash=sha256:39b8830992872e00605ec6eb0d83efad488553f10d79066b8b47c8be38e126b3 \
-    --hash=sha256:e6d08a4d39b8a3a503c6e97e53ee2cc1dcd4fd05c4f87e8991f53e979608d0f6 \
-    --hash=sha256:e6d08a4d39b8a3a503c6e97e53ee2cc1dcd4fd05c4f87e8991f53e979608d0f6
 protobuf==3.15.8; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.2.0" \
     --hash=sha256:a0a08c6b2e6d6c74a6eb5bf6184968eefb1569279e78714e239d33126e753403
 pyserial==3.5 \
