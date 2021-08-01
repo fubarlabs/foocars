@@ -1,48 +1,39 @@
-FROM resin/rpi-raspbian:jessie
+FROM --platform=linux/arm64 arm64v8/python
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-build-essential cmake pkg-config libjpeg-dev libtiff5-dev libjasper-dev libpng-dev \
-libavcodec-dev libavformat-dev gfortran libhdf5-dev \
-libswscale-dev libv4l-dev libxvidcore-dev libx264-dev libfontconfig1-dev libcairo2-dev \
-libgdk-pixbuf2.0-dev libpango1.0-dev libgtk2.0-dev libgtk-3-dev libatlas-base-dev \
-libhdf5-serial-dev libhdf5-103 libqtgui4 libqtwebkit4 libqt4-test python3-pyqt5
+ build-essential cmake pkg-config libjpeg-dev libtiff5-dev \
+ libpng-dev libavcodec-dev libavformat-dev libswscale-dev \
+ libv4l-dev libxvidcore-dev libx264-dev libfontconfig1-dev libcairo2-dev \
+ libgdk-pixbuf2.0-dev libpango1.0-dev libgtk2.0-dev libgtk-3-dev \
+ libatlas-base-dev gfortran libhdf5-dev libhdf5-serial-dev libhdf5-103 \
+ libqtgui4 libqtwebkit4 libqt4-test python3-pyqt5
+ 
+ # libjasper-dev 
+
 
 WORKDIR foocars
 
 COPY . .
 
 
-RUN pip3 install tensorflow
+#RUN pip3 install tensorflow
+
+RUN sh get_tensorflow.sh
+RUN pip3 install platformio
 RUN pip3 install poetry
 
+RUN sh get_tensorflow.sh
 
-# Enable command line Arduino via platformio
-RUN pip3 install platformio
-# Enable pic32 compiler execution
-RUN ln -s /lib/arm-linux-gnueabihf/ld-linux.so.3 /lib/ld-linux.so.3
-RUN pio platform install microchippic32
+WORKDIR /foocars/cargenerator
 
-# Enable and compile a default program
-WORKDIR /cargenerator/cargenerator/defaultcar/arduino/teensy-FullAutoDrive-port
-RUN pio lib install 944
-RUN pio run
-RUN pio device list 
+RUN poetry install
+RUN poetry run generatecar --name chiaracer --output_dir /foocars/cars/
 
-WORKDIR /foocars
-RUN pip3 install -r requirements.txt
+WORKDIR /foocars/cars/carservices/
+RUN poetry install
 
+#RUN poetry run test_pihat
 
-# TODO no longer run as service but as a car script ottoLogger.py for example
-# Set up the raspberry pi services
-WORKDIR /usr/local/bin
-RUN ln -s /foocars/services/ottoMicroLogger.py
-RUN ln -s /foocars/services/ottoMicroLogger.service
-RUN systemctl enable /foocars/services/ottoMicroLogger.service
-
-# TODO: Enable USB Flash drive code
-# TODO: upload Arduino code to car
-
-# TODO: add default weigths
-
+RUN poetry run car_runner
 
 RUN echo  "Done"
