@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "carservices"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = ["ricklon <rick.rickanderson@gmail.com>"]
 
@@ -10,18 +10,14 @@ name = "piwheels"
 url = "https://www.piwheels.org/simple"
 secondary = true
 
-
 [tool.poetry.dependencies]
 python = "^3.7"
-argparse = "^1.4.0"
-tqdm = "^4.48.0"
-pyserial = "^3.4"
-Pillow = "^7.2.0"
-"rpi.gpio" = "^0.7.0"
-keras = "2.3.1"
-tensorflow = {path = "../../tensorflow-1.15.0-cp37-cp37m-linux_armv7l.whl"}
+#tensorflow = "^2."
+#tensorflow = {url = "https://github.com/bitsy-ai/tensorflow-arm-bin/releases/download/v2.4.0/tensorflow-2.4.0-cp37-none-linux_aarch64.whl"}
+#"RPi.GPIO" = "^"
+pyserial = "^3.5"
 picamera = "^1.13"
-h5py = "<3.0.0"
+
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
