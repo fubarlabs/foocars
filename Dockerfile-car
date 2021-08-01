@@ -1,52 +1,53 @@
-FROM resin/rpi-raspbian:jessie
+FROM --platform=linux/arm64 arm64v8/python AS base
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  apt-utils wget unzip build-essential cmake pkg-config \
-  libjpeg-dev libtiff5-dev libjasper-dev libpng12-dev \
-  libavcodec-dev libavformat-dev libswscale-dev libv4l-dev \
-  libxvidcore-dev libx264-dev \
-  libgtk2.0-dev libgtk-3-dev \
-  libatlas-base-dev gfortran \
-  python3-dev python3-pip python-pip python3-h5py \
-  python3-numpy python3-matplotlib python3-scipy python3-pandas 
+ build-essential cmake pkg-config libjpeg-dev libtiff5-dev \
+ libpng-dev libavcodec-dev libavformat-dev libswscale-dev \
+ libv4l-dev libxvidcore-dev libx264-dev libfontconfig1-dev libcairo2-dev \
+ libgdk-pixbuf2.0-dev libpango1.0-dev libgtk2.0-dev libgtk-3-dev \
+ libatlas-base-dev gfortran libhdf5-dev libhdf5-serial-dev libhdf5-103 \
+ libqtgui4 libqtwebkit4 libqt4-test python3-pyqt5
+ 
+ # libjasper-dev 
+
 
 WORKDIR foocars
 
-COPY . .
+#RUN pip3 install tensorflow
+COPY ./get_tensorflow.sh .
+RUN sh get_tensorflow.sh
+# Optional for debuging in the container live
+#RUN pip3 install platformio
+
+#TODO: use the get poetry install script
+RUN pip3 install poetry
 
 
-RUN pip3 install tensorflow
-RUN pip3 install pipenv
-RUN pip3 install mock
+# From the base get the cargenerator 
+FROM base AS cargenerator 
+COPY ./cargenerator /foocars/cargenerator
+
+WORKDIR /foocars/cargenerator
+
+RUN poetry install
+RUN poetry run generatecar --name chiaracer --output_dir /foocars/cars/
+
+FROM base AS carservices
+COPY ./cars/carservices /foocars/cars/carservices
+WORKDIR /foocars/cars/carservices/
+
+#RUN pip install --upgrade pip
+#ENV POETRY_CREATE_VIRTUALENVS=false
+#RUN pip install numpy=1.21.1
+RUN pip install -r requirements.txt
+
+#RUN poetry run test_pihat
+#RUN poetry run car_runner
+
+COPY --from=cargenerator /foocars/cars/chiaracer /foocars/cars/chiaracer
 
 
-# Enable command line Arduino via platformio
-RUN pip install platformio
-# Enable pic32 compiler execution
-RUN ln -s /lib/arm-linux-gnueabihf/ld-linux.so.3 /lib/ld-linux.so.3
-RUN pio platform install microchippic32
-
-# Enable and compile a default program
-WORKDIR /foocars/arduino/MOTTOServoDataSampleDelay
-RUN pio lib install 944
-RUN pio run
-RUN pio device list 
-
-WORKDIR /foocars
-RUN pip3 install -r requirements.txt
-
-
-# TODO no longer run as service but as a car script ottoLogger.py for example
-# Set up the raspberry pi services
-WORKDIR /usr/local/bin
-RUN ln -s /foocars/services/ottoMicroLogger.py
-RUN ln -s /foocars/services/ottoMicroLogger.service
-RUN systemctl enable /foocars/services/ottoMicroLogger.service
-
-# TODO: Enable USB Flash drive code
-# TODO: upload Arduino code to car
-
-# TODO: add default weigths
-
-
+#ENTRYPOINT [ "poetry", "run", "car_runner"]
+#CMD ["poetry run car_runner"]
+CMD ["bash"]
 RUN echo  "Done"

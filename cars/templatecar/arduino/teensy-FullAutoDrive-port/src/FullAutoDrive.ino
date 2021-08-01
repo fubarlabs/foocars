@@ -11,11 +11,11 @@
 
 // Pin Defines
 
-const int PIN_STR = 3;
-const int PIN_THR = 4;
+const int PIN_STR = 21;
+const int PIN_THR = 20;
 //These lines are for the input capture for pwm read off RC
-#define RC_INPUT_STR 20
-#define RC_INPUT_THR 21
+#define RC_INPUT_STR 3
+#define RC_INPUT_THR 4
 
 int chan_a_start, chan_a; 	//Used to keep track of the timing of the edges of Channel A and B.
 int chan_b_start, chan_b;
@@ -82,7 +82,9 @@ Servo ServoTHR;
 void setup() {
     
     Serial.begin(115200);
-    while(!Serial); //Block until ready.
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(1000);
     Serial.println( "Starting up..." );
     
     pinMode(RC_INPUT_STR, INPUT);

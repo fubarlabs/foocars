@@ -15,31 +15,7 @@ Autonmous Vehicle Project at Fubar Labs for the Autonomous Powerwheels Racing co
 ## Quickstart
 
 
-
 ### Car Code
-
-
-## Pepare the RC Car and Arduino
-
-### Note for Arduino
-Code is installed from the Raspberry PI using PLatform IO
-```
-sudo pip3 install platformio
-
-```
-
-### Teensy 3.2 Code
-
-```
-cd ./cars/templatecar/arduino/teensy-FullAutoDrive-port
-```
-
-
-### Arduino Code
-
-```
-pio run -t upload
-```
 
 ## Prepare your PI
 
@@ -48,9 +24,17 @@ Obtain the car code by cloning the project
 git clone https://github.com/fubarlabs/foocars
 ```
 
+For the Tensorflow 1.15 version fetch the wheel file to the local system:
+```
+cd ~/foocars
+sh get_tensorflow.sh
+```
+
+
 Install system packages
 ```
-sudo apt-get install -y libhdf5-dev libc-ares-dev libeigen3-dev gcc gfortran python-dev libgfortran5                                   libatlas3-base libatlas-base-dev libopenblas-dev libopenblas-base libblas-dev libatlas-base-dev
+sudo apt-get  install build-essential cmake pkg-config libjpeg-dev libtiff5-dev libjasper-dev libpng-dev libavcodec-dev libavformat-dev libswscale-dev libv4l-dev libxvidcore-dev libx264-dev libfontconfig1-dev libcairo2-dev libgdk-pixbuf2.0-dev libpango1.0-dev libgtk2.0-dev libgtk-3-dev libatlas-base-dev gfortran libhdf5-dev libhdf5-serial-dev libhdf5-103 libqtgui4 libqtwebkit4 libqt4-test python3-pyqt5
+
 ```
 
 Install poetry
@@ -88,6 +72,32 @@ poetry run car_runner
 
 Verify the leds and switches are working.
 
+
+
+## Pepare the RC Car and Arduino
+
+### Note for Arduino
+Code is installed from the Raspberry PI using PLatform IO
+```
+sudo pip3 install platformio
+
+```
+
+### Teensy 3.2 Code
+
+```
+cd ./cars/templatecar/arduino/teensy-FullAutoDrive-port
+```
+
+
+### Arduino Code
+
+```
+pio run -t upload
+```
+
+
+### Finish the PI set up
 Set up the raspberry pi services
 ```
 cd /etc/systemd/system/
@@ -95,7 +105,7 @@ sudo ln -s ~/foocars/cars/carservices/carservices/car.service
 sudo systemctl start car
 tail -f /var/log/syslog
 ```
-Verify the car serice is running the car runner
+Verify the car service is running the car runner
 
 
 ## Training code
@@ -120,4 +130,6 @@ Run the training:
 python train.py --epochs 100 --save_frequency 2 ../cars/youcar/data/collected
 ```
 
+### Alternately use this example Google Colab Notebook
+* FooCars Training: https://colab.research.google.com/drive/1LxZyNQvWT2VasnOrNkU9dTcpo4B9I0aD?usp=sharing
 
