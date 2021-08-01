@@ -12,8 +12,9 @@ secondary = true
 
 [tool.poetry.dependencies]
 python = "^3.7"
-tensorflow = {url = "https://github.com/bitsy-ai/tensorflow-arm-bin/releases/download/v2.4.0/tensorflow-2.4.0-cp37-none-linux_armv7l.whl"}
-"RPi.GPIO" = "^0.7.0"
+#tensorflow = "^2."
+#tensorflow = {url = "https://github.com/bitsy-ai/tensorflow-arm-bin/releases/download/v2.4.0/tensorflow-2.4.0-cp37-none-linux_aarch64.whl"}
+#"RPi.GPIO" = "^"
 pyserial = "^3.5"
 picamera = "^1.13"
 
