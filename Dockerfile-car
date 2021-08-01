@@ -30,10 +30,13 @@ RUN poetry install
 RUN poetry run generatecar --name chiaracer --output_dir /foocars/cars/
 
 WORKDIR /foocars/cars/carservices/
-RUN poetry install
+#RUN poetry install
 
 #RUN poetry run test_pihat
 
-RUN poetry run car_runner
+#RUN poetry run car_runner
+
+#ENTRYPOINT [ "poetry", "run", "car_runner"]
+#CMD ["poetry run car_runner"]
 
 RUN echo  "Done"
