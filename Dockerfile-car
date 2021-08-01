@@ -1,4 +1,4 @@
-FROM --platform=linux/arm64 arm64v8/python
+FROM --platform=linux/arm64 arm64v8/python AS base
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
  build-essential cmake pkg-config libjpeg-dev libtiff5-dev \
@@ -13,30 +13,41 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR foocars
 
-COPY . .
-
-
 #RUN pip3 install tensorflow
-
+COPY ./get_tensorflow.sh .
 RUN sh get_tensorflow.sh
-RUN pip3 install platformio
+# Optional for debuging in the container live
+#RUN pip3 install platformio
+
+#TODO: use the get poetry install script
 RUN pip3 install poetry
 
-RUN sh get_tensorflow.sh
+
+# From the base get the cargenerator 
+FROM base AS cargenerator 
+COPY ./cargenerator /foocars/cargenerator
 
 WORKDIR /foocars/cargenerator
 
 RUN poetry install
 RUN poetry run generatecar --name chiaracer --output_dir /foocars/cars/
 
+FROM base AS carservices
+COPY ./cars/carservices /foocars/cars/carservices
 WORKDIR /foocars/cars/carservices/
-#RUN poetry install
+
+#RUN pip install --upgrade pip
+#ENV POETRY_CREATE_VIRTUALENVS=false
+#RUN pip install numpy=1.21.1
+RUN pip install -r requirements.txt
 
 #RUN poetry run test_pihat
-
 #RUN poetry run car_runner
+
+COPY --from=cargenerator /foocars/cars/chiaracer /foocars/cars/chiaracer
+
 
 #ENTRYPOINT [ "poetry", "run", "car_runner"]
 #CMD ["poetry run car_runner"]
-
+CMD ["bash"]
 RUN echo  "Done"
