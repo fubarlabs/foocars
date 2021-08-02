@@ -34,11 +34,10 @@ FROM base AS carservices
 COPY ./cars/carservices /foocars/cars/carservices
 WORKDIR /foocars/cars/carservices/
 
-#ENV POETRY_CREATE_VIRTUALENVS=false
 RUN poetry config virtualenvs.create false
 
 RUN pip install tensorflow-aarch64
-#RUN pip install grpcio=="1.34.1"
+#RUN pip install grpcio=="1.34.1" # compile from source
 RUN pip install grpcio
 RUN pip install numpy=="1.19.5"
 RUN pip install "RPi.GPIO"
@@ -49,12 +48,10 @@ RUN poetry lock
 RUN poetry install
 
 #RUN poetry run test_pihat
-RUN poetry run car_runner
+#RUN poetry run car_runner
 
 COPY --from=cargenerator /foocars/cars/chiaracer /foocars/cars/chiaracer
 
 
-#ENTRYPOINT [ "poetry", "run", "car_runner"]
-#CMD ["poetry run car_runner"]
-CMD ["bash"]
-RUN echo  "Done"
+ENTRYPOINT [ "poetry"]
+CMD ["run", "car_runner"]
