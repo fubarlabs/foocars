@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 
 WORKDIR foocars
+ENV READTHEDOCS=True
 
 # Optional for debuging in the container live
 #RUN pip3 install platformio
