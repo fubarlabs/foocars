@@ -1,4 +1,4 @@
-FROM --platform=linux/arm64 arm64v8/python AS base
+FROM --platform=linux/arm64/v8 kumatea/tensorflow:2.4.1-py39 AS base
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
  build-essential cmake pkg-config libjpeg-dev libtiff5-dev \
@@ -7,8 +7,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  libgdk-pixbuf2.0-dev libpango1.0-dev libgtk2.0-dev libgtk-3-dev \
  libatlas-base-dev gfortran libhdf5-dev libhdf5-serial-dev libhdf5-103 \
  libqtgui4 libqtwebkit4 libqt4-test python3-pyqt5
- 
- # libjasper-dev 
+
+ # libjasper-dev
 #RUN pip install --upgrade pip
 
 
@@ -19,15 +19,15 @@ ENV READTHEDOCS=True
 #RUN pip3 install platformio
 
 #TODO: use the get poetry install script
-RUN pip3 install poetry
+RUN pip3 install --upgrade poetry
 
-
-# From the base get the cargenerator 
-FROM base AS cargenerator 
+# From the base get the cargenerator
+FROM base AS cargenerator
 COPY ./cargenerator /foocars/cargenerator
 
 WORKDIR /foocars/cargenerator
 
+RUN python -m venv .venv
 RUN poetry install
 RUN poetry run generatecar --name chiaracer --output_dir /foocars/cars/
 
@@ -35,24 +35,11 @@ FROM base AS carservices
 COPY ./cars/carservices /foocars/cars/carservices
 WORKDIR /foocars/cars/carservices/
 
-RUN poetry config virtualenvs.create false
-
-RUN pip install tensorflow-aarch64
-#RUN pip install grpcio=="1.34.1" # compile from source
-RUN pip install grpcio
-RUN pip install numpy=="1.19.5"
-RUN pip install "RPi.GPIO"
-#RUN poetry export -f requirements.txt --output requirements.txt
-#RUN pip install -r requirements.txt
-
-RUN poetry lock
 RUN poetry install
 
-#RUN poetry run test_pihat
-#RUN poetry run car_runner
-
+# RUN poetry run test_pihat
+# RUN poetry run car_runner
 COPY --from=cargenerator /foocars/cars/chiaracer /foocars/cars/chiaracer
-
 
 ENTRYPOINT [ "poetry"]
 CMD ["run", "car_runner"]
