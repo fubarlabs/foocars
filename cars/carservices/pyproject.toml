@@ -11,6 +11,7 @@ python = "^3.7"
 "RPi.GPIO" = "^0.7"
 pyserial = "^3.5"
 picamera = "^1.13"
+h5py="^3"
 
 
 [tool.poetry.dev-dependencies]
