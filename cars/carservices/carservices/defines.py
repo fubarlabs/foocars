@@ -15,7 +15,7 @@ switch_names={
 }
 
 FRAME_RATE = 40
-DATA_DIR = "/home/pi/foocars/cars/"+ socket.gethostname() + "/data/"
+DATA_DIR = "/foocars/cars/chiaracer/data/"
 COLLECT_DIR = DATA_DIR + "collected"
 WEIGHTS_DIR = DATA_DIR + "weights/"
 WEIGHTS_FILE = WEIGHTS_DIR + "weights.h5"
