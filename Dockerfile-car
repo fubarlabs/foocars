@@ -20,6 +20,8 @@ FROM base AS carservices
 RUN apt update && apt install -y \
     gcc
 
+RUN pip install h5py
+
 COPY ./cars/carservices /foocars/cars/carservices
 WORKDIR /foocars/cars/carservices/
 
