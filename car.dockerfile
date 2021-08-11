@@ -10,7 +10,7 @@ RUN poetry config virtualenvs.create false
 # From the base get the cargenerator
 FROM base AS cargenerator
 COPY ./cargenerator /foocars/cargenerator
-COPY ./tests /foocars
+COPY ./tests /foocars/tests
 
 WORKDIR /foocars/cargenerator
 
