@@ -15,7 +15,7 @@ try:
         else:
             print("OFF")
 
-        time.sleep(1)
+        sleep(.25)
 
 except KeyboardInterrupt:
     print("Cleaning up")
