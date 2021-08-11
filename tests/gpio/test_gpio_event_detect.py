@@ -20,8 +20,8 @@ switch_names={
 
  # Switch Testing
 
-def callback_switch_diagnostic(channel):
-  print("diagnostic")
+def callback_switch_thr_step(channel):
+  print("thr_step")
 def callback_switch_autonomous(channel):
   print("autonomous")
 def callback_switch_collect_data(channel):
@@ -32,7 +32,7 @@ for switch in switch_names.values():
     GPIO.setup(switch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 
-GPIO.add_event_detect(switch_names["diagnostic"], GPIO.FALLING, callback=callback_switch_diagnostic, bouncetime=50)
+GPIO.add_event_detect(switch_names["thr_step"], GPIO.FALLING, callback=callback_switch_thr_step, bouncetime=50)
 GPIO.add_event_detect(switch_names["autonomous"], GPIO.BOTH, callback=callback_switch_autonomous, bouncetime=200)
 GPIO.add_event_detect(switch_names["collect_data"], GPIO.BOTH, callback=callback_switch_collect_data, bouncetime=50)
 
