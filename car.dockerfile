@@ -18,7 +18,7 @@ RUN poetry run generatecar --name chiaracer --output_dir /foocars/cars/
 FROM base AS carservices
 
 RUN apt update && apt install -y \
-    gcc
+    gcc libhdf5-dev
 
 RUN pip install h5py
 
