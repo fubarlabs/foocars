@@ -25,6 +25,8 @@ RUN apt update && apt install -y \
 RUN pip install h5py
 
 COPY ./cars/carservices /foocars/cars/carservices
+COPY ./tests /foocars/tests
+
 WORKDIR /foocars/cars/carservices/
 
 RUN poetry install
