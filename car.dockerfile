@@ -4,12 +4,14 @@ FROM --platform=linux/arm64/v8 kumatea/tensorflow:2.4.1-py39 AS base
 WORKDIR foocars
 ENV READTHEDOCS=True
 #TODO: use the get poetry install script
-RUN pip3 install --upgrade poetry
+RUN pip3 install --upgrade pip poetry
 RUN poetry config virtualenvs.create false
 
 # From the base get the cargenerator
 FROM base AS cargenerator
 COPY ./cargenerator /foocars/cargenerator
+COPY ./tests /foocars
+
 WORKDIR /foocars/cargenerator
 
 RUN poetry install
