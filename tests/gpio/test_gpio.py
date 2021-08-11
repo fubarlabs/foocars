@@ -1,6 +1,9 @@
 import RPi.GPIO as GPIO
 from time import sleep
 
+GPIO.setmode(GPIO.BCM)
+
+
 LED_names={ 
   "boot_RPi" : 4,
   "shutdown_RPi" : 3,
