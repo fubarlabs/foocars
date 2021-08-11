@@ -1,5 +1,4 @@
 import RPi.GPIO as GPIO
-from .defines import *
 from time import sleep
 
 LED_names={ 
