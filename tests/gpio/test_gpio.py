@@ -26,12 +26,12 @@ for switch in switch_names.values():
 
 while True:
     try:
-        GPIO.wait_for_edge(switch_names["thr_step"], GPIO.FALLING)
-        print(f"thr_step: falling")
-        GPIO.wait_for_edge(switch_names["autonomous"], GPIO.FALLING)
-        print(f"autonomous: falling")
-        GPIO.wait_for_edge(switch_names["collect_data"], GPIO.FALLING)
-        print(f"colelct_data: falling")
+        GPIO.wait_for_edge(switch_names["thr_step"], GPIO.RISING)
+        print(f"thr_step: RISING")
+        GPIO.wait_for_edge(switch_names["autonomous"], GPIO.RISING)
+        print(f"autonomous: RISING")
+        GPIO.wait_for_edge(switch_names["collect_data"], GPIO.RISING)
+        print(f"colelct_data: RISING")
 
     finally:
         print("EXIT")
