@@ -32,6 +32,8 @@ echo $hash
 # docker run --rm -v foocarsdata:/foocars/cars/chiaracer -it debian:10
 
 # container that can upload to openstack to move the data up
+# copy the data from the volume
+# docker cp ce3365f10ef8:/foocars/cars/chiaracer.tar.gz .
 
 
 
