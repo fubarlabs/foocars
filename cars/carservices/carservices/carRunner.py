@@ -8,7 +8,8 @@ import numpy as np
 import threading
 import tensorflow as tf
 import concurrent.futures
-from .dropout_model import model
+from .dropout_model import model as model
+from .dropout_model_throttle import model as model2
 from .defines import *
 
 
@@ -98,6 +99,7 @@ def imageprocessor(event, serial_obj):
     global g_graph
     global g_lock
     global g_steerstats
+    global g_throttlestats
    
     time.sleep(1)
     while not event.is_set():
@@ -111,14 +113,24 @@ def imageprocessor(event, serial_obj):
         pred=model.predict(np.expand_dims(tmpimg, axis=0))
         steer_command=pred[0][0]*g_steerstats[1]+g_steerstats[0]
 
+        throttle_pred = model2.predict(np.expand_dims(tmpimg, axis=0))
+        throttle_command = throttle_pred[0][0]*g_throttlestats[1]+g_throttlestats[0]
+
+
+
         if steer_command>2000:
             steer_command=2000
         elif steer_command<1000:
-            steer_command=1000
+            steer_command=1000  
+
+        if throttle_command>2000:
+            throttle_command=2000
+        elif throttle_command<1000:
+            throttle_command=1000
 
         end=time.time()
         print(end-start)
-        dataline='{0}, {1}, {2}, {3}\n'.format(commandEnum.RUN_AUTONOMOUSLY, int(steer_command), THR_MAX, 0)
+        dataline='{0}, {1}, {2}, {3}\n'.format(commandEnum.RUN_AUTONOMOUSLY, int(steer_command), int(throttle_command), 0)
         if DEBUG:
             print(dataline)
         try:
@@ -281,6 +293,13 @@ def initialize_service():
     model.load_weights(WEIGHTS_FILE)
     global g_steerstats
     g_steerstats=np.load(STEERSTATS_FILE)['arr_0']
+
+    model2.load_weights(THROTTLE_WEIGHTS_FILE)
+    global g_throttlestats
+    g_throttlestats=np.load(THROTTLESTATS_FILE)['arr_0']
+
+
+
     global g_ip_thread
     g_ip_thread=0
     print("Car Ready!")
