@@ -3,6 +3,8 @@
 hash=$(git rev-parse --short HEAD)
 docker build --platform linux/arm64 -t rianders/car:$hash -f car.dockerfile .
 docker push rianders/car:$hash
+echo $hash
+
 # use latest for release PARITy
 
 #TODO:
