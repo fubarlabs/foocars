@@ -31,6 +31,6 @@ WORKDIR /foocars/cars/carservices/
 
 RUN poetry install
 COPY --from=cargenerator /foocars/cars/chiaracer /foocars/cars/chiaracer
-# ENTRYPOINT ["python3"]
-# CMD ["/usr/local/bin/car_runner"]
-ENTRYPOINT ["/bin/bash"]
+ENTRYPOINT ["python3"]
+CMD ["/usr/local/bin/car_runner"]
+#ENTRYPOINT ["/bin/bash"]
