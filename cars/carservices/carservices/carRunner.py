@@ -37,7 +37,8 @@ class DataCollector(object):
         self.save_dir=save_dir
         self.ser=serial_obj
         self.num_frames=200
-        self.imgs=np.zeros((self.num_frames) + CAMERA_IMAGE_FRAME), dtype=np.uint8)       # We put the images in here
+        camera_image_frame = (self.num_frames) + CAMERA_IMAGE_FRAME)
+        self.imgs=np.zeros(camera_image_frame, dtype=np.uint8)       # We put the images in here
         self.IMUdata=np.zeros((self.num_frames, 7), dtype=np.float32)               # we put the imu data in here
         self.RCcommands=np.zeros((self.num_frames, 2), dtype=np.float16)        # we put the RC data in here
         self.idx=0                                  # this is the variable to keep track of number of frames per datafile
