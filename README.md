@@ -7,6 +7,7 @@ This autonomous vehicle project's goal is to create autonomous racing vehicles i
 ### FUBAR Labs Autonomous Racing Vehicles
 
 Autonmous Vehicle Project at Fubar Labs for the Autonomous Powerwheels Racing compeition.
+* Bergen Technical Highschool Workshop Spring 2021
 * Autonomous Powerwheels Racing Pittsburg Makerfiare 2017
  * We totally did laps. We were on the track on time and ready to go!
 * Autonmous Powerwheels Racing Makerfaire NYC 2017
