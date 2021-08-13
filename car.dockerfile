@@ -16,6 +16,8 @@ WORKDIR /foocars/cargenerator
 
 RUN poetry install
 RUN poetry run generatecar --name chiaracer --output_dir /foocars/cars/
+VOLUME ["/foocars/cars/chiaracer"]
+
 
 FROM base AS carservices
 

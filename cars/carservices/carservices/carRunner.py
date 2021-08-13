@@ -38,7 +38,9 @@ class DataCollector(object):
         self.save_dir=save_dir
         self.ser=serial_obj
         self.num_frames=200
-        self.imgs=np.zeros((self.num_frames, 96, 128, 3), dtype=np.uint8)       # We put the images in here
+        camera_image_frame = [self.num_frames] + list(CAMERA_IMAGE_FRAME)
+        print(camera_image_frame)
+        self.imgs=np.zeros((camera_image_frame), dtype=np.uint8)       # We put the images in here
         self.IMUdata=np.zeros((self.num_frames, 7), dtype=np.float32)               # we put the imu data in here
         self.RCcommands=np.zeros((self.num_frames, 2), dtype=np.float16)        # we put the RC data in here
         self.idx=0                                  # this is the variable to keep track of number of frames per datafile
@@ -50,7 +52,7 @@ class DataCollector(object):
     
     def write(self, s):
         '''this is the function that is called every time the PiCamera has a new frame'''
-        imdata=np.reshape(np.fromstring(s, dtype=np.uint8), (96, 128, 3), 'C')
+        imdata=np.reshape(np.fromstring(s, dtype=np.uint8), CAMERA_IMAGE_FRAME, 'C')
         #now we read from the serial port and format and save the data:
 
         self.ser.flushInput()
@@ -272,14 +274,14 @@ def initialize_service():
     #initialize the camera
     global g_camera
     g_camera=picamera.PiCamera()
-    g_camera.resolution=(128, 96)
+    g_camera.resolution=CAMERA_RESOLUTION
     g_camera.framerate=FRAME_RATE
     #initialize the data collector object
     global g_collector
     g_collector=DataCollector(g_serial, COLLECT_DIR)
     #initialize the image frame to be shared in autonomous mode
     global g_image_data
-    g_image_data=np.zeros((36, 128, 3), dtype=np.uint8) 
+    g_image_data=np.zeros(AUTO_IMAGE_FRAME, dtype=np.uint8) 
     #initialize some stuff needed for network thread
     global g_stop_event
     g_stop_event=threading.Event()
