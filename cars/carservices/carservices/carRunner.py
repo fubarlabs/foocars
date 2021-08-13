@@ -14,7 +14,7 @@ from .defines import *
 
 
 time_format = '%Y-%m-%d_%H-%M-%S'
-logging.basicConfig(filename='ottoLogger.log', level=logging.DEBUG)
+logging.basicConfig(filename='carLogger.log', level=logging.DEBUG)
 logging.debug('\n\n New Test Session {0}\n'.format(datetime.datetime.now().strftime(time_format)))
 DEBUG = False
 
