@@ -15,6 +15,10 @@ switch_names={
 }
 
 FRAME_RATE = 40
+CAMERA_RESOLUTION = (128, 96)
+IMAGE_FRAME = (36, 128, 3)
+IMAGE_RESHAPE = [96, 128, 3]
+
 DATA_DIR = "/foocars/cars/chiaracer/data/"
 COLLECT_DIR = DATA_DIR + "collected"
 WEIGHTS_DIR = DATA_DIR + "weights/"
