@@ -37,7 +37,7 @@ class DataCollector(object):
         self.save_dir=save_dir
         self.ser=serial_obj
         self.num_frames=200
-        camera_image_frame = [self.num_frames].append(list(CAMERA_IMAGE_FRAME))
+        camera_image_frame = [self.num_frames] + list(CAMERA_IMAGE_FRAME)
         print(camera_image_frame)
         self.imgs=np.zeros((camera_image_frame), dtype=np.uint8)       # We put the images in here
         self.IMUdata=np.zeros((self.num_frames, 7), dtype=np.float32)               # we put the imu data in here
