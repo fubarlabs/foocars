@@ -333,13 +333,27 @@ def main():
 
         for switch in switch_names.values():
             GPIO.setup(switch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+        # default for auto_mode
+        auto_mode=False
         # Check what mode the car is in, manual, auto, remote
         if MODE == "manual":
             GPIO.add_event_detect(switch_names["thr_step"], GPIO.FALLING, callback=callback_thr_steps, bouncetime=50)
             GPIO.add_event_detect(switch_names["autonomous"], GPIO.BOTH, callback=callback_switch_autonomous, bouncetime=200)
             GPIO.add_event_detect(switch_names["collect_data"], GPIO.BOTH, callback=callback_switch_collect_data, bouncetime=50)
 
-        auto_mode=False 
+        if MODE == "auto":
+                print("Autonomous: On")
+                auto_mode = True
+                logging.debug('\n user toggled autonomous on {0}\n'.format(datetime.datetime.now().strftime(time_format)))
+                g_camera.start_recording(g_getter, format='rgb')
+                g_ip_thread=threading.Thread(target=imageprocessor, args=[g_stop_event, g_serial])
+                g_ip_thread.start()
+                logging.debug('in autonomous mode')
+                GPIO.output(LED_names["autonomous"], GPIO.HIGH)
+
+
+         
         printcount=0
         while(True):
             time.sleep(.001)
