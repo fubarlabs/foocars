@@ -333,19 +333,21 @@ def main():
 
         for switch in switch_names.values():
             GPIO.setup(switch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-        GPIO.add_event_detect(switch_names["thr_step"], GPIO.FALLING, callback=callback_thr_steps, bouncetime=50)
-        GPIO.add_event_detect(switch_names["autonomous"], GPIO.BOTH, callback=callback_switch_autonomous, bouncetime=200)
-        GPIO.add_event_detect(switch_names["collect_data"], GPIO.BOTH, callback=callback_switch_collect_data, bouncetime=50)
+        # Check what mode the car is in, manual, auto, remote
+        if MODE == "manual":
+            GPIO.add_event_detect(switch_names["thr_step"], GPIO.FALLING, callback=callback_thr_steps, bouncetime=50)
+            GPIO.add_event_detect(switch_names["autonomous"], GPIO.BOTH, callback=callback_switch_autonomous, bouncetime=200)
+            GPIO.add_event_detect(switch_names["collect_data"], GPIO.BOTH, callback=callback_switch_collect_data, bouncetime=50)
 
         auto_mode=False 
         printcount=0
         while(True):
             time.sleep(.001)
-            if callback_switch_autonomous.is_auto==True:
+            # Check if vehicle is in autonomous mode
+            if callback_switch_autonomous.is_auto==True || mode == "auto":
                 auto_mode=True
                 printcount=printcount+1
-                #while we are in autonomous mode, we have to poll fubarino for stop signal
+                #while we are in autonomous mode, we have to poll Arduino for stop signal
                 g_serial.flushInput()
                 n_read_items=0
                 while n_read_items!=10:
@@ -371,6 +373,8 @@ def main():
                         time.sleep(.5)
                         GPIO.output(LED_names["autonomous"], GPIO.LOW)
                     auto_mode=False
+            
+            # Check if the vehicle is autonomous mode and has switched off autonomous mode
             if auto_mode==True and callback_switch_autonomous.is_auto==False:
                 dataout='{0}, {1}, {2}, {3}\n'.format(commandEnum.STOP_AUTONOMOUS, 1500, 1500, 0)
                 g_serial.write(dataout.encode('ascii'))
