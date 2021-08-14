@@ -344,7 +344,7 @@ def main():
         while(True):
             time.sleep(.001)
             # Check if vehicle is in autonomous mode
-            if callback_switch_autonomous.is_auto==True or mode == "auto":
+            if callback_switch_autonomous.is_auto==True or MODE == "auto":
                 auto_mode=True
                 printcount=printcount+1
                 #while we are in autonomous mode, we have to poll Arduino for stop signal
