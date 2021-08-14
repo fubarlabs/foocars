@@ -191,7 +191,7 @@ def callback_switch_autonomous(channel):
     global g_camera
     global g_serial
     time.sleep(.1)
-    if (GPIO.input(switch_names["autonomous"]))==SWITCH_ON:
+    if (GPIO.input(switch_names["autonomous"]))==SWITCH_ON or MODE=="auto":
         if callback_switch_autonomous.is_auto==True:
             logging.debug('read another high transition while in autonomous')
         else:
@@ -203,8 +203,8 @@ def callback_switch_autonomous(channel):
             logging.debug('in autonomous mode')
             callback_switch_autonomous.is_auto=True
             GPIO.output(LED_names["autonomous"], GPIO.HIGH)
-    else:        #switch off
-        if callback_switch_autonomous.is_auto==True:
+    else:        #switch off, second edge detect
+        if callback_switch_autonomous.is_auto==True or auto_mode==False:
             print("Autonomous: Off")
             logging.debug('\n user toggled autonomous off {0}\n'.format(datetime.datetime.now().strftime(time_format)))
             if not g_stop_event.isSet(): #if the event isn't already set, then stop autonomous is triggered by the switch
@@ -345,20 +345,14 @@ def main():
         if MODE == "auto":
                 print("Autonomous: On")
                 auto_mode = True
-                logging.debug('\n user toggled autonomous on {0}\n'.format(datetime.datetime.now().strftime(time_format)))
-                g_camera.start_recording(g_getter, format='rgb')
-                g_ip_thread=threading.Thread(target=imageprocessor, args=[g_stop_event, g_serial])
-                g_ip_thread.start()
-                logging.debug('in autonomous mode')
-                GPIO.output(LED_names["autonomous"], GPIO.HIGH)
-
-
-         
+                callback_switch_autonomous.is_auto = True
+                callback_switch_autonomous("anyvalue")
+                
         printcount=0
         while(True):
             time.sleep(.001)
             # Check if vehicle is in autonomous mode
-            if callback_switch_autonomous.is_auto==True or MODE == "auto":
+            if callback_switch_autonomous.is_auto==True: # or MODE == "auto":
                 auto_mode=True
                 printcount=printcount+1
                 #while we are in autonomous mode, we have to poll Arduino for stop signal
@@ -377,6 +371,8 @@ def main():
                     printcount=0
                 if data[0]==commandEnum.RC_SIGNALED_STOP_AUTONOMOUS: #if we get a stop signal
                     g_stop_event.set() #stop the autonomous thread
+                    auto_mode=False
+                    callback_switch_autonomous.is_auto=False
                     for i in range(0, 5): #send ack 5 times
                         time.sleep(.01)
                         dataout='{0}, {1}, {2}, {3}\n'.format(commandEnum.STOPPED_AUTO_COMMAND_RECIEVED, 1500, 1500, 0)
@@ -386,7 +382,6 @@ def main():
                         GPIO.output(LED_names["autonomous"], GPIO.HIGH)
                         time.sleep(.5)
                         GPIO.output(LED_names["autonomous"], GPIO.LOW)
-                    auto_mode=False
             
             # Check if the vehicle is autonomous mode and has switched off autonomous mode
             if auto_mode==True and callback_switch_autonomous.is_auto==False:
