@@ -17,6 +17,7 @@ time_format = '%Y-%m-%d_%H-%M-%S'
 logging.basicConfig(filename='carLogger.log', level=logging.DEBUG)
 logging.debug('\n\n New Test Session {0}\n'.format(datetime.datetime.now().strftime(time_format)))
 DEBUG = False
+print(f"mode: {MODE}")
 
 
 def save_data(imgs, IMUdata, RCcommands, img_file, IMUdata_file, RCcommands_file):
