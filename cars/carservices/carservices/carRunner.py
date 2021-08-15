@@ -196,11 +196,7 @@ def callback_thr_steps(channel):
 
 
 def callback_switch_autonomous(channel):
-    global g_getter
-    global g_stop_event
-    global g_ip_thread
-    global g_camera
-    global g_serial
+    
     time.sleep(.1)
     if (GPIO.input(switch_names["autonomous"])) == SWITCH_ON:
         if callback_switch_autonomous.is_auto == True:
@@ -235,6 +231,12 @@ callback_switch_autonomous.is_auto = False
 
 
 def autonomous(mode):
+    global g_getter
+    global g_stop_event
+    global g_ip_thread
+    global g_camera
+    global g_serial
+    
     if mode == True:
         print("Autonomous: On")
         logging.debug('\n user toggled autonomous on {0}\n'.format(
