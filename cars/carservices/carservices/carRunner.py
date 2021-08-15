@@ -15,7 +15,8 @@ from .defines import *
 
 time_format = '%Y-%m-%d_%H-%M-%S'
 logging.basicConfig(filename='carLogger.log', level=logging.DEBUG)
-logging.debug('\n\n New Test Session {0}\n'.format(datetime.datetime.now().strftime(time_format)))
+logging.debug('\n\n New Test Session {0}\n'.format(
+    datetime.datetime.now().strftime(time_format)))
 DEBUG = False
 print(f"mode: {MODE}")
 
@@ -30,72 +31,86 @@ def save_data(imgs, IMUdata, RCcommands, img_file, IMUdata_file, RCcommands_file
 
 
 class DataCollector(object):
-    """this object is passed to the camera.start_recording function, which will treat it as a 
+    """this object is passed to the camera.start_recording function, which will treat it as a
             writable object, like a stream or a file"""
-    
+
     def __init__(self, serial_obj, save_dir):
-        assert serial_obj.isOpen()==True
-        self.executor=concurrent.futures.ThreadPoolExecutor(max_workers=5)
-        self.save_dir=save_dir
-        self.ser=serial_obj
-        self.num_frames=200
+        assert serial_obj.isOpen() == True
+        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
+        self.save_dir = save_dir
+        self.ser = serial_obj
+        self.num_frames = 200
         camera_image_frame = [self.num_frames] + list(CAMERA_IMAGE_FRAME)
         print(camera_image_frame)
-        self.imgs=np.zeros((camera_image_frame), dtype=np.uint8)       # We put the images in here
-        self.IMUdata=np.zeros((self.num_frames, 7), dtype=np.float32)               # we put the imu data in here
-        self.RCcommands=np.zeros((self.num_frames, 2), dtype=np.float16)        # we put the RC data in here
-        self.idx=0                                  # this is the variable to keep track of number of frames per datafile
-        nowtime=datetime.datetime.now()
-        self.currtime=time.time()
-        self.img_file=self.save_dir+'/imgs_{0}'.format(nowtime.strftime(time_format))
-        self.IMUdata_file=self.save_dir+'/IMU_{0}'.format(nowtime.strftime(time_format))
-        self.RCcommands_file=self.save_dir+'/commands_{0}'.format(nowtime.strftime(time_format))
-    
+        # We put the images in here
+        self.imgs = np.zeros((camera_image_frame), dtype=np.uint8)
+        # we put the imu data in here
+        self.IMUdata = np.zeros((self.num_frames, 7), dtype=np.float32)
+        # we put the RC data in here
+        self.RCcommands = np.zeros((self.num_frames, 2), dtype=np.float16)
+        # this is the variable to keep track of number of frames per datafile
+        self.idx = 0
+        nowtime = datetime.datetime.now()
+        self.currtime = time.time()
+        self.img_file = self.save_dir + \
+            '/imgs_{0}'.format(nowtime.strftime(time_format))
+        self.IMUdata_file = self.save_dir + \
+            '/IMU_{0}'.format(nowtime.strftime(time_format))
+        self.RCcommands_file = self.save_dir + \
+            '/commands_{0}'.format(nowtime.strftime(time_format))
+
     def write(self, s):
         '''this is the function that is called every time the PiCamera has a new frame'''
-        imdata=np.reshape(np.fromstring(s, dtype=np.uint8), CAMERA_IMAGE_FRAME, 'C')
-        #now we read from the serial port and format and save the data:
+        imdata = np.reshape(np.fromstring(
+            s, dtype=np.uint8), CAMERA_IMAGE_FRAME, 'C')
+        # now we read from the serial port and format and save the data:
 
         self.ser.flushInput()
-        n_read_items=0
-        while n_read_items!=10:
+        n_read_items = 0
+        while n_read_items != 10:
             try:
-                datainput=self.ser.readline()
-                data=list(map(float, str(datainput, 'ascii').split(',')))
-                n_read_items=len(data)
+                datainput = self.ser.readline()
+                data = list(map(float, str(datainput, 'ascii').split(',')))
+                n_read_items = len(data)
             except ValueError:
                 continue
             if DEBUG:
                 print(data)
-        #Note: the data from the IMU requires some processing which does not happen here:
-        self.imgs[self.idx]=imdata
-        #command=data[0]
-        accelData=np.array([data[1], data[2], data[3]], dtype=np.float32)
-        gyroData=np.array([data[4], data[5], data[6]], )
-        datatime=np.array([int(data[7])], dtype=np.float32)
-        steer_command=int(data[8])
-        gas_command=int(data[9])
-        self.IMUdata[self.idx]=np.concatenate((accelData, gyroData, datatime))
-        self.RCcommands[self.idx]=np.array([steer_command, gas_command])
-        self.idx+=1
-        if self.idx == self.num_frames: #default value is 100, unless user specifies otherwise
-            self.idx=0
-            self.flush()    
-        #print(time.time()-self.currtime)
-        #self.currtime=time.time()
-    
+        # Note: the data from the IMU requires some processing which does not happen here:
+        self.imgs[self.idx] = imdata
+        # command=data[0]
+        accelData = np.array([data[1], data[2], data[3]], dtype=np.float32)
+        gyroData = np.array([data[4], data[5], data[6]], )
+        datatime = np.array([int(data[7])], dtype=np.float32)
+        steer_command = int(data[8])
+        gas_command = int(data[9])
+        self.IMUdata[self.idx] = np.concatenate(
+            (accelData, gyroData, datatime))
+        self.RCcommands[self.idx] = np.array([steer_command, gas_command])
+        self.idx += 1
+        if self.idx == self.num_frames:  # default value is 100, unless user specifies otherwise
+            self.idx = 0
+            self.flush()
+        # print(time.time()-self.currtime)
+        # self.currtime=time.time()
+
     def flush(self):
         '''this function is called every time the PiCamera stops recording'''
-        self.executor.submit(save_data, np.copy(self.imgs), np.copy(self.IMUdata), np.copy(self.RCcommands), self.img_file, self.IMUdata_file, self.RCcommands_file)
-        #this new image file name is for the next chunk of data, which starts recording now
-        nowtime=datetime.datetime.now()
-        self.img_file=self.save_dir+'/imgs_{0}'.format(nowtime.strftime(time_format))
-        self.IMUdata_file=self.save_dir+'/IMU_{0}'.format(nowtime.strftime(time_format))
-        self.RCcommands_file=self.save_dir+'/commands_{0}'.format(nowtime.strftime(time_format))
-        self.imgs[:]=0
-        self.IMUdata[:]=0
-        self.RCcommands[:]=0
-        self.idx=0
+        self.executor.submit(save_data, np.copy(self.imgs), np.copy(self.IMUdata), np.copy(
+            self.RCcommands), self.img_file, self.IMUdata_file, self.RCcommands_file)
+        # this new image file name is for the next chunk of data, which starts recording now
+        nowtime = datetime.datetime.now()
+        self.img_file = self.save_dir + \
+            '/imgs_{0}'.format(nowtime.strftime(time_format))
+        self.IMUdata_file = self.save_dir + \
+            '/IMU_{0}'.format(nowtime.strftime(time_format))
+        self.RCcommands_file = self.save_dir + \
+            '/commands_{0}'.format(nowtime.strftime(time_format))
+        self.imgs[:] = 0
+        self.IMUdata[:] = 0
+        self.RCcommands[:] = 0
+        self.idx = 0
+
 
 def imageprocessor(event, serial_obj):
     global g_imagedata
@@ -103,37 +118,37 @@ def imageprocessor(event, serial_obj):
     global g_lock
     global g_steerstats
     global g_throttlestats
-   
+
     time.sleep(1)
     while not event.is_set():
         g_lock.acquire()
-        tmpimg=np.copy(g_imageData)
+        tmpimg = np.copy(g_imageData)
         g_lock.release()
-        immean=tmpimg.mean()
-        imvar=tmpimg.std()
-        start=time.time()
+        immean = tmpimg.mean()
+        imvar = tmpimg.std()
+        start = time.time()
 
-        pred=model.predict(np.expand_dims(tmpimg, axis=0))
-        steer_command=pred[0][0]*g_steerstats[1]+g_steerstats[0]
+        pred = model.predict(np.expand_dims(tmpimg, axis=0))
+        steer_command = pred[0][0]*g_steerstats[1]+g_steerstats[0]
 
         throttle_pred = model2.predict(np.expand_dims(tmpimg, axis=0))
-        throttle_command = throttle_pred[0][0]*g_throttlestats[1]+g_throttlestats[0]
+        throttle_command = throttle_pred[0][0] * \
+            g_throttlestats[1]+g_throttlestats[0]
 
+        if steer_command > 2000:
+            steer_command = 2000
+        elif steer_command < 1000:
+            steer_command = 1000
 
+        if throttle_command > 2000:
+            throttle_command = 2000
+        elif throttle_command < 1000:
+            throttle_command = 1000
 
-        if steer_command>2000:
-            steer_command=2000
-        elif steer_command<1000:
-            steer_command=1000  
-
-        if throttle_command>2000:
-            throttle_command=2000
-        elif throttle_command<1000:
-            throttle_command=1000
-
-        end=time.time()
+        end = time.time()
         print(end-start)
-        dataline='{0}, {1}, {2}, {3}\n'.format(commandEnum.RUN_AUTONOMOUSLY, int(steer_command), int(throttle_command), 0)
+        dataline = '{0}, {1}, {2}, {3}\n'.format(
+            commandEnum.RUN_AUTONOMOUSLY, int(steer_command), int(throttle_command), 0)
         if DEBUG:
             print(dataline)
         try:
@@ -142,6 +157,7 @@ def imageprocessor(event, serial_obj):
         except:
             print("some serial problem")
 
+
 class DataGetter(object):
     def __init__(self):
         pass
@@ -149,25 +165,27 @@ class DataGetter(object):
     def write(self, s):
         global g_imageData
         global g_lock
-        imagerawdata=np.reshape(np.fromstring(s, dtype=np.uint8), (96, 128, 3), 'C')
-        imdata=imagerawdata[20:56, :]
-        immean=imdata.mean()
-        imvar=imdata.std()
+        imagerawdata = np.reshape(np.fromstring(
+            s, dtype=np.uint8), (96, 128, 3), 'C')
+        imdata = imagerawdata[20:56, :]
+        immean = imdata.mean()
+        imvar = imdata.std()
         g_lock.acquire()
-        g_imageData=np.copy((imdata-immean)/imvar)
+        g_imageData = np.copy((imdata-immean)/imvar)
         g_lock.release()
 
     def flush(self):
         pass
 
+
 def callback_thr_steps(channel):
     global THR_POS
     global THR_CURRENT
-    
-    if GPIO.input(switch_names["thr_step"])!=SWITCH_ON:
-        return 
+
+    if GPIO.input(switch_names["thr_step"]) != SWITCH_ON:
+        return
     GPIO.output(LED_names["boot_RPi"], LED_OFF)
-    if  THR_POS < len(THR_STEPS)  :
+    if THR_POS < len(THR_STEPS):
         THR_CURRENT = THR_STEPS[THR_POS]
         print(f'THR_CURRENT: {THR_STEPS[THR_POS]}')
         THR_POS = THR_POS + 1
@@ -181,11 +199,11 @@ def callback_switch_autonomous(channel):
     global g_getter
     global g_stop_event
     global g_ip_thread
-    global g_camera 
+    global g_camera
     global g_serial
     time.sleep(.1)
-    if (GPIO.input(switch_names["autonomous"]))==SWITCH_ON or MODE=="auto":
-        if callback_switch_autonomous.is_auto==True:
+    if (GPIO.input(switch_names["autonomous"])) == SWITCH_ON:
+        if callback_switch_autonomous.is_auto == True:
             logging.debug('read another high transition while in autonomous')
         else:
             print("Autonomous: On")
@@ -197,8 +215,8 @@ def callback_switch_autonomous(channel):
             # logging.debug('in autonomous mode')
             # callback_switch_autonomous.is_auto=True
             # GPIO.output(LED_names["autonomous"], GPIO.HIGH)
-    else:        #switch off, second edge detect
-        if callback_switch_autonomous.is_auto==True or g_auto_mode==False:
+    else:  # switch off, second edge detect
+        if callback_switch_autonomous.is_auto == True:
             print("Autonomous: Off")
             autonomous(False)
             # logging.debug('\n user toggled autonomous off {0}\n'.format(datetime.datetime.now().strftime(time_format)))
@@ -211,20 +229,24 @@ def callback_switch_autonomous(channel):
             # g_stop_event.clear() #clear stop event so we can reenter autonomous
         else:
             logging.debug('read another low transition while not autonomous')
-callback_switch_autonomous.is_auto=False
+
+
+callback_switch_autonomous.is_auto = False
 
 
 def autonomous(mode):
     if mode == True:
         print("Autonomous: On")
-        logging.debug('\n user toggled autonomous on {0}\n'.format(datetime.datetime.now().strftime(time_format)))
+        logging.debug('\n user toggled autonomous on {0}\n'.format(
+            datetime.datetime.now().strftime(time_format)))
         g_camera.start_recording(g_getter, format='rgb')
-        g_ip_thread=threading.Thread(target=imageprocessor, args=[g_stop_event, g_serial])
+        g_ip_thread = threading.Thread(target=imageprocessor, args=[
+                                       g_stop_event, g_serial])
         g_ip_thread.start()
         logging.debug('in autonomous mode')
-        callback_switch_autonomous.is_auto=True
+        callback_switch_autonomous.is_auto = True
         GPIO.output(LED_names["autonomous"], GPIO.HIGH)
-    else # autonomous off
+    else:  # autonomous off
          print("Autonomous: Off")
         logging.debug('\n user toggled autonomous off {0}\n'.format(datetime.datetime.now().strftime(time_format)))
         if not g_stop_event.isSet(): #if the event isn't already set, then stop autonomous is triggered by the switch
@@ -260,14 +282,14 @@ def callback_switch_collect_data(channel):
             logging.debug('read another low transition while not data collecting')
 callback_switch_collect_data.is_recording=False
 
-#code is an int in range 0-63, consisting of binary on-off values for the leds. boot_RPi is MSB
+# code is an int in range 0-63, consisting of binary on-off values for the leds. boot_RPi is MSB
 def displayBinLEDCode(code): 
     GPIO.output(LED_names["boot_RPi"], (code>>1)&1)
     GPIO.output(LED_names["autonomous"], (code>>2)&1)
     GPIO.output(LED_names["collect_data"], (code)&1)
 
 def initialize_service():
-    #initialize the serial port: if the first port fails, we try the other one
+    # initialize the serial port: if the first port fails, we try the other one
     global g_serial
     try:
         g_serial=serial.Serial('/dev/ttyACM1')
@@ -276,27 +298,27 @@ def initialize_service():
             g_serial=serial.Serial('/dev/ttyACM0')
         except serial.SerialException:
             logging.debug("error: cannot connect to serial port")
-    #initialize the camera
+    # initialize the camera
     global g_camera
     g_camera=picamera.PiCamera()
     g_camera.resolution=CAMERA_RESOLUTION
     g_camera.framerate=FRAME_RATE
-    #initialize the data collector object
+    # initialize the data collector object
     global g_collector
     g_collector=DataCollector(g_serial, COLLECT_DIR)
-    #initialize the image frame to be shared in autonomous mode
+    # initialize the image frame to be shared in autonomous mode
     global g_image_data
     g_image_data=np.zeros(AUTO_IMAGE_FRAME, dtype=np.uint8) 
-    #initialize some stuff needed for network thread
+    # initialize some stuff needed for network thread
     global g_stop_event
     g_stop_event=threading.Event()
     global g_lock
     g_lock=threading.Lock()
-    #this is the object the camera writes to in autonomous mode
+    # this is the object the camera writes to in autonomous mode
     global g_getter
     g_getter=DataGetter()
 
-    #this stuff sets up the network
+    # this stuff sets up the network
     model.load_weights(WEIGHTS_FILE)
     global g_steerstats
     g_steerstats=np.load(STEERSTATS_FILE)['arr_0']
@@ -356,7 +378,7 @@ def main():
             if callback_switch_autonomous.is_auto==True: # or MODE == "auto":
                 g_auto_mode=True
                 printcount=printcount+1
-                #while we are in autonomous mode, we have to poll Arduino for stop signal
+                # while we are in autonomous mode, we have to poll Arduino for stop signal
                 g_serial.flushInput()
                 n_read_items=0
                 while n_read_items!=10:
