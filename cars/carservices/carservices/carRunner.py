@@ -9,11 +9,7 @@ import threading
 import tensorflow as tf
 import argparse
 import concurrent.futures
-from .dropout_model import model as model
-from .dropout_model_throttle import model as model2
 from .defines import *
-
-
 
 # configure logging
 time_format = '%Y-%m-%d_%H-%M-%S'
@@ -32,6 +28,9 @@ parser = argparse.ArgumentParser(description='carRuner command line overides.')
 parser.add_argument('--mode', default="manual", choices=["manual", "auto", "remote"], type=str)
 args = parser.parse_args()
 MODE = args.mode
+
+from .dropout_model import model as model
+from .dropout_model_throttle import model as model2
 
 def save_data(imgs, IMUdata, RCcommands, img_file, IMUdata_file, RCcommands_file):
     start = time.time()
