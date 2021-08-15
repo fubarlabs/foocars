@@ -160,13 +160,6 @@ class DataGetter(object):
     def flush(self):
         pass
 
-#def callback_switch_diagnostic(channel):
-#    if GPIO.input(switch_names["diagnostic"])!=SWITCH_ON:
-#        return 
-#    GPIO.output(LED_names["boot_RPi"], LED_OFF)
-#    time.sleep(1)
-#    GPIO.output(LED_names["boot_RPi"], LED_ON)
-
 def callback_thr_steps(channel):
     global THR_POS
     global THR_CURRENT
@@ -188,7 +181,7 @@ def callback_switch_autonomous(channel):
     global g_getter
     global g_stop_event
     global g_ip_thread
-    global g_camera
+    global g_camera 
     global g_serial
     time.sleep(.1)
     if (GPIO.input(switch_names["autonomous"]))==SWITCH_ON or MODE=="auto":
@@ -196,27 +189,52 @@ def callback_switch_autonomous(channel):
             logging.debug('read another high transition while in autonomous')
         else:
             print("Autonomous: On")
-            logging.debug('\n user toggled autonomous on {0}\n'.format(datetime.datetime.now().strftime(time_format)))
-            g_camera.start_recording(g_getter, format='rgb')
-            g_ip_thread=threading.Thread(target=imageprocessor, args=[g_stop_event, g_serial])
-            g_ip_thread.start()
-            logging.debug('in autonomous mode')
-            callback_switch_autonomous.is_auto=True
-            GPIO.output(LED_names["autonomous"], GPIO.HIGH)
+            autonomous(True)
+            # logging.debug('\n user toggled autonomous on {0}\n'.format(datetime.datetime.now().strftime(time_format)))
+            # g_camera.start_recording(g_getter, format='rgb')
+            # g_ip_thread=threading.Thread(target=imageprocessor, args=[g_stop_event, g_serial])
+            # g_ip_thread.start()
+            # logging.debug('in autonomous mode')
+            # callback_switch_autonomous.is_auto=True
+            # GPIO.output(LED_names["autonomous"], GPIO.HIGH)
     else:        #switch off, second edge detect
         if callback_switch_autonomous.is_auto==True or g_auto_mode==False:
             print("Autonomous: Off")
-            logging.debug('\n user toggled autonomous off {0}\n'.format(datetime.datetime.now().strftime(time_format)))
-            if not g_stop_event.isSet(): #if the event isn't already set, then stop autonomous is triggered by the switch
-                g_stop_event.set() #stop autonomous thread
-            g_ip_thread.join() #join the autonomous thread
-            g_camera.stop_recording()
-            callback_switch_autonomous.is_auto=False
-            GPIO.output(LED_names["autonomous"], GPIO.LOW)
-            g_stop_event.clear() #clear stop event so we can reenter autonomous
+            autonomous(False)
+            # logging.debug('\n user toggled autonomous off {0}\n'.format(datetime.datetime.now().strftime(time_format)))
+            # if not g_stop_event.isSet(): #if the event isn't already set, then stop autonomous is triggered by the switch
+            #     g_stop_event.set() #stop autonomous thread
+            # g_ip_thread.join() #join the autonomous thread
+            # g_camera.stop_recording()
+            # callback_switch_autonomous.is_auto=False
+            # GPIO.output(LED_names["autonomous"], GPIO.LOW)
+            # g_stop_event.clear() #clear stop event so we can reenter autonomous
         else:
             logging.debug('read another low transition while not autonomous')
 callback_switch_autonomous.is_auto=False
+
+
+def autonomous(mode):
+    if mode == True:
+        print("Autonomous: On")
+        logging.debug('\n user toggled autonomous on {0}\n'.format(datetime.datetime.now().strftime(time_format)))
+        g_camera.start_recording(g_getter, format='rgb')
+        g_ip_thread=threading.Thread(target=imageprocessor, args=[g_stop_event, g_serial])
+        g_ip_thread.start()
+        logging.debug('in autonomous mode')
+        callback_switch_autonomous.is_auto=True
+        GPIO.output(LED_names["autonomous"], GPIO.HIGH)
+    else # autonomous off
+         print("Autonomous: Off")
+        logging.debug('\n user toggled autonomous off {0}\n'.format(datetime.datetime.now().strftime(time_format)))
+        if not g_stop_event.isSet(): #if the event isn't already set, then stop autonomous is triggered by the switch
+            g_stop_event.set() #stop autonomous thread
+        g_ip_thread.join() #join the autonomous thread
+        g_camera.stop_recording()
+        callback_switch_autonomous.is_auto=False
+        GPIO.output(LED_names["autonomous"], GPIO.LOW)
+        g_stop_event.clear() #clear stop event so we can reenter autonomous
+
 
 def callback_switch_collect_data(channel):
     time.sleep(.1)
@@ -241,20 +259,6 @@ def callback_switch_collect_data(channel):
         else:
             logging.debug('read another low transition while not data collecting')
 callback_switch_collect_data.is_recording=False
-
-def callback_switch_save_to_USBdrive(channel):
-    if GPIO.input(switch_names["save_to_USBdrive"])!=SWITCH_ON:
-        return
-    GPIO.output(LED_names["save_to_USBdrive"], LED_ON)
-    time.sleep(1)
-    GPIO.output(LED_names["save_to_USBdrive"], LED_OFF)
-
-def callback_switch_read_from_USBdrive(channel):
-    if GPIO.input(switch_names["read_from_USBdrive"])!=SWITCH_ON:
-        return
-    GPIO.output(LED_names["read_from_USBdrive"], LED_ON)
-    time.sleep(1)
-    GPIO.output(LED_names["read_from_USBdrive"], LED_OFF)
 
 #code is an int in range 0-63, consisting of binary on-off values for the leds. boot_RPi is MSB
 def displayBinLEDCode(code): 
@@ -301,8 +305,6 @@ def initialize_service():
     global g_throttlestats
     g_throttlestats=np.load(THROTTLESTATS_FILE)['arr_0']
 
-
-
     global g_ip_thread
     g_ip_thread=0
     print("Car Ready!")
@@ -311,7 +313,6 @@ def main():
     try:
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
-
 
         for led in LED_names.values():
             GPIO.setup(led, GPIO.OUT)
@@ -335,7 +336,8 @@ def main():
             GPIO.setup(switch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
         # default for g_auto_mode
-        global g_auto_mode=False
+        global g_auto_mode
+        g_auto_mode=False
         # Check what mode the car is in, manual, auto, remote
         if MODE == "manual":
             GPIO.add_event_detect(switch_names["thr_step"], GPIO.FALLING, callback=callback_thr_steps, bouncetime=50)
@@ -345,8 +347,7 @@ def main():
         if MODE == "auto":
                 print("Autonomous: On")
                 g_auto_mode = True
-                callback_switch_autonomous.is_auto = True
-                callback_switch_autonomous("anyvalue")
+                autonomous(g_auto_mode)
                 
         printcount=0
         while(True):
@@ -370,9 +371,11 @@ def main():
                     print(data)
                     printcount=0
                 if data[0]==commandEnum.RC_SIGNALED_STOP_AUTONOMOUS: #if we get a stop signal
+                    autonomous(False)
                     g_stop_event.set() #stop the autonomous thread
                     g_auto_mode=False
                     callback_switch_autonomous.is_auto=False
+                    print(f"callback_switch_autonomous.is_auto = {callback_switch_autonomous.is_auto}")
                     for i in range(0, 5): #send ack 5 times
                         time.sleep(.01)
                         dataout='{0}, {1}, {2}, {3}\n'.format(commandEnum.STOPPED_AUTO_COMMAND_RECIEVED, 1500, 1500, 0)
