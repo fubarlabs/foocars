@@ -13,12 +13,17 @@ switch_names={
   "autonomous" : 6,
   "collect_data" : 11,
 }
+ 
+# Modes: manual, auto, remote web or alt
+MODE = "manual"
 
+# Camera settings
 FRAME_RATE = 40
 CAMERA_RESOLUTION = (128, 96)
 AUTO_IMAGE_FRAME = (36, 128, 3)
 CAMERA_IMAGE_FRAME = [96, 128, 3]
 
+# Data settings
 DATA_DIR = "/foocars/cars/chiaracer/data/"
 COLLECT_DIR = DATA_DIR + "collected"
 WEIGHTS_DIR = DATA_DIR + "weights/"

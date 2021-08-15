@@ -22,7 +22,7 @@ VOLUME ["/foocars/cars/chiaracer"]
 FROM base AS carservices
 
 RUN apt update && apt install -y \
-    gcc libhdf5-dev
+    gcc libhdf5-dev vim
 
 RUN pip install h5py
 
