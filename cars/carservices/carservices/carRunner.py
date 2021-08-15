@@ -7,12 +7,15 @@ import serial
 import numpy as np
 import threading
 import tensorflow as tf
+import argparse
 import concurrent.futures
 from .dropout_model import model as model
 from .dropout_model_throttle import model as model2
 from .defines import *
 
 
+
+# configure logging
 time_format = '%Y-%m-%d_%H-%M-%S'
 logging.basicConfig(filename='carLogger.log', level=logging.DEBUG)
 logging.debug('\n\n New Test Session {0}\n'.format(
@@ -20,6 +23,15 @@ logging.debug('\n\n New Test Session {0}\n'.format(
 DEBUG = False
 print(f"mode: {MODE}")
 
+
+# set up argument parsing
+# carRunner --mode auto
+# carRunner --mode manual
+# carRunner --mode remote
+parser = argparse.ArgumentParser(description='carRuner command line overides.')
+parser.add_argument('--mode', default="manual", choices=["manual", "auto", "remote"], type=str)
+args = parser.parse_args()
+MODE = args.mode
 
 def save_data(imgs, IMUdata, RCcommands, img_file, IMUdata_file, RCcommands_file):
     start = time.time()
@@ -39,6 +51,7 @@ class DataCollector(object):
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
         self.save_dir = save_dir
         self.ser = serial_obj
+        # Number of frames to bundle togeterh in a file.
         self.num_frames = 200
         camera_image_frame = [self.num_frames] + list(CAMERA_IMAGE_FRAME)
         print(camera_image_frame)
@@ -95,7 +108,7 @@ class DataCollector(object):
         # self.currtime=time.time()
 
     def flush(self):
-        '''this function is called every time the PiCamera stops recording'''
+        '''this function is called every time the PiCamera has taken self.num_frames N number of images default 100'''
         self.executor.submit(save_data, np.copy(self.imgs), np.copy(self.IMUdata), np.copy(
             self.RCcommands), self.img_file, self.IMUdata_file, self.RCcommands_file)
         # this new image file name is for the next chunk of data, which starts recording now
@@ -118,6 +131,8 @@ def imageprocessor(event, serial_obj):
     global g_lock
     global g_steerstats
     global g_throttlestats
+
+    # __init__ the data storage
 
     time.sleep(1)
     while not event.is_set():
@@ -154,6 +169,10 @@ def imageprocessor(event, serial_obj):
         try:
             serial_obj.write(dataline.encode('ascii'))
             serial_obj.flush()
+            # TODO: output buffer...future
+            # write stores the info info a bundle of n number frames
+            # flush writes those frames to the output files
+
         except:
             print("some serial problem")
 
@@ -236,7 +255,7 @@ def autonomous(mode):
     global g_ip_thread
     global g_camera
     global g_serial
-    
+
     if mode == True:
         print("Autonomous: On")
         logging.debug('\n user toggled autonomous on {0}\n'.format(
@@ -377,7 +396,7 @@ def main():
         while(True):
             time.sleep(.001)
             # Check if vehicle is in autonomous mode
-            if callback_switch_autonomous.is_auto==True: # or MODE == "auto":
+            if callback_switch_autonomous.is_auto==True: 
                 g_auto_mode=True
                 printcount=printcount+1
                 # while we are in autonomous mode, we have to poll Arduino for stop signal
