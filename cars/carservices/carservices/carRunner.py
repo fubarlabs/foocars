@@ -247,7 +247,7 @@ def autonomous(mode):
         callback_switch_autonomous.is_auto = True
         GPIO.output(LED_names["autonomous"], GPIO.HIGH)
     else:  # autonomous off
-         print("Autonomous: Off")
+        print("Autonomous: Off")
         logging.debug('\n user toggled autonomous off {0}\n'.format(datetime.datetime.now().strftime(time_format)))
         if not g_stop_event.isSet(): #if the event isn't already set, then stop autonomous is triggered by the switch
             g_stop_event.set() #stop autonomous thread

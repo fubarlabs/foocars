@@ -14,7 +14,7 @@ switch_names={
   "collect_data" : 11,
 }
  
-# Modes: manual, auto, remote
+# Modes: manual, auto, remote web or alt
 MODE = "manual"
 
 # Camera settings
