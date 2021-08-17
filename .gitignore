@@ -1,4 +1,6 @@
 #local ignores
+# Ignore mac extra files
+**/.DS_Store
 
 nntrain/
 *.pioenvs
