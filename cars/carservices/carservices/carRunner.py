@@ -222,25 +222,10 @@ def callback_switch_autonomous(channel):
         else:
             print("Autonomous: On")
             autonomous(True)
-            # logging.debug('\n user toggled autonomous on {0}\n'.format(datetime.datetime.now().strftime(time_format)))
-            # g_camera.start_recording(g_getter, format='rgb')
-            # g_ip_thread=threading.Thread(target=imageprocessor, args=[g_stop_event, g_serial])
-            # g_ip_thread.start()
-            # logging.debug('in autonomous mode')
-            # callback_switch_autonomous.is_auto=True
-            # GPIO.output(LED_names["autonomous"], GPIO.HIGH)
     else:  # switch off, second edge detect
         if callback_switch_autonomous.is_auto == True:
             print("Autonomous: Off")
             autonomous(False)
-            # logging.debug('\n user toggled autonomous off {0}\n'.format(datetime.datetime.now().strftime(time_format)))
-            # if not g_stop_event.isSet(): #if the event isn't already set, then stop autonomous is triggered by the switch
-            #     g_stop_event.set() #stop autonomous thread
-            # g_ip_thread.join() #join the autonomous thread
-            # g_camera.stop_recording()
-            # callback_switch_autonomous.is_auto=False
-            # GPIO.output(LED_names["autonomous"], GPIO.LOW)
-            # g_stop_event.clear() #clear stop event so we can reenter autonomous
         else:
             logging.debug('read another low transition while not autonomous')
 
