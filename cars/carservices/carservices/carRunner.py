@@ -172,13 +172,16 @@ def imageprocessor(event, serial_obj):
             # TODO: output buffer...future
             # write stores the info info a bundle of n number frames
             # flush writes those frames to the output files
-            datainput=g_serial.readline()
-            data=list(map(float, str(datainput, 'ascii').split(',')))
-            n_read_items=len(data)
-            print(data)
+            # save tmpimg
+            write_log(tmpimg, g_serial.readline())
         except Exception as e:
             print(f"serial issue error: {e}")
 
+def write_log(img, serial_text):
+    datainput=g_serial.readline()
+    data=list(map(float, str(datainput, 'ascii').split(',')))
+    n_read_items=len(data)
+    print(f"serial: {data}")
 
 class DataGetter(object):
     def __init__(self):
