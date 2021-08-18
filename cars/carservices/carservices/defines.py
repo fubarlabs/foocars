@@ -24,6 +24,7 @@ AUTO_IMAGE_FRAME = (36, 128, 3)
 CAMERA_IMAGE_FRAME = [96, 128, 3]
 
 # Data settings
+BUNDLE_NUM_FRAMES = 200
 DATA_DIR = "/foocars/cars/chiaracer/data/"
 COLLECT_DIR = DATA_DIR + "collected"
 WEIGHTS_DIR = DATA_DIR + "weights/"
