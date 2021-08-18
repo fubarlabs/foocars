@@ -50,7 +50,7 @@ class DataCollector(object):
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
         self.save_dir = save_dir
         self.ser = serial_obj
-        # Number of frames to bundle togeterh in a file.
+        # Number of frames to bundle together in a file.
         self.num_frames = 200
         camera_image_frame = [self.num_frames] + list(CAMERA_IMAGE_FRAME)
         print(camera_image_frame)
@@ -100,7 +100,7 @@ class DataCollector(object):
             (accelData, gyroData, datatime))
         self.RCcommands[self.idx] = np.array([steer_command, thr_command])
         self.idx += 1
-        if self.idx == self.num_frames:  # default value is 100, unless user specifies otherwise
+        if self.idx == self.num_frames:  # default value is 200, unless user specifies otherwise
             self.idx = 0
             self.flush()
         # print(time.time()-self.currtime)
@@ -177,6 +177,7 @@ def imageprocessor(event, serial_obj):
         except Exception as e:
             print(f"serial issue error: {e}")
 
+# In automous mode read the g_serial response and save in appropriate files.
 def write_log(img, serial_text):
     datainput=g_serial.readline()
     data=list(map(float, str(datainput, 'ascii').split(',')))
