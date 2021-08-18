@@ -28,7 +28,6 @@ DATA_DIR = "/foocars/cars/chiaracer/data/"
 COLLECT_DIR = DATA_DIR + "collected"
 WEIGHTS_DIR = DATA_DIR + "weights/"
 WEIGHTS_FILE = WEIGHTS_DIR + "weights.h5"
-
 STEERSTATS_FILE = WEIGHTS_DIR + "steerstats.npz"
 THROTTLE_WEIGHTS_FILE = WEIGHTS_DIR + "weights_throttle.h5"
 THROTTLESTATS_FILE = WEIGHTS_DIR + "throttlestats.npz"

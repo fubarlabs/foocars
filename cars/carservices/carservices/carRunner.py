@@ -38,7 +38,7 @@ def save_data(imgs, IMUdata, RCcommands, img_file, IMUdata_file, RCcommands_file
     np.savez(IMUdata_file, IMUdata)
     np.savez(RCcommands_file, RCcommands)
     end = time.time()
-    print(end-start)
+    print(f"time for save: {end-start}")
 
 
 class DataCollector(object):
@@ -95,10 +95,10 @@ class DataCollector(object):
         gyroData = np.array([data[4], data[5], data[6]], )
         datatime = np.array([int(data[7])], dtype=np.float32)
         steer_command = int(data[8])
-        gas_command = int(data[9])
+        thr_command = int(data[9])
         self.IMUdata[self.idx] = np.concatenate(
             (accelData, gyroData, datatime))
-        self.RCcommands[self.idx] = np.array([steer_command, gas_command])
+        self.RCcommands[self.idx] = np.array([steer_command, thr_command])
         self.idx += 1
         if self.idx == self.num_frames:  # default value is 100, unless user specifies otherwise
             self.idx = 0
@@ -160,7 +160,8 @@ def imageprocessor(event, serial_obj):
             throttle_command = 1000
 
         end = time.time()
-        print(end-start)
+        print(f"time for preds: {end-start}")
+
         dataline = '{0}, {1}, {2}, {3}\n'.format(
             commandEnum.RUN_AUTONOMOUSLY, int(steer_command), int(throttle_command), 0)
         if DEBUG:
@@ -172,8 +173,8 @@ def imageprocessor(event, serial_obj):
             # write stores the info info a bundle of n number frames
             # flush writes those frames to the output files
 
-        except:
-            print("some serial problem")
+        except Exception as e:
+            print(f"serial issue error: {e}")
 
 
 class DataGetter(object):
@@ -220,11 +221,11 @@ def callback_switch_autonomous(channel):
         if callback_switch_autonomous.is_auto == True:
             logging.debug('read another high transition while in autonomous')
         else:
-            print("Autonomous: On")
+            print("Switch Autonomous: On")
             autonomous(True)
     else:  # switch off, second edge detect
         if callback_switch_autonomous.is_auto == True:
-            print("Autonomous: Off")
+            print("Switch Autonomous: Off")
             autonomous(False)
         else:
             logging.debug('read another low transition while not autonomous')
@@ -297,12 +298,15 @@ def initialize_service():
     # initialize the serial port: if the first port fails, we try the other one
     global g_serial
     try:
-        g_serial=serial.Serial('/dev/ttyACM1')
+        g_serial=serial.Serial('/dev/ttyAMA0')
     except serial.SerialException:
         try:
-            g_serial=serial.Serial('/dev/ttyACM0')
+            g_serial=serial.Serial('/dev/ttyACM1')
         except serial.SerialException:
-            logging.debug("error: cannot connect to serial port")
+            try:
+                g_serial=serial.Serial('/dev/ttyACM0')
+            except serial.SerialException:
+                logging.debug("error: cannot connect to serial port")
     # initialize the camera
     global g_camera
     g_camera=picamera.PiCamera()
