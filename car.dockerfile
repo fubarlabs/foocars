@@ -24,7 +24,7 @@ FROM base AS carservices
 RUN apt update && apt install -y \
     gcc libhdf5-dev vim
 
-RUN pip install h5py
+RUN pip install h5py platformio
 
 COPY ./cars/carservices /foocars/cars/carservices
 COPY ./tests /foocars/tests
