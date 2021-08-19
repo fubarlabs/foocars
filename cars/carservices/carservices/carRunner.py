@@ -224,6 +224,7 @@ def imageprocessor(event, serial_obj):
         immean = tmpimg.mean()
         imvar = tmpimg.std()
         start = time.time()
+        import pdb; pdb.set_trace()
 
         pred = model.predict(np.expand_dims(tmpimg, axis=0))
         steer_command = pred[0][0]*g_steerstats[1]+g_steerstats[0]
