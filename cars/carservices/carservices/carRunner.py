@@ -252,12 +252,15 @@ def imageprocessor(event, serial_obj):
         try:
             serial_obj.write(dataline.encode('ascii'))
             serial_obj.flush()
+            print("serial write done")
+            import pdb; pdb.set_trace()
+
             # TODO: output buffer...future
             # write stores the info info a bundle of n number frames
             # flush writes those frames to the output files
             # save tmpimg
             #  write_log(tmpimg, g_serial.readline())
-            g_auto_collector.write()
+            #g_auto_collector.write(tmpimg)
         except Exception as e:
             print(f"serial issue error: {e}")
 
@@ -407,8 +410,8 @@ def initialize_service():
     global g_collector
     g_collector=DataCollector(g_serial, COLLECT_DIR)
     #init the autonomous data collector object
-    global g_auto_collector
-    g_auto_collector=AutoDataCollector(g_serial, COLLECT_DIR)
+    #global g_auto_collector
+    #g_auto_collector=AutoDataCollector(g_serial, COLLECT_DIR)
     # initialize the image frame to be shared in autonomous mode
     global g_image_data
     g_image_data=np.zeros(AUTO_IMAGE_FRAME, dtype=np.uint8) 
