@@ -154,7 +154,6 @@ void sendSerialCommand( commandDataStruct *theDataPtr ){
     Serial.print(",");
     Serial.print(theDataPtr->thr);
     Serial.println();
-//    Serial.flush();        // Serial.flush halts program until all characters are sent
 }
 
 void getSerialCommandIfAvailable( commandDataStruct *theDataPtr ){
@@ -312,7 +311,7 @@ void loop() {
 	}
 	break;
     case STATE_AUTONOMOUS:
-        Serial.println("AUTONOMOUS MODE");
+        //Serial.println("AUTONOMOUS MODE");
         //autonomous state-- while in this state, we have to check for stop auto 
         //commands from serial or RC. The only things we check for are RUN_AUTONOMOUSLY
         //and STOP_AUTONOMOUS commands from the Pi, and RC_SIGNALED_STOP_AUTONOMOUS commands
