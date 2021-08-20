@@ -224,7 +224,6 @@ def imageprocessor(event, serial_obj):
         immean = tmpimg.mean()
         imvar = tmpimg.std()
         start = time.time()
-        import pdb; pdb.set_trace()
 
         pred = model.predict(np.expand_dims(tmpimg, axis=0))
         steer_command = pred[0][0]*g_steerstats[1]+g_steerstats[0]
@@ -261,7 +260,7 @@ def imageprocessor(event, serial_obj):
             # flush writes those frames to the output files
             # save tmpimg
             #  write_log(tmpimg, g_serial.readline())
-            #g_auto_collector.write(tmpimg)
+            g_auto_collector.write(tmpimg)
         except Exception as e:
             print(f"serial issue error: {e}")
 
@@ -408,8 +407,8 @@ def initialize_service():
     global g_collector
     g_collector=DataCollector(g_serial, COLLECT_DIR)
     #init the autonomous data collector object
-    #global g_auto_collector
-    #g_auto_collector=AutoDataCollector(g_serial, COLLECT_DIR)
+    global g_auto_collector
+    g_auto_collector=AutoDataCollector(g_serial, COLLECT_DIR)
     # initialize the image frame to be shared in autonomous mode
     global g_image_data
     g_image_data=np.zeros(AUTO_IMAGE_FRAME, dtype=np.uint8) 
