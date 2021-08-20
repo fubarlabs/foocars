@@ -17,6 +17,12 @@ switch_names={
 # Modes: manual, auto, remote web or alt
 MODE = "manual"
 
+
+STR_MAX = 2000
+STR_MIN = 1000
+THR_MAX = 1700
+THR_MIN = 1200
+
 # Camera settings
 FRAME_RATE = 40
 CAMERA_RESOLUTION = (128, 96)

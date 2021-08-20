@@ -156,8 +156,8 @@ class AutoDataCollector(object):
 
     def write(self, img):
         '''this is the function that is called every time the PiCamera has a new frame'''
-        imdata = np.reshape(np.fromstring(
-            img, dtype=np.uint8), AUTO_IMAGE_FRAME, 'C')
+        # img is already the correct shape for logging
+        imdata = img
         # now we read from the serial port and format and save the data:
 
         self.ser.flushInput()
@@ -232,15 +232,15 @@ def imageprocessor(event, serial_obj):
         throttle_command = throttle_pred[0][0] * \
             g_throttlestats[1]+g_throttlestats[0]
 
-        if steer_command > 2000:
-            steer_command = 2000
-        elif steer_command < 1000:
-            steer_command = 1000
+        if steer_command > STR_MAX:
+            steer_command = STR_MAX
+        elif steer_command < STR_MIN:
+            steer_command = STR_MIN
 
-        if throttle_command > 2000:
-            throttle_command = 2000
-        elif throttle_command < 1000:
-            throttle_command = 1000
+        if throttle_command > THR_MAX:
+            throttle_command = THR_MAX
+        elif throttle_command < THR_MIN:
+            throttle_command = THR_MIN
 
         end = time.time()
         print(f"time for preds: {end-start}")
