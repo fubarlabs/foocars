@@ -41,90 +41,90 @@ def save_data(imgs, IMUdata, RCcommands, img_file, IMUdata_file, RCcommands_file
     end = time.time()
     print(f"time for save: {end-start}")
 
-# # Data Logging for Data Collection Mode
-# class DataCollector(object):
-#     """this object is passed to the camera.start_recording function, which will treat it as a
-#             writable object, like a stream or a file"""
-
-#     def __init__(self, serial_obj, save_dir):
-#         assert serial_obj.isOpen() == True
-#         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
-#         self.save_dir = save_dir
-#         self.ser = serial_obj
-#         # Number of frames to bundle together in a file.
-#         self.num_frames = BUNDLE_NUM_FRAMES
-#         camera_image_frame = [self.num_frames] + list(CAMERA_IMAGE_FRAME)
-#         print(camera_image_frame)
-#         # We put the images in here
-#         self.imgs = np.zeros((camera_image_frame), dtype=np.uint8)
-#         # we put the imu data in here
-#         self.IMUdata = np.zeros((self.num_frames, 7), dtype=np.float32)
-#         # we put the RC data in here
-#         self.RCcommands = np.zeros((self.num_frames, 2), dtype=np.float16)
-#         # this is the variable to keep track of number of frames per datafile
-#         self.idx = 0
-#         nowtime = datetime.datetime.now()
-#         self.currtime = time.time()
-#         self.img_file = self.save_dir + \
-#             '/imgs_{0}'.format(nowtime.strftime(time_format))
-#         self.IMUdata_file = self.save_dir + \
-#             '/IMU_{0}'.format(nowtime.strftime(time_format))
-#         self.RCcommands_file = self.save_dir + \
-#             '/commands_{0}'.format(nowtime.strftime(time_format))
-
-#     def write(self, s):
-#         '''this is the function that is called every time the PiCamera has a new frame'''
-#         imdata = np.reshape(np.fromstring(
-#             s, dtype=np.uint8), CAMERA_IMAGE_FRAME, 'C')
-#         # now we read from the serial port and format and save the data:
-
-#         self.ser.flushInput()
-#         n_read_items = 0
-#         while n_read_items != 10:
-#             try:
-#                 datainput = self.ser.readline()
-#                 data = list(map(float, str(datainput, 'ascii').split(',')))
-#                 n_read_items = len(data)
-#             except ValueError:
-#                 continue
-#             if DEBUG:
-#                 print(data)
-#         # Note: the data from the IMU requires some processing which does not happen here:
-#         self.imgs[self.idx] = imdata
-#         # command=data[0]
-#         accelData = np.array([data[1], data[2], data[3]], dtype=np.float32)
-#         gyroData = np.array([data[4], data[5], data[6]], )
-#         datatime = np.array([int(data[7])], dtype=np.float32)
-#         steer_command = int(data[8])
-#         thr_command = int(data[9])
-#         self.IMUdata[self.idx] = np.concatenate(
-#             (accelData, gyroData, datatime))
-#         self.RCcommands[self.idx] = np.array([steer_command, thr_command])
-#         self.idx += 1
-#         if self.idx == self.num_frames:  # default value is 200, unless user specifies otherwise
-#             self.idx = 0
-#             self.flush()
-#         # print(time.time()-self.currtime)
-#         # self.currtime=time.time()
-
-#     def flush(self):
-#         '''this function is called every time the PiCamera has taken self.num_frames N number of images default 100'''
-#         self.executor.submit(save_data, np.copy(self.imgs), np.copy(self.IMUdata), np.copy(
-#             self.RCcommands), self.img_file, self.IMUdata_file, self.RCcommands_file)
-#         # this new image file name is for the next chunk of data, which starts recording now
-#         nowtime = datetime.datetime.now()
-#         self.img_file = self.save_dir + \
-#             '/imgs_{0}'.format(nowtime.strftime(time_format))
-#         self.IMUdata_file = self.save_dir + \
-#             '/IMU_{0}'.format(nowtime.strftime(time_format))
-#         self.RCcommands_file = self.save_dir + \
-#             '/commands_{0}'.format(nowtime.strftime(time_format))
-#         self.imgs[:] = 0
-#         self.IMUdata[:] = 0
-#         self.RCcommands[:] = 0
-#         self.idx = 0
-
 # Data Logging for Data Collection Mode
+class DataCollector(object):
+    """this object is passed to the camera.start_recording function, which will treat it as a
+            writable object, like a stream or a file"""
+
+    def __init__(self, serial_obj, save_dir):
+        assert serial_obj.isOpen() == True
+        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
+        self.save_dir = save_dir
+        self.ser = serial_obj
+        # Number of frames to bundle together in a file.
+        self.num_frames = BUNDLE_NUM_FRAMES
+        camera_image_frame = [self.num_frames] + list(CAMERA_IMAGE_FRAME)
+        print(camera_image_frame)
+        # We put the images in here
+        self.imgs = np.zeros((camera_image_frame), dtype=np.uint8)
+        # we put the imu data in here
+        self.IMUdata = np.zeros((self.num_frames, 7), dtype=np.float32)
+        # we put the RC data in here
+        self.RCcommands = np.zeros((self.num_frames, 2), dtype=np.float16)
+        # this is the variable to keep track of number of frames per datafile
+        self.idx = 0
+        nowtime = datetime.datetime.now()
+        self.currtime = time.time()
+        self.img_file = self.save_dir + \
+            '/imgs_{0}'.format(nowtime.strftime(time_format))
+        self.IMUdata_file = self.save_dir + \
+            '/IMU_{0}'.format(nowtime.strftime(time_format))
+        self.RCcommands_file = self.save_dir + \
+            '/commands_{0}'.format(nowtime.strftime(time_format))
+
+    def write(self, s):
+        '''this is the function that is called every time the PiCamera has a new frame'''
+        imdata = np.reshape(np.fromstring(
+            s, dtype=np.uint8), CAMERA_IMAGE_FRAME, 'C')
+        # now we read from the serial port and format and save the data:
+
+        self.ser.flushInput()
+        n_read_items = 0
+        while n_read_items != 10:
+            try:
+                datainput = self.ser.readline()
+                data = list(map(float, str(datainput, 'ascii').split(',')))
+                n_read_items = len(data)
+            except ValueError:
+                continue
+            if DEBUG:
+                print(data)
+        # Note: the data from the IMU requires some processing which does not happen here:
+        self.imgs[self.idx] = imdata
+        # command=data[0]
+        accelData = np.array([data[1], data[2], data[3]], dtype=np.float32)
+        gyroData = np.array([data[4], data[5], data[6]], )
+        datatime = np.array([int(data[7])], dtype=np.float32)
+        steer_command = int(data[8])
+        thr_command = int(data[9])
+        self.IMUdata[self.idx] = np.concatenate(
+            (accelData, gyroData, datatime))
+        self.RCcommands[self.idx] = np.array([steer_command, thr_command])
+        self.idx += 1
+        if self.idx == self.num_frames:  # default value is 200, unless user specifies otherwise
+            self.idx = 0
+            self.flush()
+        # print(time.time()-self.currtime)
+        # self.currtime=time.time()
+
+    def flush(self):
+        '''this function is called every time the PiCamera has taken self.num_frames N number of images default 100'''
+        self.executor.submit(save_data, np.copy(self.imgs), np.copy(self.IMUdata), np.copy(
+            self.RCcommands), self.img_file, self.IMUdata_file, self.RCcommands_file)
+        # this new image file name is for the next chunk of data, which starts recording now
+        nowtime = datetime.datetime.now()
+        self.img_file = self.save_dir + \
+            '/imgs_{0}'.format(nowtime.strftime(time_format))
+        self.IMUdata_file = self.save_dir + \
+            '/IMU_{0}'.format(nowtime.strftime(time_format))
+        self.RCcommands_file = self.save_dir + \
+            '/commands_{0}'.format(nowtime.strftime(time_format))
+        self.imgs[:] = 0
+        self.IMUdata[:] = 0
+        self.RCcommands[:] = 0
+        self.idx = 0
+
+# Data Logging for Autonomous Collection Mode
 class AutoDataCollector(object):
     """this object is passed to the camera.start_recording function, which will treat it as a
             writable object, like a stream or a file"""
@@ -255,21 +255,9 @@ def imageprocessor(event):
             print("serial write done")
             # pdb.set_trace()
 
-            # TODO: output buffer...future
-            # write stores the info info a bundle of n number frames
-            # flush writes those frames to the output files
-            # save tmpimg
-            #  write_log(tmpimg, g_serial.readline())
             g_auto_collector.write(g_serial, tmpimg)
         except Exception as e:
             print(f"serial issue error: {e}")
-
-# In automous mode read the g_serial response and save in appropriate files.
-def write_log(img, serial_text):
-    datainput=serial_text
-    data=list(map(float, str(datainput, 'ascii').split(',')))
-    n_read_items=len(data)
-    print(f"serial: {data}")
 
 class DataGetter(object):
     def __init__(self):
