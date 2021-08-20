@@ -393,8 +393,8 @@ def initialize_service():
     g_camera.resolution=CAMERA_RESOLUTION
     g_camera.framerate=FRAME_RATE
     # initialize the data collector object
-    # global g_collector
-    # g_collector=DataCollector(g_serial, COLLECT_DIR)
+    global g_collector
+    g_collector=DataCollector(g_serial, COLLECT_DIR)
     #init the autonomous data collector object
     global g_auto_collector
     g_auto_collector=AutoDataCollector(COLLECT_DIR)
