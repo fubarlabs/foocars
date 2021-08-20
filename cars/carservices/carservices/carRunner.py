@@ -483,24 +483,24 @@ def main():
                 #     except ValueError:
                 #         continue
 
-                if printcount==10:
-                    print(data)
-                    printcount=0
-                if data[0]==commandEnum.RC_SIGNALED_STOP_AUTONOMOUS: #if we get a stop signal
-                    autonomous(False)
-                    g_stop_event.set() #stop the autonomous thread
-                    g_auto_mode=False
-                    callback_switch_autonomous.is_auto=False
-                    print(f"callback_switch_autonomous.is_auto = {callback_switch_autonomous.is_auto}")
-                    for i in range(0, 5): #send ack 5 times
-                        time.sleep(.01)
-                        dataout='{0}, {1}, {2}, {3}\n'.format(commandEnum.STOPPED_AUTO_COMMAND_RECIEVED, 1500, 1500, 0)
-                        #g_serial.write(dataout.encode('ascii'))
-                    while callback_switch_autonomous.is_auto==True: #blink the led until user turns off the switch
-                        time.sleep(.5)
-                        GPIO.output(LED_names["autonomous"], GPIO.HIGH)
-                        time.sleep(.5)
-                        GPIO.output(LED_names["autonomous"], GPIO.LOW)
+                # if printcount==10:
+                #     print(data)
+                #     printcount=0
+                # if data[0]==commandEnum.RC_SIGNALED_STOP_AUTONOMOUS: #if we get a stop signal
+                #     autonomous(False)
+                #     g_stop_event.set() #stop the autonomous thread
+                #     g_auto_mode=False
+                #     callback_switch_autonomous.is_auto=False
+                #     print(f"callback_switch_autonomous.is_auto = {callback_switch_autonomous.is_auto}")
+                #     for i in range(0, 5): #send ack 5 times
+                #         time.sleep(.01)
+                #         dataout='{0}, {1}, {2}, {3}\n'.format(commandEnum.STOPPED_AUTO_COMMAND_RECIEVED, 1500, 1500, 0)
+                #         #g_serial.write(dataout.encode('ascii'))
+                #     while callback_switch_autonomous.is_auto==True: #blink the led until user turns off the switch
+                #         time.sleep(.5)
+                #         GPIO.output(LED_names["autonomous"], GPIO.HIGH)
+                #         time.sleep(.5)
+                #         GPIO.output(LED_names["autonomous"], GPIO.LOW)
 
             # Check if the vehicle is autonomous mode and has switched off autonomous mode
             # if g_auto_mode==True and callback_switch_autonomous.is_auto==False:
