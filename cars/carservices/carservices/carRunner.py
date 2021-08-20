@@ -393,15 +393,12 @@ def initialize_service():
     # initialize the serial port: if the first port fails, we try the other one
     global g_serial
     try:
-        g_serial=serial.Serial('/dev/ttyAMA0', timeout=0)
+        g_serial=serial.Serial('/dev/ttyACM1', timeout=0)
     except serial.SerialException:
         try:
-            g_serial=serial.Serial('/dev/ttyACM1', timeout=0)
+            g_serial=serial.Serial('/dev/ttyACM0', timeout=0)
         except serial.SerialException:
-            try:
-                g_serial=serial.Serial('/dev/ttyACM0', timeout=0)
-            except serial.SerialException:
-                logging.debug("error: cannot connect to serial port")
+            logging.debug("error: cannot connect to serial port")
     # initialize the camera
     global g_camera
     g_camera=picamera.PiCamera()
