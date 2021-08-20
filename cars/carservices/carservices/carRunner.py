@@ -474,14 +474,14 @@ def main():
                 # while we are in autonomous mode, we have to poll Arduino for stop signal
                 # g_serial.flushInput()
                 # pdb.set_trace()
-                n_read_items=0
-                while n_read_items!=10:
-                    try:
-                        datainput=g_serial.readline()
-                        data=list(map(float, str(datainput, 'ascii').split(',')))
-                        n_read_items=len(data)
-                    except ValueError:
-                        continue
+                # n_read_items=0
+                # while n_read_items!=10:
+                #     try:
+                #         datainput=g_serial.readline()
+                #         data=list(map(float, str(datainput, 'ascii').split(',')))
+                #         n_read_items=len(data)
+                #     except ValueError:
+                #         continue
 
                 if printcount==10:
                     print(data)
@@ -495,7 +495,7 @@ def main():
                     for i in range(0, 5): #send ack 5 times
                         time.sleep(.01)
                         dataout='{0}, {1}, {2}, {3}\n'.format(commandEnum.STOPPED_AUTO_COMMAND_RECIEVED, 1500, 1500, 0)
-                        g_serial.write(dataout.encode('ascii'))
+                        #g_serial.write(dataout.encode('ascii'))
                     while callback_switch_autonomous.is_auto==True: #blink the led until user turns off the switch
                         time.sleep(.5)
                         GPIO.output(LED_names["autonomous"], GPIO.HIGH)
@@ -529,7 +529,7 @@ def main():
             #             except ValueError:
             #                 continue
             #     g_auto_mode=False
-    except exception as ex:
+    except Exception as ex:
         print(ex)
     finally:
         GPIO.output(LED_names["boot_RPi"], GPIO.LOW)
