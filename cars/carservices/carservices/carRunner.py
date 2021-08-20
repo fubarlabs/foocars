@@ -52,7 +52,7 @@ class DataCollector(object):
         self.ser = serial_obj
         # Number of frames to bundle together in a file.
         self.num_frames = BUNDLE_NUM_FRAMES
-        camera_image_frame = [self.num_frames] + list(AUTO_IMAGE_FRAME)
+        camera_image_frame = [self.num_frames] + list(CAMERA_IMAGE_FRAME)
         print(camera_image_frame)
         # We put the images in here
         self.imgs = np.zeros((camera_image_frame), dtype=np.uint8)
@@ -74,7 +74,7 @@ class DataCollector(object):
     def write(self, s):
         '''this is the function that is called every time the PiCamera has a new frame'''
         imdata = np.reshape(np.fromstring(
-            s, dtype=np.uint8), AUTO_IMAGE_FRAME, 'C')
+            s, dtype=np.uint8), CAMERA_IMAGE_FRAME, 'C')
         # now we read from the serial port and format and save the data:
 
         self.ser.flushInput()
@@ -135,7 +135,7 @@ class AutoDataCollector(object):
         self.ser = serial_obj
         # Number of frames to bundle together in a file.
         self.num_frames = BUNDLE_NUM_FRAMES
-        camera_image_frame = [self.num_frames] + list(CAMERA_IMAGE_FRAME)
+        camera_image_frame = [self.num_frames] + list(AUTO_IMAGE_FRAME)
         print(camera_image_frame)
         # We put the images in here
         self.imgs = np.zeros((camera_image_frame), dtype=np.uint8)
@@ -157,7 +157,7 @@ class AutoDataCollector(object):
     def write(self, img):
         '''this is the function that is called every time the PiCamera has a new frame'''
         imdata = np.reshape(np.fromstring(
-            img, dtype=np.uint8), CAMERA_IMAGE_FRAME, 'C')
+            img, dtype=np.uint8), AUTO_IMAGE_FRAME, 'C')
         # now we read from the serial port and format and save the data:
 
         self.ser.flushInput()
