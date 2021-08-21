@@ -303,7 +303,7 @@ class DataGetter(object):
         global g_lock
         #TODO: Put the crop back in
         imagerawdata=np.reshape(np.fromstring(
-            s, dtype=np.uint8), tuple(CAMERA_IMAGE_FRAME, 'C')
+            s, dtype=np.uint8), tuple(CAMERA_IMAGE_FRAME, 'C'))
         imdata=imagerawdata[CROP_START:CROP_STOP, :]
         immean=imdata.mean()
         imvar=imdata.std()
