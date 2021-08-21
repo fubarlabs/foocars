@@ -18,7 +18,6 @@ logging.basicConfig(filename='carLogger.log', level=logging.DEBUG)
 logging.debug('\n\n New Test Session {0}\n'.format(
     datetime.datetime.now().strftime(time_format)))
 DEBUG = False
-print(f"mode: {MODE}")
 
 
 # set up argument parsing
@@ -27,8 +26,16 @@ print(f"mode: {MODE}")
 # carRunner --mode remote
 parser = argparse.ArgumentParser(description='carRuner command line overides.')
 parser.add_argument('--mode', default="manual", choices=["manual", "auto", "remote"], type=str)
+parser.add_argument('--thr', default="manual", choices=["manual", "auto"], type=str)
+parser.add_argument('--thr_val', required=False, default=1500, choices=range(THR_MIN,THR_MAX), type=int)
+
 args = parser.parse_args()
 MODE = args.mode
+THR_MODE = args.thr
+if args.thr_val is not None:
+    THR_VAL = args.thr_val
+print(f"mode: {MODE}, THR_MODE: {THR_MODE}, THR_VAL: {THR_VAL}")
+
 
 from .dropout_model import model as model
 from .dropout_model_throttle import model as model2
