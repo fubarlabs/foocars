@@ -27,7 +27,8 @@ DEBUG = False
 parser = argparse.ArgumentParser(description='carRuner command line overides.')
 parser.add_argument('--mode', default="manual", choices=["manual", "auto", "remote"], type=str)
 parser.add_argument('--thr', default="manual", choices=["manual", "auto"], type=str)
-parser.add_argument('--thr_val', required=False, default=1500, choices=range(THR_MIN,THR_MAX), type=int)
+#parser.add_argument('--thr_val', required=False, default=1500, choices=range(THR_MIN,THR_MAX), type=int)
+parser.add_argument('--thr_val', required=False, type=int)
 
 args = parser.parse_args()
 MODE = args.mode
