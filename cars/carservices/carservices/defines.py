@@ -17,6 +17,12 @@ switch_names={
 # Modes: manual, auto, remote web or alt
 MODE = "manual"
 
+
+STR_MAX = 2000
+STR_MIN = 1000
+THR_MAX = 1700
+THR_MIN = 1200
+
 # Camera settings
 FRAME_RATE = 40
 CAMERA_RESOLUTION = (128, 96)
@@ -24,11 +30,11 @@ AUTO_IMAGE_FRAME = (36, 128, 3)
 CAMERA_IMAGE_FRAME = [96, 128, 3]
 
 # Data settings
+BUNDLE_NUM_FRAMES = 200
 DATA_DIR = "/foocars/cars/chiaracer/data/"
 COLLECT_DIR = DATA_DIR + "collected"
 WEIGHTS_DIR = DATA_DIR + "weights/"
 WEIGHTS_FILE = WEIGHTS_DIR + "weights.h5"
-
 STEERSTATS_FILE = WEIGHTS_DIR + "steerstats.npz"
 THROTTLE_WEIGHTS_FILE = WEIGHTS_DIR + "weights_throttle.h5"
 THROTTLESTATS_FILE = WEIGHTS_DIR + "throttlestats.npz"
