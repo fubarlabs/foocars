@@ -268,6 +268,10 @@ def imageprocessor(event):
             throttle_pred=model2.predict(np.expand_dims(tmpimg, axis=0))
             throttle_command=throttle_pred[0][0] * \
                 g_throttlestats[1]+g_throttlestats[0]
+        else:
+            if THR_VAL != -1:
+                THR_CURRENT = THR_VAL
+            throttle_command = THR_CURRENT
 
         if steer_command > STR_MAX:
             steer_command=STR_MAX
