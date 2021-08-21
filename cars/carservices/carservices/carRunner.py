@@ -52,9 +52,10 @@ if args.thr_val is not None:
 else:
     THR_VAL = -1
 
-CAMERA_RESOLUTION = tuple(map(int, args.cam_res.split("x"))
-CAMERA_IMAGE_FRAME=list(map(int, args.cam_frame.split("x")), 3)
-AUTO_IMAGE_FRAME=tuple(map(int, args.train_frame.split("x")), 3)
+
+CAMERA_RESOLUTION = tuple(map(int, args.cam_res.split("x")))
+CAMERA_IMAGE_FRAME = list(map(int, args.cam_frame.split("x"))) + [3]
+AUTO_IMAGE_FRAME = tuple(list(map(int, args.train_frame.split("x"))) + [3])
 # CAMERA_RESOLUTION = (128, 96)
 # AUTO_IMAGE_FRAME = (36, 128, 3)
 # CAMERA_IMAGE_FRAME = [96, 128, 3]
