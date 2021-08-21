@@ -64,9 +64,10 @@ ncols=AUTO_IMAGE_FRAME[1]
 m_str = steering_model(nrows, ncols)
 model = m_str.get_model()
 
-from .dropout_model_throttle import throttle_model
-m_thr = steering_model(nrows, ncols)
-model2 = m_str.get_model()
+if THR_MODE == "auto":
+    from .dropout_model_throttle import throttle_model
+    m_thr = steering_model(nrows, ncols)
+    model2 = m_str.get_model()
 
 def save_data(imgs, IMUdata, RCcommands, img_file, IMUdata_file, RCcommands_file):
     start=time.time()
@@ -263,9 +264,10 @@ def imageprocessor(event):
         pred=model.predict(np.expand_dims(tmpimg, axis=0))
         steer_command=pred[0][0]*g_steerstats[1]+g_steerstats[0]
 
-        throttle_pred=model2.predict(np.expand_dims(tmpimg, axis=0))
-        throttle_command=throttle_pred[0][0] * \
-            g_throttlestats[1]+g_throttlestats[0]
+        if THR_MODE == "auto":
+            throttle_pred=model2.predict(np.expand_dims(tmpimg, axis=0))
+            throttle_command=throttle_pred[0][0] * \
+                g_throttlestats[1]+g_throttlestats[0]
 
         if steer_command > STR_MAX:
             steer_command=STR_MAX
@@ -456,9 +458,10 @@ def initialize_service():
     global g_steerstats
     g_steerstats=np.load(STEERSTATS_FILE)['arr_0']
 
-    model2.load_weights(THROTTLE_WEIGHTS_FILE)
-    global g_throttlestats
-    g_throttlestats=np.load(THROTTLESTATS_FILE)['arr_0']
+    if THR_MODE == "auto":
+        model2.load_weights(THROTTLE_WEIGHTS_FILE)
+        global g_throttlestats
+        g_throttlestats=np.load(THROTTLESTATS_FILE)['arr_0']
 
     global g_ip_thread
     g_ip_thread=0
