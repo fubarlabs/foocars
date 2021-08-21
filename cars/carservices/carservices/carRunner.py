@@ -270,7 +270,7 @@ def imageprocessor(event):
                 g_throttlestats[1]+g_throttlestats[0]
         else:
             if THR_VAL != -1:
-                THR_CURRENT = THR_VAL
+                throttle_command = THR_VAL
             throttle_command = THR_CURRENT
 
         if steer_command > STR_MAX:
