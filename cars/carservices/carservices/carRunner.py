@@ -54,9 +54,15 @@ AUTO_IMAGE_FRAME = tuple(list(map(int, args.train_frame.split("x"))) + [3])
 
 print(f"mode: {MODE}, THR_MODE: {THR_MODE}, THR_VAL: {THR_VAL}, cam_res:{CAMERA_RESOLUTION}, cam_frame: {CAMERA_IMAGE_FRAME}, train_frame:{AUTO_IMAGE_FRAME}")
 
+from .dropout_model import steering_model
+nrows=AUTO_IMAGE_FRAME[0] 
+ncols=AUTO_IMAGE_FRAME[1] 
+m_str = steering_model(nrows, ncols)
+model = m_str.get_model()
 
-from .dropout_model import model as model
-from .dropout_model_throttle import model as model2
+from .dropout_model_throttle import throttle_model
+m_thr = steering_model(nrows, ncols)
+model2 = m_str.get_model()
 
 def save_data(imgs, IMUdata, RCcommands, img_file, IMUdata_file, RCcommands_file):
     start=time.time()
