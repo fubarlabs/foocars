@@ -36,10 +36,6 @@ parser.add_argument('--cam_res', default="128x96", type=str)
 parser.add_argument('--cam_frame', default="96x128", type=str)
 parser.add_argument('--train_frame', default="36x128", type=str)
 
-
-# TODO: add the image CAMERA_RESOLUTION 96x128
-# TODO: add the crop for training 36x128
-
 args = parser.parse_args()
 MODE = args.mode
 
@@ -52,14 +48,9 @@ if args.thr_val is not None:
 else:
     THR_VAL = -1
 
-
 CAMERA_RESOLUTION = tuple(map(int, args.cam_res.split("x")))
 CAMERA_IMAGE_FRAME = list(map(int, args.cam_frame.split("x"))) + [3]
 AUTO_IMAGE_FRAME = tuple(list(map(int, args.train_frame.split("x"))) + [3])
-# CAMERA_RESOLUTION = (128, 96)
-# AUTO_IMAGE_FRAME = (36, 128, 3)
-# CAMERA_IMAGE_FRAME = [96, 128, 3]
-
 
 print(f"mode: {MODE}, THR_MODE: {THR_MODE}, THR_VAL: {THR_VAL}, cam_res:{CAMERA_RESOLUTION}, cam_frame: {CAMERA_IMAGE_FRAME}, train_frame:{AUTO_IMAGE_FRAME}")
 
@@ -300,9 +291,13 @@ class DataGetter(object):
     def write(self, s):
         global g_imageData
         global g_lock
+        #TODO: Put the crop back in
+        # imagerawdata=np.reshape(np.fromstring(
+        #     s, dtype=np.uint8), (96, 128, 3), 'C')
+        # imdata=imagerawdata[20:56, :]
         imagerawdata=np.reshape(np.fromstring(
-            s, dtype=np.uint8), (96, 128, 3), 'C')
-        imdata=imagerawdata[20:56, :]
+             s, dtype=np.uint8), tuple(CAMERA_IMAGE_FRAME), 'C')
+        imdata=imagerawdata
         immean=imdata.mean()
         imvar=imdata.std()
         g_lock.acquire()
