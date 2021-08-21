@@ -35,6 +35,8 @@ parser.add_argument('--frame_rate', required=False, type=int)
 parser.add_argument('--cam_res', default="128x96", type=str)
 parser.add_argument('--cam_frame', default="96x128", type=str)
 parser.add_argument('--train_frame', default="36x128", type=str)
+parser.add_argument('--crop', default="20x56", type=str)
+
 
 args = parser.parse_args()
 MODE = args.mode
@@ -47,6 +49,8 @@ if args.thr_val is not None:
     THR_VAL = args.thr_val
 else:
     THR_VAL = -1
+
+CROP_START, CROP_STOP = map(int, args.crop.split("x"))
 
 CAMERA_RESOLUTION = tuple(map(int, args.cam_res.split("x")))
 CAMERA_IMAGE_FRAME = list(map(int, args.cam_frame.split("x"))) + [3]
@@ -298,12 +302,9 @@ class DataGetter(object):
         global g_imageData
         global g_lock
         #TODO: Put the crop back in
-        # imagerawdata=np.reshape(np.fromstring(
-        #     s, dtype=np.uint8), (96, 128, 3), 'C')
-        # imdata=imagerawdata[20:56, :]
         imagerawdata=np.reshape(np.fromstring(
-             s, dtype=np.uint8), tuple(CAMERA_IMAGE_FRAME), 'C')
-        imdata=imagerawdata
+            s, dtype=np.uint8), tuple(CAMERA_IMAGE_FRAME, 'C')
+        imdata=imagerawdata[CROP_START:CROP_STOP, :]
         immean=imdata.mean()
         imvar=imdata.std()
         g_lock.acquire()
