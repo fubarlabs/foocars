@@ -35,6 +35,9 @@ MODE = args.mode
 THR_MODE = args.thr
 if args.thr_val is not None:
     THR_VAL = args.thr_val
+else:
+    THR_VAL = -1
+    
 print(f"mode: {MODE}, THR_MODE: {THR_MODE}, THR_VAL: {THR_VAL}")
 
 
