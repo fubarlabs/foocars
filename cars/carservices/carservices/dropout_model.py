@@ -12,8 +12,8 @@ from tensorflow.keras.optimizers import SGD
 
 
 
-nrows=36
-ncols=128
+nrows=AUTO_IMAGE_FRAME[0] 
+ncols=AUTO_IMAGE_FRAME[1] 
 wr=0.00001 # l1 regularizer value
 dp=0.125 # dropout rate 
 
