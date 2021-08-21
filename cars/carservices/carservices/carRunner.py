@@ -56,7 +56,8 @@ CAMERA_RESOLUTION = tuple(map(int, args.cam_res.split("x")))
 CAMERA_IMAGE_FRAME = list(map(int, args.cam_frame.split("x"))) + [3]
 AUTO_IMAGE_FRAME = tuple(list(map(int, args.train_frame.split("x"))) + [3])
 
-print(f"mode: {MODE}, THR_MODE: {THR_MODE}, THR_VAL: {THR_VAL}, cam_res:{CAMERA_RESOLUTION}, cam_frame: {CAMERA_IMAGE_FRAME}, train_frame:{AUTO_IMAGE_FRAME}")
+print(f"mode: {MODE}, THR_MODE: {THR_MODE}, THR_VAL: {THR_VAL}, cam_res:{CAMERA_RESOLUTION}, 
+    cam_frame: {CAMERA_IMAGE_FRAME}, train_frame:{AUTO_IMAGE_FRAME}, crop: {CROP_START}x{CROP_STOP}")
 
 from .dropout_model import steering_model
 nrows=AUTO_IMAGE_FRAME[0] 
