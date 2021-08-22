@@ -10,6 +10,7 @@ import tensorflow as tf
 import argparse
 import concurrent.futures
 import pdb;
+import atexit
 from .defines import *
 
 # configure logging
@@ -472,124 +473,124 @@ def initialize_service():
     g_ip_thread=0
     print("Car Ready!")
 
+def cleanup():
+    GPIO.output(LED_names["boot_RPi"], GPIO.LOW)
+    GPIO.cleanup()
+    g_camera.close()
+    g_serial.close()
+    print("EXIT")
+
 def main():
-    try:
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setwarnings(False)
 
-        for led in LED_names.values():
-            GPIO.setup(led, GPIO.OUT)
-            GPIO.output(led, LED_OFF)
+    atexit.register(cleanup)
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setwarnings(False)
 
-        initialize_service()
+    for led in LED_names.values():
+        GPIO.setup(led, GPIO.OUT)
+        GPIO.output(led, LED_OFF)
 
-        for j in range(0, 3):
-            for i in range(0, 6):
-                displayBinLEDCode(2**i)
-                time.sleep(.05)
-            for i in range(0, 6):
-                displayBinLEDCode(2**(5-i))
-                time.sleep(.05)
-        displayBinLEDCode(0)
+    initialize_service()
 
-        # Leave an indicator that the PI is booted
-        GPIO.output(LED_names["boot_RPi"], LED_ON)
+    for j in range(0, 3):
+        for i in range(0, 6):
+            displayBinLEDCode(2**i)
+            time.sleep(.05)
+        for i in range(0, 6):
+            displayBinLEDCode(2**(5-i))
+            time.sleep(.05)
+    displayBinLEDCode(0)
 
-        for switch in switch_names.values():
-            GPIO.setup(switch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    # Leave an indicator that the PI is booted
+    GPIO.output(LED_names["boot_RPi"], LED_ON)
 
-        # default for g_auto_mode
-        global g_auto_mode
-        g_auto_mode=False
-        # Check what mode the car is in, manual, auto, remote
-        if MODE == "manual":
-            GPIO.add_event_detect(
-                switch_names["thr_step"], GPIO.FALLING, callback=callback_thr_steps, bouncetime=50)
-            GPIO.add_event_detect(
-                switch_names["autonomous"], GPIO.BOTH, callback=callback_switch_autonomous, bouncetime=200)
-            GPIO.add_event_detect(
-                switch_names["collect_data"], GPIO.BOTH, callback=callback_switch_collect_data, bouncetime=50)
+    for switch in switch_names.values():
+        GPIO.setup(switch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-        if MODE == "auto":
-                print("Autonomous: On")
-                g_auto_mode=True
-                autonomous(g_auto_mode)
-                g_ip_thread.join()
+    # default for g_auto_mode
+    global g_auto_mode
+    g_auto_mode=False
+    # Check what mode the car is in, manual, auto, remote
+    if MODE == "manual":
+        GPIO.add_event_detect(
+            switch_names["thr_step"], GPIO.FALLING, callback=callback_thr_steps, bouncetime=50)
+        GPIO.add_event_detect(
+            switch_names["autonomous"], GPIO.BOTH, callback=callback_switch_autonomous, bouncetime=200)
+        GPIO.add_event_detect(
+            switch_names["collect_data"], GPIO.BOTH, callback=callback_switch_collect_data, bouncetime=50)
 
-        printcount=0
-        # while(True):
-        #     pass
-            # time.sleep(.001)
-            # # Check if vehicle is in autonomous mode
-            # if callback_switch_autonomous.is_auto == True:
-            #     g_auto_mode=True
-            #     printcount=printcount+1
-                # while we are in autonomous mode, we have to poll Arduino for stop signal
-                # g_serial.flushInput()
-                # pdb.set_trace()
-                # n_read_items=0
-                # while n_read_items!=10:
-                #     try:
-                #         datainput=g_serial.readline()
-                #         data=list(map(float, str(datainput, 'ascii').split(',')))
-                #         n_read_items=len(data)
-                #     except ValueError:
-                #         continue
+    if MODE == "auto":
+            print("Autonomous: On")
+            g_auto_mode=True
+            autonomous(g_auto_mode)
+            g_ip_thread.join()
 
-                # if printcount==10:
-                #     print(data)
-                #     printcount=0
-                # if data[0]==commandEnum.RC_SIGNALED_STOP_AUTONOMOUS: #if we get a stop signal
-                #     autonomous(False)
-                #     g_stop_event.set() #stop the autonomous thread
-                #     g_auto_mode=False
-                #     callback_switch_autonomous.is_auto=False
-                #     print(f"callback_switch_autonomous.is_auto = {callback_switch_autonomous.is_auto}")
-                #     for i in range(0, 5): #send ack 5 times
-                #         time.sleep(.01)
-                #         dataout='{0}, {1}, {2}, {3}\n'.format(commandEnum.STOPPED_AUTO_COMMAND_RECIEVED, 1500, 1500, 0)
-                #         #g_serial.write(dataout.encode('ascii'))
-                #     while callback_switch_autonomous.is_auto==True: #blink the led until user turns off the switch
-                #         time.sleep(.5)
-                #         GPIO.output(LED_names["autonomous"], GPIO.HIGH)
-                #         time.sleep(.5)
-                #         GPIO.output(LED_names["autonomous"], GPIO.LOW)
+    printcount=0
+    # while(True):
+    #     pass
+        # time.sleep(.001)
+        # # Check if vehicle is in autonomous mode
+        # if callback_switch_autonomous.is_auto == True:
+        #     g_auto_mode=True
+        #     printcount=printcount+1
+            # while we are in autonomous mode, we have to poll Arduino for stop signal
+            # g_serial.flushInput()
+            # pdb.set_trace()
+            # n_read_items=0
+            # while n_read_items!=10:
+            #     try:
+            #         datainput=g_serial.readline()
+            #         data=list(map(float, str(datainput, 'ascii').split(',')))
+            #         n_read_items=len(data)
+            #     except ValueError:
+            #         continue
 
-            # Check if the vehicle is autonomous mode and has switched off autonomous mode
-            # if g_auto_mode==True and callback_switch_autonomous.is_auto==False:
-            #     dataout='{0}, {1}, {2}, {3}\n'.format(commandEnum.STOP_AUTONOMOUS, 1500, 1500, 0)
-            #     g_serial.write(dataout.encode('ascii'))
-            #     g_serial.flush()
-            #     g_serial.flushInput()
-            #     n_read_items=0
-            #     while n_read_items!=10:
-            #         try:
-            #             datainput=g_serial.readline()
-            #             data=list(map(float, str(datainput, 'ascii').split(',')))
-            #             n_read_items=len(data)
-            #         except ValueError:
-            #             continue
-            #     while data[0]!=commandEnum.STOPPED_AUTO_COMMAND_RECIEVED:
-            #         g_serial.write(dataout.encode('ascii'))
-            #         g_serial.flush()
-            #         g_serial.flushInput()
-            #         n_read_items=0
-            #         while n_read_items!=10:
-            #             try:
-            #                 datainput=g_serial.readline()
-            #                 data=list(map(float, str(datainput, 'ascii').split(',')))
-            #                 n_read_items=len(data)
-            #             except ValueError:
-            #                 continue
+            # if printcount==10:
+            #     print(data)
+            #     printcount=0
+            # if data[0]==commandEnum.RC_SIGNALED_STOP_AUTONOMOUS: #if we get a stop signal
+            #     autonomous(False)
+            #     g_stop_event.set() #stop the autonomous thread
             #     g_auto_mode=False
-    except Exception as ex:
-        print(ex)
-    finally:
-        GPIO.output(LED_names["boot_RPi"], GPIO.LOW)
-        GPIO.cleanup()
-        g_camera.close()
-        g_serial.close()
-        print("EXIT")
+            #     callback_switch_autonomous.is_auto=False
+            #     print(f"callback_switch_autonomous.is_auto = {callback_switch_autonomous.is_auto}")
+            #     for i in range(0, 5): #send ack 5 times
+            #         time.sleep(.01)
+            #         dataout='{0}, {1}, {2}, {3}\n'.format(commandEnum.STOPPED_AUTO_COMMAND_RECIEVED, 1500, 1500, 0)
+            #         #g_serial.write(dataout.encode('ascii'))
+            #     while callback_switch_autonomous.is_auto==True: #blink the led until user turns off the switch
+            #         time.sleep(.5)
+            #         GPIO.output(LED_names["autonomous"], GPIO.HIGH)
+            #         time.sleep(.5)
+            #         GPIO.output(LED_names["autonomous"], GPIO.LOW)
+
+        # Check if the vehicle is autonomous mode and has switched off autonomous mode
+        # if g_auto_mode==True and callback_switch_autonomous.is_auto==False:
+        #     dataout='{0}, {1}, {2}, {3}\n'.format(commandEnum.STOP_AUTONOMOUS, 1500, 1500, 0)
+        #     g_serial.write(dataout.encode('ascii'))
+        #     g_serial.flush()
+        #     g_serial.flushInput()
+        #     n_read_items=0
+        #     while n_read_items!=10:
+        #         try:
+        #             datainput=g_serial.readline()
+        #             data=list(map(float, str(datainput, 'ascii').split(',')))
+        #             n_read_items=len(data)
+        #         except ValueError:
+        #             continue
+        #     while data[0]!=commandEnum.STOPPED_AUTO_COMMAND_RECIEVED:
+        #         g_serial.write(dataout.encode('ascii'))
+        #         g_serial.flush()
+        #         g_serial.flushInput()
+        #         n_read_items=0
+        #         while n_read_items!=10:
+        #             try:
+        #                 datainput=g_serial.readline()
+        #                 data=list(map(float, str(datainput, 'ascii').split(',')))
+        #                 n_read_items=len(data)
+        #             except ValueError:
+        #                 continue
+        #     g_auto_mode=False
 
 if __name__ == "__main__":
     main()
