@@ -474,6 +474,7 @@ def initialize_service():
     print("Car Ready!")
 
 def cleanup():
+    g_stop_event.set()
     GPIO.output(LED_names["boot_RPi"], GPIO.LOW)
     GPIO.cleanup()
     g_camera.close()
