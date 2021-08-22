@@ -39,22 +39,22 @@ time_format='%Y-%m-%d_%H-%M-%S'
 trainstart=datetime.datetime.now()
 time_string=trainstart.strftime(time_format)
 
-steer=np.array([]) #this is where we store the steering training data
+throttle=np.array([]) #this is where we store the throttle training data
 data_lengths=[] #this will hold the lengths of each file of steering data after zeros are trimmed.
 #this loops through the input directories, and then through the files in the directories to load in the steering data:
 for directory in args.directories:
     ctlfiles=glob.glob(os.path.join(directory, 'commands*.npz'))
     for ctlfile in sorted(ctlfiles):
         ctldata=np.load(ctlfile)['arr_0']
-        data_to_append=np.trim_zeros(ctldata[:, 0], trim='b')
+        data_to_append=np.trim_zeros(ctldata[:, 1], trim='b')
         data_lengths.append(len(data_to_append))
-        steer=np.concatenate((steer, data_to_append[args.delay:len(data_to_append)]), axis=0)#note that we compensate for delay here
+        throttle=np.concatenate((throttle, data_to_append[args.delay:len(data_to_append)]), axis=0)#note that we compensate for delay here
 
 #use these values to normalize target data before training
-steerSampleMean=steer.mean()
-steerSampleSTD=steer.std()
+throttleSampleMean=throttle.mean()
+throttleSampleSTD=throttle.std()
 #these values get saved to un-normalize network output during testing
-np.savez("steerstats.npz", [steerSampleMean, steerSampleSTD])
+np.savez("throttlestats.npz", [throttleSampleMean, throttleSampleSTD])
 
 #defines image size:
 row_offset=ROW_OFFSET
@@ -96,7 +96,7 @@ hist = np.zeros([num_epochs]);
 
 for n in range(num_epochs):
     print("starting epoch {0}".format(n))
-    h = model.fit([training_images], [(steer-steerSampleMean)/steerSampleSTD], 
+    h = model.fit([training_images], [(throttle-throttleSampleMean)/throttleSampleSTD], 
                 batch_size=25, epochs=1, verbose=1, validation_split=0.1, shuffle=True)
     hist[n] = h.history['val_loss'][0]
 
