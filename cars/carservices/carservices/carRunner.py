@@ -471,7 +471,7 @@ def initialize_service():
 
     global g_ip_thread
     g_ip_thread=0
-    atexit.register(cleanup(g_ip_thread))
+    atexit.register(cleanup,g_ip_thread)
 
     print("Car Ready!")
 
@@ -486,7 +486,6 @@ def cleanup(ip_thread):
 
 def main():
 
-    atexit.register(cleanup)
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
 
