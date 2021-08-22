@@ -195,7 +195,7 @@ class AutoDataCollector(object):
         imdata=img
         # now we read from the serial port and format and save the data:
 
-        serial_obj.flushInput()
+        #serial_obj.flushInput()
         n_read_items=0
         while n_read_items != 10:
             try:
@@ -294,7 +294,7 @@ def imageprocessor(event):
         try:
             g_serial.write(dataline.encode('ascii'))
             g_serial.flush()
-            print("sw: {dataline}")
+            print(f"sw: {dataline}")
             # pdb.set_trace()
 
             g_auto_collector.write(g_serial, tmpimg)
