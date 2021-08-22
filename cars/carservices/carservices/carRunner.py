@@ -371,7 +371,7 @@ def autonomous(mode):
         logging.debug('\n user toggled autonomous on {0}\n'.format(
             datetime.datetime.now().strftime(time_format)))
         g_camera.start_recording(g_getter, format='rgb')
-        g_ip_thread=threading.Thread(target=imageprocessor, args=[
+        g_ip_thread=threading.Thread(target=imageprocessor, daemon=True, args=[
                                        g_stop_event])
         g_ip_thread.start()
         logging.debug('in autonomous mode')
