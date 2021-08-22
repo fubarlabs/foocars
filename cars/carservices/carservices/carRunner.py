@@ -471,10 +471,13 @@ def initialize_service():
 
     global g_ip_thread
     g_ip_thread=0
+    atexit.register(cleanup(g_ip_thread))
+
     print("Car Ready!")
 
-def cleanup():
+def cleanup(ip_thread):
     g_stop_event.set()
+    ip_thread.join()
     GPIO.output(LED_names["boot_RPi"], GPIO.LOW)
     GPIO.cleanup()
     g_camera.close()
