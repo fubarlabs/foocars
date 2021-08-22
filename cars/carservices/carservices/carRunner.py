@@ -271,7 +271,8 @@ def imageprocessor(event):
         else:
             if THR_VAL != -1:
                 throttle_command = THR_VAL
-            throttle_command = THR_CURRENT
+            else:
+                throttle_command = THR_CURRENT
 
         if steer_command > STR_MAX:
             steer_command=STR_MAX
@@ -293,7 +294,7 @@ def imageprocessor(event):
         try:
             g_serial.write(dataline.encode('ascii'))
             g_serial.flush()
-            print("serial write done")
+            print("sw: {dataline}")
             # pdb.set_trace()
 
             g_auto_collector.write(g_serial, tmpimg)
