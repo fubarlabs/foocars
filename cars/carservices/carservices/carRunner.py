@@ -517,12 +517,13 @@ def main():
                 g_ip_thread.join()
 
         printcount=0
-        while(True):
-            time.sleep(.001)
-            # Check if vehicle is in autonomous mode
-            if callback_switch_autonomous.is_auto == True:
-                g_auto_mode=True
-                printcount=printcount+1
+        # while(True):
+        #     pass
+            # time.sleep(.001)
+            # # Check if vehicle is in autonomous mode
+            # if callback_switch_autonomous.is_auto == True:
+            #     g_auto_mode=True
+            #     printcount=printcount+1
                 # while we are in autonomous mode, we have to poll Arduino for stop signal
                 # g_serial.flushInput()
                 # pdb.set_trace()
