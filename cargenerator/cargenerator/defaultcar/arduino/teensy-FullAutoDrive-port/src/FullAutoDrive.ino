@@ -320,9 +320,9 @@ void loop() {
             //we could also check for signal_lost signal here, but I don't think that will occur
             SerialOutputData.command=RC_SIGNALED_STOP_AUTONOMOUS;
             SerialOutputData.str = gCenteredSteeringValue;    //  center the steering
-	    SerialOutputData.thr = gCenteredThrottleValue;    //  turn off the motor
-	    ServoSTR.writeMicroseconds( SerialOutputData.str / 1000);
-	    ServoTHR.writeMicroseconds( SerialOutputData.thr / 1000);
+            SerialOutputData.thr = gCenteredThrottleValue;    //  turn off the motor
+            ServoSTR.writeMicroseconds( SerialOutputData.str / 1000);
+            ServoTHR.writeMicroseconds( SerialOutputData.thr / 1000);
             transmitData=true;
             gcarState=STATE_TERM_AUTO;
 	}else if(SerialInputData.command==STOP_AUTONOMOUS){
