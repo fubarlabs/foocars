@@ -3,6 +3,8 @@
 This autonomous vehicle project's goal is to create autonomous racing vehicles in the simplest possible way—a good first car.  The name is a mash-up of Fubar Labs, the mysterious planes called "foo fighters" and "foobar" the ubiquitous getting started variables for programming.  The control system can scale to any vehicles using RC controls.
 
 ## How has this project been used?
+* CHI@Edge 2021 Summer Internship
+  * Virtualize the deployment of vehicle and code on the edge of super computer envrionment.
 
 ### FUBAR Labs Autonomous Racing Vehicles
 
