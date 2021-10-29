@@ -35,6 +35,6 @@ RUN poetry install
 COPY --from=cargenerator /foocars/cars/chiaracer /foocars/cars/chiaracer
 #ENTRYPOINT ["python3"]
 #ENTRYPOINT ["/bin/bash"]
-#CMD ["/usr/local/bin/car_runner"]
+##CMD ["/usr/local/bin/car_runner"]
 CMD ["/bin/bash"]
 
