@@ -87,8 +87,7 @@ def main():
 
 
     while True:
-        print(".",end = '')
-        sleep(0.5)
+        pass
         
        
     print("EXIT")
