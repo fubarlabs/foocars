@@ -190,7 +190,7 @@ class AutoDataCollector(object):
         self.RCcommands_file=self.save_dir + \
             '/commands_{0}'.format(nowtime.strftime(time_format))
 
-    def write(self, serial_obj, img):
+    def write(self, serial_obj, img, str_val, thr_val):
         '''this is the function that is called every time the PiCamera has a new frame'''
         # img is already the correct shape for logging
         imdata=img
@@ -213,8 +213,8 @@ class AutoDataCollector(object):
         accelData=np.array([data[1], data[2], data[3]], dtype=np.float32)
         gyroData=np.array([data[4], data[5], data[6]], )
         datatime=np.array([int(data[7])], dtype=np.float32)
-        steer_command=int(data[8])
-        thr_command=int(data[9])
+        steer_command=str_val
+        thr_command=thr_val
         self.IMUdata[self.idx]=np.concatenate(
             (accelData, gyroData, datatime))
         self.RCcommands[self.idx]=np.array([steer_command, thr_command])
@@ -298,7 +298,7 @@ def imageprocessor(event):
             print(f"sw: {dataline}")
             # pdb.set_trace()
 
-            g_auto_collector.write(g_serial, tmpimg)
+            g_auto_collector.write(g_serial, tmpimg, steer_command, throttle_command)
         except Exception as e:
             print(f"serial issue error: {e}")
 

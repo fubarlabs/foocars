@@ -1,0 +1,33 @@
+---
+name: Linters
+
+on:
+  push:
+  pull_request:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Run black formatter with reviewdog
+      uses: reviewdog/action-black@v2.3.0
+      with:
+        # Working directory relative to the root directory.
+        workdir: # optional, default is .
+        # Additional black flags.
+        black_args: # optional, default is 
+        # GITHUB_TOKEN.
+        github_token: # default is ${{ github.token }}
+        # Tool name to use for reviewdog reporter.
+        tool_name: # optional, default is black-format
+        # Report level for reviewdog [info, warning, error].
+        level: # optional, default is error
+        # Reporter of reviewdog command [github-pr-check, github-pr-review, github-check].
+        reporter: # optional, default is github-pr-check
+        # Filtering mode for the reviewdog command [added, diff_context, file, nofilter].
+        filter_mode: # optional, default is added
+        # Exit code for reviewdog when errors are found [true, false].
+        fail_on_error: # optional, default is false
+        # Additional reviewdog flags.
+        reviewdog_flags: # optional, default is 

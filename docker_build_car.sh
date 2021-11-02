@@ -35,5 +35,8 @@ echo $hash
 # copy the data from the volume
 # docker cp ce3365f10ef8:/foocars/cars/chiaracer.tar.gz .
 
+# Example mount the data folder
+# docker run   --device=/dev/vchiq -v /home/pi/data:/data -v /opt/vc:/opt/vc --env LD_LIBRARY_PATH=/opt/vc/lib  --device /dev/gpiomem  --device=/dev/ttyACM0 --device=/dev/ttyACM1  --privileged  -it --entrypoint=/bin/bash rianders/car:60a97f6 
+
 
 
