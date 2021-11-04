@@ -8,7 +8,7 @@ authors = ["Rutgers Games Research and Immersive Design"]
 python = "^3.5"
 PyQt5 = "5.13.2"
 numpy = "^1.18.1"
-Pillow = "^7.0.0"
+Pillow = "^7.1.0"
 
 [tool.poetry.dev-dependencies]
 
