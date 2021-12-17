@@ -1,4 +1,4 @@
-FROM --platform=linux/arm32/v7 arm32v7/python:3.7-buster AS python3
+FROM --platform=linux/arm32/v7 python:3.7-buster AS python3
 
 WORKDIR tensorflow
 RUN apt-get update && apt-get install -y \
