@@ -1,7 +1,7 @@
 #!/bin/bash
 
 hash=$(git rev-parse --short HEAD)
-docker build --platform linux/arm32v7 -t rianders/car32:$hash -f car32.dockerfile .
+docker build --platform linux/arm32/v7 -t rianders/car32:$hash -f car32.dockerfile .
 docker push rianders/car32:$hash
 echo $hash
 
