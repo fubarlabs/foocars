@@ -1,4 +1,3 @@
-#FROM --platform=linux/arm32/v7 kumatea/tensorflow:2.4.1-py39 AS base
 FROM --platform=linux/arm32/v7 rianders/tensorflow:2.4.0 AS base
 
 WORKDIR foocars
