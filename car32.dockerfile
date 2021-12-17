@@ -1,7 +1,9 @@
-FROM --platform=linux/arm32/v7 rianders/tensorflow:2.4.0 AS base
+FROM --platform=linux/arm32/v7 rianders/tensorflow32:2.4.0 AS base
 
 WORKDIR foocars
 ENV READTHEDOCS=True
+RUN apt-get update && apt-get install -y \
+    rustc
 #TODO: use the get poetry install script
 RUN pip3 install --upgrade pip poetry
 RUN poetry config virtualenvs.create false
@@ -20,7 +22,7 @@ VOLUME ["/foocars/cars/chiaracer"]
 
 FROM base AS carservices
 
-RUN apt update && apt install -y \
+RUN apt-get update && apt-get install -y \
     gcc libhdf5-dev vim
 
 RUN pip install h5py platformio
