@@ -26,10 +26,10 @@ RUN apt update && apt install -y \
 
 RUN pip install h5py platformio
 
-COPY ./cars/carservices /foocars/cars/carservices
+COPY ./carservices /foocars/carservices
 COPY ./tests /foocars/tests
 
-WORKDIR /foocars/cars/carservices/
+WORKDIR /foocars/carservices/
 
 RUN poetry install
 COPY --from=cargenerator /foocars/cars/chiaracer /foocars/cars/chiaracer
