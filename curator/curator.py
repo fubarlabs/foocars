@@ -184,12 +184,24 @@ class ImagePlayer(QMainWindow):
 
     def load_directory(self, datadir):
         #load in list of files in the data directory
-        self.img_files=glob.glob(os.path.join(datadir, "imgs*.npz"))
-        self.comm_files=glob.glob(os.path.join(datadir, "commands*.npz"))
+        # Clear the file list widget
+        self.file_list.clear()
+
+        # Reset file_dict and commdata
+        self.file_dict = {}
+        self.commdata = {}
+
+        # Reset other necessary variables
+        self.left_bracket = (None, None)
+        self.right_bracket = (None, None)
+        self.global_undo_stack = []
+        self.global_redo_stack = []
+
+        # Load in list of files in the data directory
+        self.img_files = glob.glob(os.path.join(datadir, "imgs*.npz"))
+        self.comm_files = glob.glob(os.path.join(datadir, "commands*.npz"))
         self.img_files.sort()
         self.comm_files.sort()
-        self.commdata={}
-        self.file_dict={}
         idx=0
         for f1, f2 in zip(self.img_files, self.comm_files):
             comm_data=np.load(f2)['arr_0']
@@ -200,6 +212,8 @@ class ImagePlayer(QMainWindow):
             self.file_list.addItem(f1)
             self.file_list.item(idx).setCheckState(Qt.Unchecked)
             idx=idx+1
+        print("File dict keys:", self.file_dict.keys())
+
         #load in first file:
         self.n_files=len(self.img_files)
         self.file_list.setCurrentRow(0)
