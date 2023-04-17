@@ -153,9 +153,10 @@ class ImagePlayer(QMainWindow):
         self.save_act.triggered.connect(self.save_files) #TODO
 
     def open_directory(self):
-        self.loaddir=QFileDialog.getExistingDirectory(self)
-        if self.loaddir is not None:
+        self.loaddir = QFileDialog.getExistingDirectory(self)
+        if self.loaddir and self.loaddir != "":
             self.load_directory(self.loaddir)
+
 
     def select_save_dir(self):
         self.savedir=QFileDialog.getExistingDirectory(self)
