@@ -63,6 +63,10 @@ class ImagePlayer(QMainWindow):
         layout=QVBoxLayout()
         layout.addWidget(self.edit_bar)
         layout.addWidget(self.image_label)
+        # Add the QLabel to display the command
+        self.command_label = QLabel(self)
+        layout.addWidget(self.command_label)
+
         layout.addWidget(self.video_bar)
         #setup main widget in main window
         centralWidget=QWidget()
@@ -110,10 +114,10 @@ class ImagePlayer(QMainWindow):
 #-------Load data, initial image, start----------
         self.savedir=None
         self.loaddir=None
-        #self.load_directory()
-        #self.update_image(0)
+        self.comm_data_list = []  # Add this line to initialize the attribute
         self.setWindowTitle("Data Curator")
         self.show()
+
 
     def create_actions(self):
         #Create all the actions needed for video playback
@@ -157,7 +161,6 @@ class ImagePlayer(QMainWindow):
     def show_confirmation_message(self, message, parent):
         QMessageBox.information(parent, "Confirmation", message)
    
-    
     def open_directory(self):
         if self.loaddir is None:
             self.loaddir = QFileDialog.getExistingDirectory(self, "Select Directory")
@@ -214,6 +217,13 @@ class ImagePlayer(QMainWindow):
         self.comm_files = glob.glob(os.path.join(datadir, "commands*.npz"))
         self.img_files.sort()
         self.comm_files.sort()
+        
+        # Load the commands data and store it in the 'comm_data_list'
+        self.comm_data_list = []
+        for comm_file in self.comm_files:
+            comm_data = np.load(comm_file)['arr_0']
+            self.comm_data_list.append(comm_data)
+        
         idx=0
         for f1, f2 in zip(self.img_files, self.comm_files):
             comm_data=np.load(f2)['arr_0']
@@ -451,6 +461,13 @@ class ImagePlayer(QMainWindow):
         self.framelabel.setText("Frame {0}/{1}".format(self.index+1, fileframes))
         qimg=QImage(self.raw_frames[frame_num], self.image_shape[1], self.image_shape[0], self.image_shape[1]*3, QImage.Format_RGB888)
         self.image_label.setPixmap(QPixmap.fromImage(qimg))
+        
+        # Fetch the corresponding command
+        file_idx = self.img_files.index(self.current_filename)
+        command = self.comm_data_list[file_idx][n]
+        
+        # Update the QLabel with the fetched command
+        self.command_label.setText("Command: " + str(command))
 
 
 app=QApplication(sys.argv)
