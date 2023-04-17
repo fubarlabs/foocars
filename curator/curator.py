@@ -2,7 +2,8 @@ import os
 import sys
 import glob
 import numpy as np
-from PyQt5.QtWidgets import *
+from PyQt5.QtWidgets import QMessageBox, QFileDialog, QInputDialog, QComboBox, QCheckBox, QPushButton, QDockWidget, QListWidget, QToolBar, QMainWindow, QWidget, QLabel, QVBoxLayout, QAction, QApplication
+
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from actionclasses import deleteAction
@@ -153,6 +154,10 @@ class ImagePlayer(QMainWindow):
         self.save_act=QAction("Save File Changes", self)
         self.save_act.triggered.connect(self.save_files) #TODO
 
+    def show_confirmation_message(self, message, parent):
+        QMessageBox.information(parent, "Confirmation", message)
+   
+    
     def open_directory(self):
         if self.loaddir is None:
             self.loaddir = QFileDialog.getExistingDirectory(self, "Select Directory")
@@ -178,6 +183,7 @@ class ImagePlayer(QMainWindow):
                     save_imgs=img_data[save_indices, :, :, :]
                     np.savez(self.savedir+'/'+self.file_dict[img]['save_name'], save_imgs)
                     np.savez(self.savedir+'/'+(self.file_dict[img]['save_name']).replace('imgs', 'commands'), comm_data)
+            self.show_confirmation_message("Files saved to " + self.savedir, self)
 
     def listItemDif(self, item):
         filename=item.text()
@@ -218,7 +224,7 @@ class ImagePlayer(QMainWindow):
             self.file_list.addItem(f1)
             self.file_list.item(idx).setCheckState(Qt.Unchecked)
             idx=idx+1
-        print("File dict keys:", self.file_dict.keys())
+        #print("File dict keys:", self.file_dict.keys())
 
         #load in first file:
         self.n_files=len(self.img_files)
