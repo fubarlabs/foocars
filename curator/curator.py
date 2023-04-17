@@ -100,7 +100,7 @@ class ImagePlayer(QMainWindow):
         self.timer=QTimer()
         self.timer.timeout.connect(self.next_img)
         self.timer.setInterval(25)
-        self.timer_intervals=[250, 125, 50, 25, 12, 5]
+        self.timer_intervals=[250, 125, 50, 25, 10, 5]
 #-------Create MenuBar with Load/Save------------
         filemenu=self.menuBar().addMenu("File")
         filemenu.addAction(self.open_act)
@@ -428,14 +428,14 @@ class ImagePlayer(QMainWindow):
         speed_idx=self.timer_intervals.index(self.timer.interval())
         if speed_idx<(len(self.timer_intervals)-1):
             self.timer.setInterval(self.timer_intervals[speed_idx+1])
-            self.speedlabel.setText("{0}x playback".format(100.0/self.timer_intervals[speed_idx+1]))
+            self.speedlabel.setText("{:.2f}x playback".format(100.0/self.timer_intervals[speed_idx+1]))
 
     def speed_down(self):
         #decrease playback speed by increasing timer interval, calling next_img less often
         speed_idx=self.timer_intervals.index(self.timer.interval())
         if speed_idx>0:
             self.timer.setInterval(self.timer_intervals[speed_idx-1])
-            self.speedlabel.setText("{0}x playback".format(100.0/self.timer_intervals[speed_idx-1]))
+            self.speedlabel.setText("{:.2f}x playback".format(100.0/self.timer_intervals[speed_idx-1]))
 
     def update_image(self, n):
         #set current frame index to n, and update image window
