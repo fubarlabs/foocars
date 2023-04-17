@@ -108,6 +108,7 @@ class ImagePlayer(QMainWindow):
         filemenu.addAction(self.save_act)
 #-------Load data, initial image, start----------
         self.savedir=None
+        self.loaddir=None
         #self.load_directory()
         #self.update_image(0)
         self.setWindowTitle("Data Curator")
@@ -153,7 +154,11 @@ class ImagePlayer(QMainWindow):
         self.save_act.triggered.connect(self.save_files) #TODO
 
     def open_directory(self):
-        self.loaddir = QFileDialog.getExistingDirectory(self)
+        if self.loaddir is None:
+            self.loaddir = QFileDialog.getExistingDirectory(self, "Select Directory")
+        else:
+            self.loaddir = QFileDialog.getExistingDirectory(self, "Select Directory", self.loaddir)
+        
         if self.loaddir and self.loaddir != "":
             self.load_directory(self.loaddir)
 
@@ -255,11 +260,19 @@ class ImagePlayer(QMainWindow):
         return raw_frames
 
     def toggle_save_all(self):
-        idx=0
+        idx = 0
         for f in self.file_dict.keys():
-            self.file_dict[f]['save_toggle']=True
-            self.file_list.item(idx).setCheckState(Qt.Checked)
-            idx=idx+1
+            # Toggle the save state
+            self.file_dict[f]['save_toggle'] = not self.file_dict[f]['save_toggle']
+            
+            # Update the check state of the list items accordingly
+            if self.file_dict[f]['save_toggle']:
+                self.file_list.item(idx).setCheckState(Qt.Checked)
+            else:
+                self.file_list.item(idx).setCheckState(Qt.Unchecked)
+            
+            idx += 1
+
 
     def open_file_settings(self):
         filename=self.file_list.currentItem().text()
