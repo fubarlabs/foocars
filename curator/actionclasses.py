@@ -31,14 +31,14 @@ class deleteAction():
             if i[0] not in self.file_object['frames']:
                 self.file_object['frames'].append(i[0])
             for t in i[1]:
-                self.file_object['tag_dict'][t].append(i[0])
+                self.file_object['tag_dict'][t].add(i[0])
         for k in self.file_object['tag_dict'].keys():
-            self.file_object['tag_dict'][k].sort()
-        self.removed_frames=[]
+            self.file_object['tag_dict'][k] = sorted(self.file_object['tag_dict'][k])
+        self.removed_frames = []
         self.file_object['frames'].sort()
         self.file_object['applied_stack'].pop()
-        self.applied=False
-        self.file_object['len']=len(self.file_object['frames'])
+        self.applied = False
+        self.file_object['len'] = len(self.file_object['frames'])
         return self
 
     def __str__(self):
