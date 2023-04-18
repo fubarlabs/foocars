@@ -11,9 +11,8 @@ from actionclasses import tagAction
 from filehopper import filehopper
 from filesettings import fileSettingsDialog
 from PIL import Image
+from HistoryDialog import HistoryDialog
 
-#Please don't read this code, it's terrible. I'll try to fix it later, I promise.
-# --Jenny
 
 #datadir="test_data"
 
@@ -63,6 +62,10 @@ class ImagePlayer(QMainWindow):
         layout=QVBoxLayout()
         layout.addWidget(self.edit_bar)
         layout.addWidget(self.image_label)
+        # Add the QLabel to display the command
+        self.command_label = QLabel(self)
+        layout.addWidget(self.command_label)
+
         layout.addWidget(self.video_bar)
         #setup main widget in main window
         centralWidget=QWidget()
@@ -107,13 +110,15 @@ class ImagePlayer(QMainWindow):
         filemenu.addAction(self.open_act)
         filemenu.addAction(self.save_dir_act)
         filemenu.addAction(self.save_act)
+        # Add the action to a menu or toolbar:
+        filemenu.addAction(self.history_act)
 #-------Load data, initial image, start----------
         self.savedir=None
         self.loaddir=None
-        #self.load_directory()
-        #self.update_image(0)
+        self.comm_data_list = []  # Add this line to initialize the attribute
         self.setWindowTitle("Data Curator")
         self.show()
+
 
     def create_actions(self):
         #Create all the actions needed for video playback
@@ -153,11 +158,15 @@ class ImagePlayer(QMainWindow):
         self.save_dir_act.triggered.connect(self.select_save_dir) #TODO
         self.save_act=QAction("Save File Changes", self)
         self.save_act.triggered.connect(self.save_files) #TODO
+        #Create actions for history
+        self.history_act = QAction("Action &History", self)
+        self.history_act.triggered.connect(self.show_history)
+        
+        
 
     def show_confirmation_message(self, message, parent):
         QMessageBox.information(parent, "Confirmation", message)
    
-    
     def open_directory(self):
         if self.loaddir is None:
             self.loaddir = QFileDialog.getExistingDirectory(self, "Select Directory")
@@ -214,13 +223,20 @@ class ImagePlayer(QMainWindow):
         self.comm_files = glob.glob(os.path.join(datadir, "commands*.npz"))
         self.img_files.sort()
         self.comm_files.sort()
+        
+        # Load the commands data and store it in the 'comm_data_list'
+        self.comm_data_list = []
+        for comm_file in self.comm_files:
+            comm_data = np.load(comm_file)['arr_0']
+            self.comm_data_list.append(comm_data)
+        
         idx=0
         for f1, f2 in zip(self.img_files, self.comm_files):
             comm_data=np.load(f2)['arr_0']
             self.commdata[f2]=comm_data
-            self.file_dict[f1]=dict([('frames', [i for i in range(0, comm_data.shape[0])]), 
-                ('applied_stack', []), ('tag_dict', dict()), ('len', comm_data.shape[0]), 
-                ('save_name', os.path.basename(f1)), ('save_toggle', False)]) 
+            self.file_dict[f1] = dict([('frames', [i for i in range(0, comm_data.shape[0])]),
+                ('applied_stack', []), ('tag_dict', dict()), ('len', comm_data.shape[0]),
+                ('save_name', os.path.basename(f1)), ('save_toggle', False)])
             self.file_list.addItem(f1)
             self.file_list.item(idx).setCheckState(Qt.Unchecked)
             idx=idx+1
@@ -279,6 +295,9 @@ class ImagePlayer(QMainWindow):
             
             idx += 1
 
+    def show_history(self):
+        history_dialog = HistoryDialog(self.global_undo_stack, self.global_redo_stack, self)
+        history_dialog.exec_()
 
     def open_file_settings(self):
         filename=self.file_list.currentItem().text()
@@ -330,6 +349,10 @@ class ImagePlayer(QMainWindow):
         self.update_image(idx)
 
     def deleteframes(self):
+        if self.left_bracket and self.right_bracket:
+            fstartindex = self.img_files.index(self.left_bracket[0])
+            fstopindex = self.img_files.index(self.right_bracket[0])
+        
         fstartindex=self.img_files.index(self.left_bracket[0])
         fstopindex=self.img_files.index(self.right_bracket[0])
         if fstartindex>fstopindex:
@@ -376,13 +399,39 @@ class ImagePlayer(QMainWindow):
         self.global_redo_stack=[]
 
     def tagframes(self):
-        if self.img_files.index(self.left_bracket[0])>self.img_files.index(self.right_bracket[0]):
-            QMessageBox.warning(self, "Bracketing Error", "The right bracket must come after the left bracket")
-            return 
-        if self.left_bracket[0]==self.right_bracket[0] and self.left_bracket[1]>self.right_bracket[1]:
+        if self.img_files.index(self.left_bracket[0]) > self.img_files.index(self.right_bracket[0]):
             QMessageBox.warning(self, "Bracketing Error", "The right bracket must come after the left bracket")
             return
-        self.global_redo_stack=[]
+        if self.left_bracket[0] == self.right_bracket[0] and self.left_bracket[1] > self.right_bracket[1]:
+            QMessageBox.warning(self, "Bracketing Error", "The right bracket must come after the left bracket")
+            return
+
+        tag_name, ok = QInputDialog.getText(self, 'Tag Frames', 'Enter tag name:')
+        if ok and tag_name:
+            # Loop through files and tag frames
+            for filename in self.img_files:
+                file_dict_entry = self.file_dict[filename]
+                if filename == self.left_bracket[0]:
+                    start_idx = self.left_bracket[1]
+                else:
+                    start_idx = 0
+
+                if filename == self.right_bracket[0]:
+                    end_idx = self.right_bracket[1]
+                else:
+                    end_idx = file_dict_entry['len'] - 1
+
+                for frame_idx in range(start_idx, end_idx + 1):
+                    if tag_name in file_dict_entry['tag_dict']:
+                        file_dict_entry['tag_dict'][tag_name].add(frame_idx)
+                    else:
+                        file_dict_entry['tag_dict'][tag_name] = {frame_idx}
+
+                if filename == self.right_bracket[0]:
+                    break
+
+        self.global_redo_stack = []
+
 
     def bracketframes(self):
         if self.sender()==self.lbracket_act:
@@ -393,33 +442,52 @@ class ImagePlayer(QMainWindow):
             self.rbracketframelabel.setText("{0}, frame {1}".format(os.path.basename(self.current_filename), self.index))
 
     def undo(self):
-        if self.global_undo_stack!=[]: 
-            #TODO FIXME this hopper stuff is stupid, should check to see if number of frames changes after undo
-            self.hopper.prev(self.autoplaycheckbox.isChecked()) 
-            actionlist=self.global_undo_stack.pop()
+        if self.global_undo_stack != []:
+            # Save the current number of frames
+            prev_num_frames = self.file_dict[self.current_filename]['len']
+
+            # Existing undo operations
+            self.hopper.prev(self.autoplaycheckbox.isChecked())
+            actionlist = self.global_undo_stack.pop()
             for i in actionlist:
                 i.undo()
             self.global_redo_stack.append(actionlist)
             self.hopper.next(self.autoplaycheckbox.isChecked())
-            idx, filename=self.hopper.getState()
-            if filename!=self.current_filename:
+            idx, filename = self.hopper.getState()
+            if filename != self.current_filename:
                 self.load_file(filename, idx)
             else:
                 self.update_image(idx)
 
+            # Check if the number of frames has changed and update the hopper object
+            curr_num_frames = self.file_dict[self.current_filename]['len']
+            if curr_num_frames != prev_num_frames:
+                self.hopper.setIndex(idx)
+
+
     def redo(self):
-        if self.global_redo_stack!=[]: 
+        if self.global_redo_stack != []:
+            # Save the current number of frames
+            prev_num_frames = self.file_dict[self.current_filename]['len']
+
+            # Existing redo operations
             self.hopper.prev(self.autoplaycheckbox.isChecked())
-            actionlist=self.global_redo_stack.pop()
+            actionlist = self.global_redo_stack.pop()
             for i in actionlist:
                 i.apply()
             self.global_undo_stack.append(actionlist)
             self.hopper.next(self.autoplaycheckbox.isChecked())
-            idx, filename=self.hopper.getState()
-            if filename!=self.current_filename:
+            idx, filename = self.hopper.getState()
+            if filename != self.current_filename:
                 self.load_file(filename, idx)
             else:
                 self.update_image(idx)
+
+            # Check if the number of frames has changed and update the hopper object
+            curr_num_frames = self.file_dict[self.current_filename]['len']
+            if curr_num_frames != prev_num_frames:
+                self.hopper.setIndex(idx)
+
 
     def play(self):
         #starts timer to repeatedly call next_img, playing video
@@ -444,14 +512,29 @@ class ImagePlayer(QMainWindow):
             self.speedlabel.setText("{:.2f}x playback".format(100.0/self.timer_intervals[speed_idx-1]))
 
     def update_image(self, n):
-        #set current frame index to n, and update image window
-        fileframes=self.file_dict[self.current_filename]['len']
-        self.index=n
-        frame_num=self.file_dict[self.current_filename]['frames'][n]
-        self.framelabel.setText("Frame {0}/{1}".format(self.index+1, fileframes))
-        qimg=QImage(self.raw_frames[frame_num], self.image_shape[1], self.image_shape[0], self.image_shape[1]*3, QImage.Format_RGB888)
-        self.image_label.setPixmap(QPixmap.fromImage(qimg))
+        if n >= 0 and n < len(self.file_dict[self.current_filename]['frames']):
+            frame_num = self.file_dict[self.current_filename]['frames'][n]
 
+            # Check if frame_num is within the valid range for self.raw_frames list
+            if frame_num >= 0 and frame_num < len(self.raw_frames):
+
+                # set current frame index to n, and update image window
+                fileframes = self.file_dict[self.current_filename]['len']
+                self.index = n
+                self.framelabel.setText("Frame {0}/{1}".format(self.index + 1, fileframes))
+                qimg = QImage(self.raw_frames[frame_num], self.image_shape[1], self.image_shape[0], self.image_shape[1] * 3, QImage.Format_RGB888)
+                self.image_label.setPixmap(QPixmap.fromImage(qimg))
+
+                # Fetch the corresponding command
+                file_idx = self.img_files.index(self.current_filename)
+                command = self.comm_data_list[file_idx][n]
+
+                # Update the QLabel with the fetched command
+                self.command_label.setText("Command: " + str(command))
+            else:
+                print("Error: frame_num is out of range for the raw_frames list.")
+        else:
+            print("Error: index is out of range for the file_dict.")
 
 app=QApplication(sys.argv)
 nd=ImagePlayer()
