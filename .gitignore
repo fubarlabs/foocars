@@ -110,3 +110,4 @@ ENV/
 
 .project
 .pydevproject
+*.lock
