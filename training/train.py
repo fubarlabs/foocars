@@ -26,21 +26,32 @@ from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard
 from defines import *
 
 
-def train_model_from_args(args):
-    args.directories.sort()
+def train_model_with_config(config, callbacks=None):
+    """
+    Train the model using the provided configuration object.
+
+    config:
+        config (object): A configuration object with attributes specifying
+                         training parameters such as epochs, batch_size,
+                         learning_rate, dataset_path, etc.
+
+    Returns:
+        The trained model, or any other relevant information.
+    """
+    config.directories.sort()
     time_format='%Y-%m-%d_%H-%M-%S'
     trainstart=datetime.datetime.now()
     time_string=trainstart.strftime(time_format)
 
     steer=np.array([])
     data_lengths=[]
-    for directory in args.directories:
+    for directory in config.directories:
         ctlfiles=glob.glob(os.path.join(directory, 'commands*.npz'))
         for ctlfile in sorted(ctlfiles):
             ctldata=np.load(ctlfile)['arr_0']
             data_to_append=np.trim_zeros(ctldata[:, 0], trim='b')
             data_lengths.append(len(data_to_append))
-            steer=np.concatenate((steer, data_to_append[args.delay:len(data_to_append)]), axis=0)
+            steer=np.concatenate((steer, data_to_append[config.delay:len(data_to_append)]), axis=0)
 
     steerSampleMean=steer.mean()
     steerSampleSTD=steer.std()
@@ -51,15 +62,15 @@ def train_model_from_args(args):
     ncols=NCOLS
 
     total_training_samples=sum(data_lengths)
-    training_images=np.zeros((total_training_samples-args.delay*len(data_lengths), nrows, ncols, 3)).astype('float32')
+    training_images=np.zeros((total_training_samples-config.delay*len(data_lengths), nrows, ncols, 3)).astype('float32')
 
     i=0
     n=0
-    for directory in args.directories:
+    for directory in config.directories:
         imgfiles=glob.glob(os.path.join(directory, 'imgs*.npz'))
         for imgfile in sorted(imgfiles):
             imdata=np.load(imgfile)['arr_0'].astype('float32')
-            for image in imdata[0:data_lengths[i]-args.delay]:
+            for image in imdata[0:data_lengths[i]-config.delay]:
                 crop_image=image[row_offset:row_offset+nrows, :]
                 image_mean=crop_image.mean()
                 image_std=crop_image.std()
@@ -68,15 +79,15 @@ def train_model_from_args(args):
             i+=1
 
     from dropout_model import model
-    num_epochs=args.epochs
-    save_epochs=args.save_frequency
-    if args.init_weights!="":
-        model.load_weights(args.init_weights)
+    num_epochs=config.epochs
+    save_epochs=config.save_frequency
+    if config.init_weights!="":
+        model.load_weights(config.init_weights)
 
     checkpoint_callback = ModelCheckpoint(
-        filepath=os.path.join('checkpoints', args.weight_filename + '_{epoch:02d}.h5'),
+        filepath=os.path.join('checkpoints', config.weight_filename + '_{epoch:02d}.h5'),
         save_weights_only=True,
-        save_freq=args.save_frequency * (total_training_samples // 25),
+        save_freq=config.save_frequency * (total_training_samples // 25),
         verbose=1
     )
 
@@ -101,7 +112,7 @@ def train_model_from_args(args):
             verbose=1,
             validation_split=0.1,
             shuffle=True,
-            callbacks=[checkpoint_callback, tensorboard_callback]
+            callbacks=callbacks if callbacks else [checkpoint_callback, tensorboard_callback]
         )
         hist[n] = h.history['val_loss'][0]
 
@@ -110,7 +121,20 @@ def train_model_from_args(args):
     plt.savefig('training_hist.png')
     plt.show()
 
-def train_model(epochs, batch_size, learning_rate, dataset_path, weight_filename='weights', init_weights='', delay=0, save_frequency=10):
+def prepare_and_train_model(epochs, batch_size, learning_rate, dataset_path, directories=None, weight_filename='weights', init_weights='', delay=0, save_frequency=10, callbacks=None):
+    """
+    Prepare the training arguments and delegate the training process to the train_model_with_config function.
+
+    Args:
+        epochs (int): Number of training epochs.
+        batch_size (int): Batch size for training.
+        learning_rate (float): Learning rate for the optimizer.
+        dataset_path (str): Path to the dataset directory.
+        weight_filename (str, optional): Filename for saving model weights. Defaults to 'weights'.
+        init_weights (str, optional): Path to initial weights for the model. Defaults to ''.
+        delay (int, optional): Delay in seconds before starting training. Defaults to 0.
+        save_frequency (int, optional): Frequency of saving model weights (in epochs). Defaults to 10.
+    """
     class CustomArgs:
         pass
 
@@ -118,14 +142,29 @@ def train_model(epochs, batch_size, learning_rate, dataset_path, weight_filename
     args.epochs = epochs
     args.batch_size = batch_size
     args.learning_rate = learning_rate
-    args.directories = [dataset_path] 
+    args.directories = directories if directories is not None else [dataset_path]
     args.dataset_path = dataset_path
+
     args.weight_filename = weight_filename
     args.init_weights = init_weights
     args.delay = delay
     args.save_frequency = save_frequency
+    args.callbacks = callbacks
 
-    train_model_from_args(args)
+    # Add print statements to inspect argument values
+    print("epochs:", args.epochs)
+    print("batch_size:", args.batch_size)
+    print("learning_rate:", args.learning_rate)
+    print("directories:", args.directories)
+    print("dataset_path:", args.dataset_path)
+    print("weight_filename:", args.weight_filename)
+    print("init_weights:", args.init_weights)
+    print("delay:", args.delay)
+    print("save_frequency:", args.save_frequency)
+    print("callbacks:", args.callbacks)
+
+    train_model_with_config(args)
+
 
 
 # Keep the argparse code here
@@ -144,5 +183,5 @@ if __name__ == "__main__":
     parser.add_argument('directories', nargs='+', help='list of directories to read training data from')
     args = parser.parse_args()
 
-    # Call the train_model_from_args function
-    train_model_from_args(args)
+    # Call the train_model_from_config function
+    train_model_with_config(args)
