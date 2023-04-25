@@ -11,6 +11,7 @@ streamlit = "^1.21.0"
 argparse = "^1.4.0"
 tqdm = "^4.65.0"
 matplotlib = "3.4.3"
+streamlit-tensorboard = "^0.0.2"
 
 
 [tool.poetry.dev-dependencies]
