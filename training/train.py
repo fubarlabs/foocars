@@ -112,6 +112,7 @@ def train_model(epochs, batch_size, learning_rate, dataset_path, weight_filename
     args.epochs = epochs
     args.batch_size = batch_size
     args.learning_rate = learning_rate
+    args.directories = [dataset_path] 
     args.dataset_path = dataset_path
     args.weight_filename = weight_filename
     args.init_weights = init_weights
