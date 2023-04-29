@@ -3,7 +3,7 @@ FROM --platform=linux/arm64/v8 kumatea/tensorflow:2.4.1-py39 AS base
 
 WORKDIR foocars
 ENV READTHEDOCS=True
-#TODO: use the get poetry install script
+
 RUN pip3 install --upgrade pip poetry
 RUN poetry config virtualenvs.create false
 
@@ -35,6 +35,5 @@ RUN poetry install
 COPY --from=cargenerator /foocars/cars/chiaracer /foocars/cars/chiaracer
 #ENTRYPOINT ["python3"]
 #ENTRYPOINT ["/bin/bash"]
-##CMD ["/usr/local/bin/car_runner"]
-CMD ["/bin/bash"]
+CMD ["/usr/local/bin/car_runner"]
 
