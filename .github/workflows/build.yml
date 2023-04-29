@@ -27,11 +27,10 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Docker Metadata action
-      id: meta
+    - name: Docker Metadata action (car)
+      id: meta_car
       uses: docker/metadata-action@v3.5.0
       with:
-        # List of Docker images to use as base name for tags
         images: rianders/car
         tags: |
           type=sha
@@ -39,11 +38,30 @@ jobs:
           type=ref,event=pr
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
-    - name: Build and push Docker images
+    - name: Docker Metadata action (car32)
+      id: meta_car32
+      uses: docker/metadata-action@v3.5.0
+      with:
+        images: rianders/car32
+        tags: |
+          type=sha
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+    - name: Build and push Docker images (car64)
       uses: docker/build-push-action@v2.7.0
       with:
         file: car.dockerfile
         platforms: linux/arm64
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
+        tags: ${{ steps.meta_car.outputs.tags }}
+        labels: ${{ steps.meta_car.outputs.labels }}
+        push: true
+    - name: Build and push Docker images (car32)
+      uses: docker/build-push-action@v2.7.0
+      with:
+        file: car32.dockerfile
+        platforms: linux/arm/v7
+        tags: ${{ steps.meta_car32.outputs.tags }}
+        labels: ${{ steps.meta_car32.outputs.labels }}
         push: true
