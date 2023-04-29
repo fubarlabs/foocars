@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y \
     rustc
 
 RUN pip3 install --upgrade pip
-RUN pip3 install --upgrade pip poetry
+RUN pip3 install poetry
 RUN poetry config virtualenvs.create false
 
 # From the base get the cargenerator
