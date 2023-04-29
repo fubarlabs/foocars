@@ -4,7 +4,8 @@ WORKDIR foocars
 ENV READTHEDOCS=True
 RUN apt-get update && apt-get install -y \
     rustc
-    
+
+RUN pip3 install --upgrade pip
 RUN pip3 install --upgrade pip poetry
 RUN poetry config virtualenvs.create false
 
