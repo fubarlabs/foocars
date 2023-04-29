@@ -4,10 +4,8 @@ WORKDIR foocars
 ENV READTHEDOCS=True
 RUN apt-get update && apt-get install -y \
     rustc
-#TODO: use the get poetry install script
-#RUN pip3 install --upgrade pip poetry
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
-RUN source $HOME/.poetry/env
+    
+RUN pip3 install --upgrade pip poetry
 RUN poetry config virtualenvs.create false
 
 # From the base get the cargenerator
