@@ -5,12 +5,17 @@ ENV READTHEDOCS=True
 RUN apt-get update && apt-get install -y \
     rustc
 
-RUN pip3 install --upgrade pip
-RUN curl -sSL https://install.python-poetry.org | python3 -
+FROM base as poetry
+ENV POETRY_HOME=/opt/poetry
+ENV POETRY_VIRTUALENVS_IN_PROJECT=true
+ENV PATH="$POETRY_HOME/bin:$PATH"
+RUN python -c 'from urllib.request import urlopen; print(urlopen("https://install.python-poetry.org").read().decode())' | python -
+COPY . ./
+RUN poetry install --no-interaction --no-ansi -vvv
 RUN poetry config virtualenvs.create false
 
 # From the base get the cargenerator
-FROM base AS cargenerator
+FROM poetry AS cargenerator
 COPY ./cargenerator /foocars/cargenerator
 COPY ./tests /foocars/tests
 
