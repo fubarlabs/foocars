@@ -27,12 +27,22 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Docker Metadata action
-      id: meta
+    - name: Docker Metadata action (car)
+      id: meta_car
       uses: docker/metadata-action@v3.5.0
       with:
-        # List of Docker images to use as base name for tags
         images: rianders/car
+        tags: |
+          type=sha
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+    - name: Docker Metadata action (car32)
+      id: meta_car32
+      uses: docker/metadata-action@v3.5.0
+      with:
+        images: rianders/car32
         tags: |
           type=sha
           type=ref,event=branch
