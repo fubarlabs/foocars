@@ -1,3 +1,17 @@
+ARG BUILD_TAG=3.10-jammy-build-20230328
+FROM balenalib/raspberrypi4-64-ubuntu-python:${BUILD_TAG} as userland
+RUN install_packages \
+    cmake
+
+RUN git clone \
+    https://github.com/msherman64/userland \
+    -b wip/64bit \
+    /usr/local/src/userland
+WORKDIR /usr/local/src/userland
+RUN ./buildme --aarch64
+
+
+
 FROM --platform=linux/arm64/v8 kumatea/tensorflow:2.4.1-py39 AS base
 
 
@@ -35,5 +49,7 @@ RUN poetry install
 COPY --from=cargenerator /foocars/cars/chiaracer /foocars/cars/chiaracer
 #ENTRYPOINT ["python3"]
 #ENTRYPOINT ["/bin/bash"]
+COPY --from=userland /opt/vc/ /opt/vc/
+
 CMD ["/usr/local/bin/car_runner"]
 
