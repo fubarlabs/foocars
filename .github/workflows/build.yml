@@ -57,11 +57,11 @@ jobs:
         tags: ${{ steps.meta_car.outputs.tags }}
         labels: ${{ steps.meta_car.outputs.labels }}
         push: true
-    - name: Build and push Docker images (car32)
-      uses: docker/build-push-action@v2.7.0
-      with:
-        file: car32.dockerfile
-        platforms: linux/arm/v7
-        tags: ${{ steps.meta_car32.outputs.tags }}
-        labels: ${{ steps.meta_car32.outputs.labels }}
-        push: true
+#    - name: Build and push Docker images (car32)
+#      uses: docker/build-push-action@v2.7.0
+#      with:
+#        file: car32.dockerfile
+#        platforms: linux/arm/v7
+#        tags: ${{ steps.meta_car32.outputs.tags }}
+#        labels: ${{ steps.meta_car32.outputs.labels }}
+#        push: true
