@@ -1,7 +1,12 @@
-ARG BUILD_TAG=3.10-jammy-build-20230328
-FROM balenalib/raspberrypi4-64-ubuntu-python:${BUILD_TAG} as userland
-RUN install_packages \
-    cmake
+ARG BASE_IMAGE=kumatea/tensorflow:2.4.1-py39
+
+FROM --platform=linux/arm64/v8 ${BASE_IMAGE} as userland
+
+RUN apt-get update && apt-get install -f -y \
+    cmake \
+    build-essential \
+    git \
+    sudo
 
 RUN git clone \
     https://github.com/msherman64/userland \
@@ -12,7 +17,7 @@ RUN ./buildme --aarch64
 
 
 
-FROM --platform=linux/arm64/v8 kumatea/tensorflow:2.4.1-py39 AS base
+FROM --platform=linux/arm64/v8 ${BASE_IMAGE} AS base
 
 
 WORKDIR foocars
@@ -50,6 +55,7 @@ COPY --from=cargenerator /foocars/cars/chiaracer /foocars/cars/chiaracer
 #ENTRYPOINT ["python3"]
 #ENTRYPOINT ["/bin/bash"]
 COPY --from=userland /opt/vc/ /opt/vc/
+ENV LD_LIBRARY_PATH=/opt/vc/lib
 
 CMD ["/usr/local/bin/car_runner"]
 
