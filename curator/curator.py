@@ -80,8 +80,37 @@ class ImagePlayer(QMainWindow):
         self.edit_bar.addAction(self.tag_act)
         self.edit_bar.addWidget(self.tagselect)
         self.edit_bar.addWidget(self.tagmanagerbutton)
+
+        
+
         #set main widget layout, contains image label and video toolbar
         layout=QVBoxLayout()
+
+        # set resize zoom factor
+        self.resize_increment = 1  # This is the starting value
+        self.resize_increments = [1,1.5,2,2.5,3,5,10]  # Possible resize increments
+        
+        # create a horizontal layou
+        self.resize_layout = QHBoxLayout()
+        
+
+        self.increment_button = QPushButton("+", self)
+        self.increment_button.clicked.connect(self.increment_resize)
+        # create a label to display the current resize increment
+        self.resize_label = QLabel(self)
+        self.resize_label.setText("Resize/Zoom: " + str(self.resize_increment))
+        self.decrement_button = QPushButton("-", self)
+        self.decrement_button.clicked.connect(self.decrement_resize)
+        
+        self.resize_layout.addWidget(self.increment_button)
+        self.resize_layout.addWidget(self.resize_label)
+        self.resize_layout.addWidget(self.decrement_button)
+        # Add stretch at the end of the layout
+        self.resize_layout.addStretch()
+        layout.addLayout(self.resize_layout)
+        
+
+        # add edit_bar and image_label to the layout,views image
         layout.addWidget(self.edit_bar)
         layout.addWidget(self.image_label)
         # Add the QLabel to display the command
@@ -330,9 +359,31 @@ class ImagePlayer(QMainWindow):
         if framenum!=None:
             self.update_image(framenum)
 
+    def increment_resize(self):  # New method to increase the resize increment
+        idx = self.resize_increments.index(self.resize_increment)
+        if idx < len(self.resize_increments) - 1:
+            self.resize_increment = self.resize_increments[idx + 1]
+            # update resize label
+            self.resize_label.setText("Resize/Zoom: " + str(self.resize_increment))
+
+
+    def decrement_resize(self):  # New method to decrease the resize increment
+        idx = self.resize_increments.index(self.resize_increment)
+        if idx > 0:
+            self.resize_increment = self.resize_increments[idx - 1]
+            # update resize label
+            self.resize_label.setText("Resize/Zoom: " + str(self.resize_increment))
+
     def load_data(self, filename):
         np_images=(np.load(filename)['arr_0'])
-        big_np=[np.array(Image.fromarray(i).resize((480,360)))for i in np_images]
+
+        # Get original dimensions from first image in the array
+        original_height, original_width = np_images[0].shape[:2]
+
+        # Use original dimensions for resizing
+        resize_multiplier = self.resize_increment  # Use resize increment here
+        big_np=[np.array(Image.fromarray(i).resize((int(original_width * resize_multiplier), int(original_height * resize_multiplier)))) for i in np_images]
+
         self.image_shape=big_np[0].shape
         raw_frames=[i.tobytes() for i in big_np]
         return raw_frames
