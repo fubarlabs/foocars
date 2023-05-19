@@ -2,9 +2,12 @@ import os
 import sys
 import glob
 import numpy as np
-from PyQt5.QtWidgets import QMessageBox, QFileDialog, QInputDialog, QComboBox, QCheckBox, QPushButton, QDockWidget, QListWidget, QToolBar, QMainWindow, QWidget, QLabel, QVBoxLayout, QAction, QApplication
+from PyQt5.QtWidgets import QHBoxLayout, QLineEdit, QMessageBox, QFileDialog, QInputDialog, QComboBox, QCheckBox, QPushButton, QDockWidget, QListWidget, QToolBar, QMainWindow, QWidget, QLabel, QVBoxLayout, QAction, QApplication
 
-from PyQt5.QtGui import *
+#from PyQt5.QtGui import *
+from PyQt5.QtGui import QIcon, QPixmap, QImage, QPainter, QPen, QBrush, QColor
+from PyQt5.QtGui import QKeySequence
+
 from PyQt5.QtCore import *
 from actionclasses import deleteAction
 from actionclasses import tagAction
@@ -14,14 +17,37 @@ from PIL import Image
 from HistoryDialog import HistoryDialog
 
 
-#datadir="test_data"
+class OverlayLabel(QLabel):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.overlay_rect = None  # Rectangle coordinates (x, y, width, height)
+
+    def setOverlayRect(self, rect):
+        self.overlay_rect = rect
+        self.update()  # Trigger a repaint
+
+    def paintEvent(self, event):
+        super().paintEvent(event)  # Draw the label as usual (including image)
+
+        if self.overlay_rect is not None:
+            painter = QPainter(self)
+            pen = QPen(Qt.red)  # Set the color of the overlay
+            pen.setWidth(2)  # Set the width of the pen
+            painter.setPen(pen)
+            painter.drawRect(self.overlay_rect)  # Draw the rectangle
+
+
 
 class ImagePlayer(QMainWindow):
 
     def __init__(self, parent=None):
         super(ImagePlayer, self).__init__(parent)
+#----- data fields needed -----
+        self.original_height=0
+        self.original_width=0
+
 #-------main image widget------------------------
-        self.image_label=QLabel()
+        self.image_label=OverlayLabel()
         self.image_label.setText("Please choose a directory to load")
         self.image_label.setMinimumSize(400, 300)
         self.image_label.setAlignment(Qt.AlignCenter)
@@ -52,20 +78,74 @@ class ImagePlayer(QMainWindow):
         self.edit_bar.addAction(self.redo_act)
         self.edit_bar.addAction(self.lbracket_act)
         self.edit_bar.addWidget(self.lbracketframelabel)
-        self.edit_bar.addAction(self.delete_act)
-        self.edit_bar.addAction(self.tag_act)
         self.edit_bar.addWidget(self.rbracketframelabel)
         self.edit_bar.addAction(self.rbracket_act)
+        self.edit_bar.addAction(self.delete_act)
+        self.edit_bar.addAction(self.tag_act)
         self.edit_bar.addWidget(self.tagselect)
         self.edit_bar.addWidget(self.tagmanagerbutton)
+
+        
+
         #set main widget layout, contains image label and video toolbar
         layout=QVBoxLayout()
+
+        # set resize zoom factor
+        self.resize_increment = 1  # This is the starting value
+        self.resize_increments = [1,1.5,2,2.5,3,5,10]  # Possible resize increments
+        
+        # create a horizontal layou
+        self.resize_layout = QHBoxLayout()
+        
+
+        self.increment_button = QPushButton("+", self)
+        self.increment_button.clicked.connect(self.increment_resize)
+        # create a label to display the current resize increment
+        self.resize_label = QLabel(self)
+        self.resize_label.setText("Resize/Zoom: " + str(self.resize_increment))
+        self.decrement_button = QPushButton("-", self)
+        self.decrement_button.clicked.connect(self.decrement_resize)
+        
+        self.resize_layout.addWidget(self.increment_button)
+        self.resize_layout.addWidget(self.resize_label)
+        self.resize_layout.addWidget(self.decrement_button)
+        # Add stretch at the end of the layout
+        self.resize_layout.addStretch()
+        layout.addLayout(self.resize_layout)
+        
+
+        # add edit_bar and image_label to the layout,views image
         layout.addWidget(self.edit_bar)
         layout.addWidget(self.image_label)
         # Add the QLabel to display the command
         self.command_label = QLabel(self)
         layout.addWidget(self.command_label)
+        # Add the QLabel to display the image dimensions
+        self.dimensions_label = QLabel(self)
+        layout.addWidget(self.dimensions_label)
 
+       
+        # Add the QLabel to collect crop frame coordinates
+        self.xInput = QLineEdit('0', self)
+        self.yInput = QLineEdit('0', self)
+        self.rowInput = QLineEdit('36', self)
+        self.colInput = QLineEdit('128', self)
+        # Create the QHBoxLayout
+        inputLayout = QHBoxLayout() 
+        #layout = QVBoxLayout(self)
+        inputLayout.addWidget(self.xInput)
+        inputLayout.addWidget(self.yInput)
+        inputLayout.addWidget(self.rowInput)
+        inputLayout.addWidget(self.colInput)
+
+        self.cropButton = QPushButton('Set Crop Area', self)
+        self.cropButton.clicked.connect(self.set_crop_area)
+        inputLayout.addWidget(self.cropButton)
+        inputLayout.addStretch()
+
+        layout.addLayout(inputLayout)
+
+#-------Add the video toolbar to the main widget--
         layout.addWidget(self.video_bar)
         #setup main widget in main window
         centralWidget=QWidget()
@@ -113,6 +193,7 @@ class ImagePlayer(QMainWindow):
         # Add the action to a menu or toolbar:
         filemenu.addAction(self.history_act)
 #-------Load data, initial image, start----------
+        self.overlayRect = None # crop overlay rectangle
         self.savedir=None
         self.loaddir=None
         self.comm_data_list = []  # Add this line to initialize the attribute
@@ -162,7 +243,16 @@ class ImagePlayer(QMainWindow):
         self.history_act = QAction("Action &History", self)
         self.history_act.triggered.connect(self.show_history)
         
-        
+    def set_crop_area(self):
+        try:
+            x = int(self.xInput.text())
+            y = int(self.yInput.text())
+            rows = int(self.rowInput.text())
+            cols = int(self.colInput.text())
+
+            self.image_label.setOverlayRect(QRect(x, y, rows, cols))
+        except ValueError:
+            QMessageBox.warning(self, "Input Error", "Please enter valid integers for x, y, rows, and cols.")   
 
     def show_confirmation_message(self, message, parent):
         QMessageBox.information(parent, "Confirmation", message)
@@ -274,9 +364,31 @@ class ImagePlayer(QMainWindow):
         if framenum!=None:
             self.update_image(framenum)
 
+    def increment_resize(self):  # New method to increase the resize increment
+        idx = self.resize_increments.index(self.resize_increment)
+        if idx < len(self.resize_increments) - 1:
+            self.resize_increment = self.resize_increments[idx + 1]
+            # update resize label
+            self.resize_label.setText("Resize/Zoom: " + str(self.resize_increment))
+
+
+    def decrement_resize(self):  # New method to decrease the resize increment
+        idx = self.resize_increments.index(self.resize_increment)
+        if idx > 0:
+            self.resize_increment = self.resize_increments[idx - 1]
+            # update resize label
+            self.resize_label.setText("Resize/Zoom: " + str(self.resize_increment))
+
     def load_data(self, filename):
         np_images=(np.load(filename)['arr_0'])
-        big_np=[np.array(Image.fromarray(i).resize((480,360)))for i in np_images]
+
+        # Get original dimensions from first image in the array
+        self.original_height, self.original_width = np_images[0].shape[:2]
+
+        # Use original dimensions for resizing
+        resize_multiplier = self.resize_increment  # Use resize increment here
+        big_np=[np.array(Image.fromarray(i).resize((int(self.original_width * resize_multiplier), int(self.original_height * resize_multiplier)))) for i in np_images]
+
         self.image_shape=big_np[0].shape
         raw_frames=[i.tobytes() for i in big_np]
         return raw_frames
@@ -523,7 +635,27 @@ class ImagePlayer(QMainWindow):
                 self.index = n
                 self.framelabel.setText("Frame {0}/{1}".format(self.index + 1, fileframes))
                 qimg = QImage(self.raw_frames[frame_num], self.image_shape[1], self.image_shape[0], self.image_shape[1] * 3, QImage.Format_RGB888)
+                
+                resize_multiplier = self.resize_increment            
+                x_rel = int(self.xInput.text()) * resize_multiplier
+                y_rel = int(self.yInput.text()) * resize_multiplier
+                width_rel = int(self.rowInput.text()) * resize_multiplier
+                height_rel = int(self.colInput.text()) * resize_multiplier
+                
+                self.overlayRect = QRect(x_rel, y_rel, height_rel, width_rel)
+
+
+                # If the overlay rectangle is defined, apply it to the image_label
+                if self.overlayRect is not None:
+                    painter = QPainter(qimg)
+                    painter.setPen(QColor(255, 0, 0, 255))  # Red color
+                    painter.drawRect(self.overlayRect)
+                    painter.end()
+
                 self.image_label.setPixmap(QPixmap.fromImage(qimg))
+                
+                # Update the QLabel with the image dimensions
+                self.dimensions_label.setText("Dimensions: {0} x {1}".format(self.image_shape[1], self.image_shape[0]))  # Assuming self.image_shape contains the image dimensions
 
                 # Fetch the corresponding command
                 file_idx = self.img_files.index(self.current_filename)
