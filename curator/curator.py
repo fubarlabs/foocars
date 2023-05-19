@@ -4,7 +4,10 @@ import glob
 import numpy as np
 from PyQt5.QtWidgets import QMessageBox, QFileDialog, QInputDialog, QComboBox, QCheckBox, QPushButton, QDockWidget, QListWidget, QToolBar, QMainWindow, QWidget, QLabel, QVBoxLayout, QAction, QApplication
 
-from PyQt5.QtGui import *
+#from PyQt5.QtGui import *
+from PyQt5.QtGui import QIcon, QPixmap, QImage, QPainter, QPen, QBrush, QColor
+from PyQt5.QtGui import QKeySequence
+
 from PyQt5.QtCore import *
 from actionclasses import deleteAction
 from actionclasses import tagAction
@@ -52,10 +55,10 @@ class ImagePlayer(QMainWindow):
         self.edit_bar.addAction(self.redo_act)
         self.edit_bar.addAction(self.lbracket_act)
         self.edit_bar.addWidget(self.lbracketframelabel)
-        self.edit_bar.addAction(self.delete_act)
-        self.edit_bar.addAction(self.tag_act)
         self.edit_bar.addWidget(self.rbracketframelabel)
         self.edit_bar.addAction(self.rbracket_act)
+        self.edit_bar.addAction(self.delete_act)
+        self.edit_bar.addAction(self.tag_act)
         self.edit_bar.addWidget(self.tagselect)
         self.edit_bar.addWidget(self.tagmanagerbutton)
         #set main widget layout, contains image label and video toolbar
