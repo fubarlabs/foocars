@@ -42,6 +42,10 @@ class ImagePlayer(QMainWindow):
 
     def __init__(self, parent=None):
         super(ImagePlayer, self).__init__(parent)
+#----- data fields needed -----
+        self.original_height=0
+        self.original_width=0
+
 #-------main image widget------------------------
         self.image_label=OverlayLabel()
         self.image_label.setText("Please choose a directory to load")
@@ -137,6 +141,7 @@ class ImagePlayer(QMainWindow):
         self.cropButton = QPushButton('Set Crop Area', self)
         self.cropButton.clicked.connect(self.set_crop_area)
         inputLayout.addWidget(self.cropButton)
+        inputLayout.addStretch()
 
         layout.addLayout(inputLayout)
 
@@ -245,7 +250,7 @@ class ImagePlayer(QMainWindow):
             rows = int(self.rowInput.text())
             cols = int(self.colInput.text())
 
-            self.image_label.setOverlayRect(QRect(x, y, cols, rows))
+            self.image_label.setOverlayRect(QRect(x, y, rows, cols))
         except ValueError:
             QMessageBox.warning(self, "Input Error", "Please enter valid integers for x, y, rows, and cols.")   
 
@@ -378,11 +383,11 @@ class ImagePlayer(QMainWindow):
         np_images=(np.load(filename)['arr_0'])
 
         # Get original dimensions from first image in the array
-        original_height, original_width = np_images[0].shape[:2]
+        self.original_height, self.original_width = np_images[0].shape[:2]
 
         # Use original dimensions for resizing
         resize_multiplier = self.resize_increment  # Use resize increment here
-        big_np=[np.array(Image.fromarray(i).resize((int(original_width * resize_multiplier), int(original_height * resize_multiplier)))) for i in np_images]
+        big_np=[np.array(Image.fromarray(i).resize((int(self.original_width * resize_multiplier), int(self.original_height * resize_multiplier)))) for i in np_images]
 
         self.image_shape=big_np[0].shape
         raw_frames=[i.tobytes() for i in big_np]
@@ -631,6 +636,15 @@ class ImagePlayer(QMainWindow):
                 self.framelabel.setText("Frame {0}/{1}".format(self.index + 1, fileframes))
                 qimg = QImage(self.raw_frames[frame_num], self.image_shape[1], self.image_shape[0], self.image_shape[1] * 3, QImage.Format_RGB888)
                 
+                resize_multiplier = self.resize_increment            
+                x_rel = int(self.xInput.text()) * resize_multiplier
+                y_rel = int(self.yInput.text()) * resize_multiplier
+                width_rel = int(self.rowInput.text()) * resize_multiplier
+                height_rel = int(self.colInput.text()) * resize_multiplier
+                
+                self.overlayRect = QRect(x_rel, y_rel, height_rel, width_rel)
+
+
                 # If the overlay rectangle is defined, apply it to the image_label
                 if self.overlayRect is not None:
                     painter = QPainter(qimg)
