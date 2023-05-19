@@ -2,7 +2,7 @@ import os
 import sys
 import glob
 import numpy as np
-from PyQt5.QtWidgets import QMessageBox, QFileDialog, QInputDialog, QComboBox, QCheckBox, QPushButton, QDockWidget, QListWidget, QToolBar, QMainWindow, QWidget, QLabel, QVBoxLayout, QAction, QApplication
+from PyQt5.QtWidgets import QHBoxLayout, QLineEdit, QMessageBox, QFileDialog, QInputDialog, QComboBox, QCheckBox, QPushButton, QDockWidget, QListWidget, QToolBar, QMainWindow, QWidget, QLabel, QVBoxLayout, QAction, QApplication
 
 #from PyQt5.QtGui import *
 from PyQt5.QtGui import QIcon, QPixmap, QImage, QPainter, QPen, QBrush, QColor
@@ -17,14 +17,33 @@ from PIL import Image
 from HistoryDialog import HistoryDialog
 
 
-#datadir="test_data"
+class OverlayLabel(QLabel):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.overlay_rect = None  # Rectangle coordinates (x, y, width, height)
+
+    def setOverlayRect(self, rect):
+        self.overlay_rect = rect
+        self.update()  # Trigger a repaint
+
+    def paintEvent(self, event):
+        super().paintEvent(event)  # Draw the label as usual (including image)
+
+        if self.overlay_rect is not None:
+            painter = QPainter(self)
+            pen = QPen(Qt.red)  # Set the color of the overlay
+            pen.setWidth(2)  # Set the width of the pen
+            painter.setPen(pen)
+            painter.drawRect(self.overlay_rect)  # Draw the rectangle
+
+
 
 class ImagePlayer(QMainWindow):
 
     def __init__(self, parent=None):
         super(ImagePlayer, self).__init__(parent)
 #-------main image widget------------------------
-        self.image_label=QLabel()
+        self.image_label=OverlayLabel()
         self.image_label.setText("Please choose a directory to load")
         self.image_label.setMinimumSize(400, 300)
         self.image_label.setAlignment(Qt.AlignCenter)
@@ -72,6 +91,27 @@ class ImagePlayer(QMainWindow):
         self.dimensions_label = QLabel(self)
         layout.addWidget(self.dimensions_label)
 
+       
+        # Add the QLabel to collect crop frame coordinates
+        self.xInput = QLineEdit('0', self)
+        self.yInput = QLineEdit('0', self)
+        self.rowInput = QLineEdit('36', self)
+        self.colInput = QLineEdit('128', self)
+        # Create the QHBoxLayout
+        inputLayout = QHBoxLayout() 
+        #layout = QVBoxLayout(self)
+        inputLayout.addWidget(self.xInput)
+        inputLayout.addWidget(self.yInput)
+        inputLayout.addWidget(self.rowInput)
+        inputLayout.addWidget(self.colInput)
+
+        self.cropButton = QPushButton('Set Crop Area', self)
+        self.cropButton.clicked.connect(self.set_crop_area)
+        inputLayout.addWidget(self.cropButton)
+
+        layout.addLayout(inputLayout)
+
+#-------Add the video toolbar to the main widget--
         layout.addWidget(self.video_bar)
         #setup main widget in main window
         centralWidget=QWidget()
@@ -119,6 +159,7 @@ class ImagePlayer(QMainWindow):
         # Add the action to a menu or toolbar:
         filemenu.addAction(self.history_act)
 #-------Load data, initial image, start----------
+        self.overlayRect = None # crop overlay rectangle
         self.savedir=None
         self.loaddir=None
         self.comm_data_list = []  # Add this line to initialize the attribute
@@ -168,7 +209,16 @@ class ImagePlayer(QMainWindow):
         self.history_act = QAction("Action &History", self)
         self.history_act.triggered.connect(self.show_history)
         
-        
+    def set_crop_area(self):
+        try:
+            x = int(self.xInput.text())
+            y = int(self.yInput.text())
+            rows = int(self.rowInput.text())
+            cols = int(self.colInput.text())
+
+            self.image_label.setOverlayRect(QRect(x, y, cols, rows))
+        except ValueError:
+            QMessageBox.warning(self, "Input Error", "Please enter valid integers for x, y, rows, and cols.")   
 
     def show_confirmation_message(self, message, parent):
         QMessageBox.information(parent, "Confirmation", message)
@@ -529,6 +579,14 @@ class ImagePlayer(QMainWindow):
                 self.index = n
                 self.framelabel.setText("Frame {0}/{1}".format(self.index + 1, fileframes))
                 qimg = QImage(self.raw_frames[frame_num], self.image_shape[1], self.image_shape[0], self.image_shape[1] * 3, QImage.Format_RGB888)
+                
+                # If the overlay rectangle is defined, apply it to the image_label
+                if self.overlayRect is not None:
+                    painter = QPainter(qimg)
+                    painter.setPen(QColor(255, 0, 0, 255))  # Red color
+                    painter.drawRect(self.overlayRect)
+                    painter.end()
+
                 self.image_label.setPixmap(QPixmap.fromImage(qimg))
                 
                 # Update the QLabel with the image dimensions
