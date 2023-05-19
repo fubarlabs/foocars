@@ -68,6 +68,9 @@ class ImagePlayer(QMainWindow):
         # Add the QLabel to display the command
         self.command_label = QLabel(self)
         layout.addWidget(self.command_label)
+        # Add the QLabel to display the image dimensions
+        self.dimensions_label = QLabel(self)
+        layout.addWidget(self.dimensions_label)
 
         layout.addWidget(self.video_bar)
         #setup main widget in main window
@@ -527,6 +530,9 @@ class ImagePlayer(QMainWindow):
                 self.framelabel.setText("Frame {0}/{1}".format(self.index + 1, fileframes))
                 qimg = QImage(self.raw_frames[frame_num], self.image_shape[1], self.image_shape[0], self.image_shape[1] * 3, QImage.Format_RGB888)
                 self.image_label.setPixmap(QPixmap.fromImage(qimg))
+                
+                # Update the QLabel with the image dimensions
+                self.dimensions_label.setText("Dimensions: {0} x {1}".format(self.image_shape[1], self.image_shape[0]))  # Assuming self.image_shape contains the image dimensions
 
                 # Fetch the corresponding command
                 file_idx = self.img_files.index(self.current_filename)
