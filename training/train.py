@@ -84,13 +84,20 @@ def train_model_with_config(config, callbacks=None):
     if config.init_weights!="":
         model.load_weights(config.init_weights)
 
-    checkpoint_callback = ModelCheckpoint(
+#     checkpoint_callback = ModelCheckpoint(
+#         filepath=os.path.join('checkpoints', config.weight_filename + '_{epoch:02d}.h5'),
+#         save_weights_only=True,
+#         save_freq=config.save_frequency * (total_training_samples // 25),
+#         verbose=1
+#     )
+   checkpoint_callback = ModelCheckpoint(
         filepath=os.path.join('checkpoints', config.weight_filename + '_{epoch:02d}.h5'),
         save_weights_only=True,
-        save_freq=config.save_frequency * (total_training_samples // 25),
+        save_freq=config.save_frequency,
         verbose=1
     )
 
+    
     tensorboard_callback = TensorBoard(
         log_dir='logs',
         histogram_freq=1,
