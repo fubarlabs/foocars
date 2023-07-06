@@ -72,9 +72,28 @@ rpi.gpio==0.7.0 \
     --hash=sha256:7da5235aeba20da39ad4fb97f3ba3a2c6b2d60bba8958b00a4df42f608c6d42e \
     --hash=sha256:6a4791f41cafc2ee6e4cb70e5bd31fadc66a0cfab29b38df8723a98f6f73ad5a \
     --hash=sha256:6a4791f41cafc2ee6e4cb70e5bd31fadc66a0cfab29b38df8723a98f6f73ad5a
-scipy==1.6.1; python_version >= "3.7" \
-    --hash=sha256:e3a56a9a68a3ad4a9d72ecc8570bf83106dd42237271460dd74079b449b9f6ea \
-    --hash=sha256:e3a56a9a68a3ad4a9d72ecc8570bf83106dd42237271460dd74079b449b9f6ea
+scipy==1.10.0; python_version >= "3.7" \
+    --hash=sha256:0490dc499fe23e4be35b8b6dd1e60a4a34f0c4adb30ac671e6332446b3cbbb5a \
+    --hash=sha256:0ab2a58064836632e2cec31ca197d3695c86b066bc4818052b3f5381bfd2a728 \
+    --hash=sha256:151f066fe7d6653c3ffefd489497b8fa66d7316e3e0d0c0f7ff6acca1b802809 \
+    --hash=sha256:16ba05d3d1b9f2141004f3f36888e05894a525960b07f4c2bfc0456b955a00be \
+    --hash=sha256:27e548276b5a88b51212b61f6dda49a24acf5d770dff940bd372b3f7ced8c6c2 \
+    --hash=sha256:2ad449db4e0820e4b42baccefc98ec772ad7818dcbc9e28b85aa05a536b0f1a2 \
+    --hash=sha256:2f9ea0a37aca111a407cb98aa4e8dfde6e5d9333bae06dfa5d938d14c80bb5c3 \
+    --hash=sha256:38bfbd18dcc69eeb589811e77fae552fa923067fdfbb2e171c9eac749885f210 \
+    --hash=sha256:3afcbddb4488ac950ce1147e7580178b333a29cd43524c689b2e3543a080a2c8 \
+    --hash=sha256:42ab8b9e7dc1ebe248e55f54eea5307b6ab15011a7883367af48dd781d1312e4 \
+    --hash=sha256:441cab2166607c82e6d7a8683779cb89ba0f475b983c7e4ab88f3668e268c143 \
+    --hash=sha256:4bd0e3278126bc882d10414436e58fa3f1eca0aa88b534fcbf80ed47e854f46c \
+    --hash=sha256:4df25a28bd22c990b22129d3c637fd5c3be4b7c94f975dca909d8bab3309b694 \
+    --hash=sha256:5cd7a30970c29d9768a7164f564d1fbf2842bfc77b7d114a99bc32703ce0bf48 \
+    --hash=sha256:6e4497e5142f325a5423ff5fda2fff5b5d953da028637ff7c704378c8c284ea7 \
+    --hash=sha256:6faf86ef7717891195ae0537e48da7524d30bc3b828b30c9b115d04ea42f076f \
+    --hash=sha256:954ff69d2d1bf666b794c1d7216e0a746c9d9289096a64ab3355a17c7c59db54 \
+    --hash=sha256:9b878c671655864af59c108c20e4da1e796154bd78c0ed6bb02bc41c84625686 \
+    --hash=sha256:b901b423c91281a974f6cd1c36f5c6c523e665b5a6d5e80fcb2334e14670eefd \
+    --hash=sha256:c8b3cbc636a87a89b770c6afc999baa6bcbb01691b5ccbbc1b1791c7c0a07540 \
+    --hash=sha256:e096b062d2efdea57f972d232358cb068413dc54eec4f24158bcbb5cb8bddfd8
 six==1.15.0; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.3.0" \
     --hash=sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced
 tensorboard==1.15.0; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.2.0" \
